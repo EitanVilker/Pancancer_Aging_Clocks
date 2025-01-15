@@ -1,0 +1,25 @@
+# environment.yml
+name: r_env
+channels:
+  - conda-forge
+dependencies:
+  - r-base=4.4.0
+  - r-biobase
+  - r-summarizedexperiment
+  - r-ggplot2
+  - r-reactable
+  - r-caret
+  - r-glmnet
+  - r-dplyr
+  - r-impute
+  - r-survival
+  - r-survminer
+  - r-vip
+  - r-tidyverse
+  - r-randomforest
+  - r-e1071
+  - r-class
+  - r-caatools
+  - r-vgam
+  - r-setools
+  - r-timeseriesexperiment
