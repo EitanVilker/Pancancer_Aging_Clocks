@@ -1,0 +1,1579 @@
+---
+title: "Evaluating Models"
+author: "Monti Lab"
+date:   "`r format(Sys.Date(), '%B %d, %Y')`"
+params: 
+  cancer_type: "hnsc"
+output:
+  html_document:
+    theme: united
+    code_folding: hide
+    css: style.css
+    toc: true
+    toc_float: true
+---
+
+```{r opts, echo=FALSE}
+## to prevent excessively verbose output
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+```
+
+```{r render_report, echo=FALSE}
+## this is needed only if you want to generate different versions of the output html
+render_report <- function(
+    rmd = rstudioapi::getSourceEditorContext()$path, # the current source file
+    cancer_type ) {
+  #cancer_type <- match.arg(cancer_type)
+  rmarkdown::render(
+    rmd,
+    params = list(cancer_type = cancer_type),
+    output_file = paste(tools::file_path_sans_ext(rmd), cancer_type, "html", sep = ".")
+  )
+}
+# E.g.,
+#
+# render_report(cancer_type = "hnsc") 
+#   --> "/path/<rmarkdown_stub>.hnsc.html"
+# render_report(cancer_type = "brca") 
+#   --> "/path/<rmarkdown_stub>.brca.html"
+```
+
+```{r settings}
+library(Biobase) # where the ExpressionSet object is defined
+## library(...)
+
+## github.com/montilab/MLscripts contains some useful scripts
+## source(file.path(Sys.getenv("CBMGIT"), "MLscripts","R","signature_overlap.R"))
+## source(file.path(Sys.getenv("CBMGIT"), "MLscripts","R","cache_fun.R"))
+##
+## set an environment variable in .Renviron
+## PCANAGE="/restricted/projectnb/agedisease/projects/pancancer_aging"
+## CBMDATA="/restricted/projectnb/agedisease/CBMrepositoryData"
+PATH <- file.path( Sys.getenv("PCANAGE"), "." ) 
+TCGA <- file.path( Sys.getenv("CBMDATA"), "TCGA-GDC")
+
+## control variables
+cancer_type <- params$cancer_type
+```
+The following code uses the model generation and survival functions to evaluate the correlation of predicted ages with survival.(Background, Elastic Net, Regression, SVM, "other model combinations") w/ (RNAseq, miRNA, RPPA, Methylation).
+
+# Loading Libraries
+```{r}
+library(SummarizedExperiment)
+library(ggplot2)
+library(reactable)
+library(caret)
+library(glmnet)
+library(dplyr)
+library(impute)
+library(survival)
+library(survminer)
+library(vip)
+library(tidyverse)
+
+```
+
+# Loading the data
+```{r}
+setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/Core")
+
+HNSC = readRDS("/restricted/projectnb/agedisease/CBMrepositoryData/TCGA-GDC/RNAseq/processed_data/filtered/TCGA-HNSC_RNAseq_filtered.rds")
+
+RNAseqElNet <- read_csv("ModelBuildingOutput/RNAseqElNet.csv")
+miRNAElNet <- read_csv("ModelBuildingOutput/miRNAElNet.csv")
+RNAseq3Models <- read_csv("ModelBuildingOutput/RNAseq3Models.csv")
+RPPAElNet <- read_csv("ModelBuildingOutput/RPPAElNet.csv")
+```
+
+# Loading Functions
+1) make_meta_df: makes a metadata dataframe with all of the objects from the summarized experiment format to be easily accessible and compatible in the next functions (all metadata as columns).
+
+2) create_DFsurv: will use metadata and predicted ages as inputs and calculate survival scores as one column in for each patient.
+
+3) run_survival_analysis: will take in the dataframe with metadata and survival scores and compute specified scores 
+  *CoxPh model calculating the risk of (dead/alive) given survival until latest follow-up (fu)
+
+1) preparing metadata object (make_meta_df...)
+```{r make_meta_df}
+# Extract all elements from listData
+#HNSC: Head and neck squamous cell carcinoma <- A placeholder for every any summarized object dataset
+make_meta_df <- function(HNSC) {
+  # Create a dataframe with the submitter IDs
+  metadata_table <- data.frame(submitter_id = rownames(HNSC@colData))
+  
+  # Iterate over all elements in listData and add them as columns
+  for (name in names(HNSC@colData@listData)) {
+    column_data <- HNSC@colData@listData[[name]]
+    metadata_table[[name]] <- column_data
+  }
+  
+  # Replace all NA values with 0
+  metadata_table[is.na(metadata_table)] <- 0
+  
+  # Return the metadata table
+  return(metadata_table)
+}
+```
+2) Preparing metadata for survival analysis, calculating survival scores (create_DFsurv...)
+```{r create_DFsurv}
+
+create_DFsurv <- function(predicted_ages, metadata_table, delta_age_thresh = 0) {
+  # Ensure the rownames of predicted_ages match the rownames of metadata_table
+  if (!identical(rownames(predicted_ages), rownames(metadata_table))) {
+    stop("Row names of predicted_ages and metadata_table must match.")
+  }
+  
+  # Add predicted ages to the metadata table
+  metadata_table$predicted_age <- predicted_ages$predicted_age
+  
+  # Calculate delta_age (difference between predicted and chronological age)
+  metadata_table$delta_age <- metadata_table$predicted_age - metadata_table$Age
+  
+  # Prepare the survival data frame
+  DFsurv <- metadata_table |>
+    dplyr::select(submitter_id, Age, predicted_age, vital_status, delta_age, Survival_Time, gender, HPV.status) |>
+    dplyr::rename(
+      chronological = Age,
+      predicted = predicted_age,
+      vitals = vital_status,
+      fu = Survival_Time
+    )
+  
+  # Categorize individuals into "younger", "older", or "same" based on delta_age
+  DFsurv <- DFsurv |>
+    dplyr::mutate(meta_age = factor(dplyr::case_when(
+      delta_age > delta_age_thresh ~ "older",
+      delta_age < delta_age_thresh ~ "younger",
+      TRUE ~ "same"
+    ), levels = c("younger", "older", "same")))
+  
+  # Create a survival object
+  DFsurv$surv <- survival::Surv(time = DFsurv$fu, event = (0:1)[factor(DFsurv$vitals)])
+  
+  # Stratify age into predefined bins
+  DFsurv <- DFsurv |>
+    dplyr::mutate(age_strata = cut(
+      chronological,
+      breaks = c(0, 50, 70, 90, +Inf),
+      labels = c("0-50", "50-70", "70-90", "90+")
+    ))
+  
+  # Return the prepared DFsurv table
+  return(DFsurv)
+}
+sum(is.na(HNSC$days_to_last_follow_up))
+sum(is.na(HNSC$vital_status))
+```
+3) Run the tests on survival analysis (singlets) no combinations
+singlets...
+```{r singlets}
+singlets <- function(hnsc_df, metadata_table) {
+  library(survival)
+  library(dplyr)
+  
+  # Add vitals_boolean and fu_yrs to hnsc_df
+  hnsc_df$vitals_boolean <- ifelse(hnsc_df$vitals == "Dead", 1, 0)
+  hnsc_df$fu_yrs <- hnsc_df$fu / 365
+  
+  # Merge hnsc_df with metadata_table
+  hnsc_df_meta <- hnsc_df %>%
+    left_join(metadata_table, by = "submitter_id")
+  
+  # Initialize an empty results table
+  results <- data.frame(
+    variable = character(),
+    coef = numeric(),
+    exp_coef = numeric(),
+    se = numeric(),
+    concordance = numeric(),
+    likelihood_ratio = numeric(),
+    wald_test = numeric(),
+    score_logrank = numeric(),
+    p_value = numeric(),
+    stringsAsFactors = FALSE
+  )
+  
+  # Initialize a list to store test summaries
+  tests <- list()
+  
+  # Columns to exclude
+  d_cols <- c("fu_yrs", "vitals_boolean", "submitter_id")
+  
+  # Identify relevant columns (numeric or factor, excluding d_cols)
+  cols <- colnames(hnsc_df_meta)
+  variables <- cols[!cols %in% d_cols]
+  #variables <- cols[!cols %in% d_cols & (sapply(hnsc_df_meta, is.numeric) | sapply(hnsc_df_meta, is.factor))]
+  
+  # Run Cox proportional hazards models for each variable
+  for (var in variables) {
+    tryCatch({
+      # Fit the Cox model
+      formula <- as.formula(paste("Surv(fu_yrs, vitals_boolean) ~", var))
+      surv_results <- coxph(formula, data = hnsc_df_meta)
+      model_summary <- summary(surv_results)
+      
+      # Extract required metrics
+      coef <- model_summary$coefficients[1, "coef"]
+      exp_coef <- model_summary$coefficients[1, "exp(coef)"]
+      se <- model_summary$coefficients[1, "se(coef)"]
+      concordance <- model_summary$concordance[1]
+      likelihood_ratio <- model_summary$logtest["test"]
+      wald_test <- model_summary$waldtest["test"]
+      score_logrank <- model_summary$sctest["test"]
+      p_value <- model_summary$coefficients[1, "Pr(>|z|)"]
+      
+      # Append results to the table
+      results <- rbind(results, data.frame(
+        variable = var,
+        coef = coef,
+        exp_coef = exp_coef,
+        se = se,
+        concordance = concordance,
+        likelihood_ratio = likelihood_ratio,
+        wald_test = wald_test,
+        score_logrank = score_logrank,
+        p_value = p_value
+      ))
+      
+      # Save the test summary in the list
+      tests[[var]] <- model_summary
+      
+    }, error = function(e) {
+      message(paste("Skipping variable:", var, "due to error:", e$message))
+    })
+  }
+  
+  # Add a significance column to results
+  results$significance <- ifelse(results$p_value < 0.05, "*", "")
+  
+  # Return both results table and test summaries
+  return(list(
+    results_table = results,
+    tests = tests)
+  )
+}
+```
+4) 
+(run_survival_analysis...)
+To Be Edited
+```{r run_survival_analysis}
+run_survival_analysis <- function(DFsurv) {
+  # Ensure required libraries are loaded
+  if (!requireNamespace("survival", quietly = TRUE)) install.packages("survival")
+  if (!requireNamespace("survminer", quietly = TRUE)) install.packages("survminer")
+  library(survival)
+  library(survminer)
+  
+  results <- list()  # To store results for each model
+  
+  # 0. Chronological Background
+  DFsurv <- RNAseqElNet_meta_filtered_surv
+  chron_model <- coxph(surv ~ delta_age + chronological, data = DFsurv)
+  results$chron_model <- summary(chron_model)
+  
+  colnames(DFsurv))
+  
+  #0.1 Associa
+  
+  # 1. Simple Model
+  if ("HPV.status" %in% colnames(DFsurv)) {
+    DFsurv <- DFsurv[!is.na(DFsurv$gender) & !is.na(DFsurv$HPV.status), ]
+    DFsurv$HPV.status <- as.factor(DFsurv$HPV.status)
+  }
+  DFsurv$gender <- as.factor(DFsurv$gender)
+
+  # Run the simple model
+  simple_model <- coxph(surv ~ delta_age + chronological + gender + ethnicity, data = DFsurv)
+  results$simple_model <- summary(simple_model)
+  
+  # 2. HPV Stratified Model
+  if ("HPV.status" %in% colnames(DFsurv)) {
+    hpv_strat_model <- coxph(surv ~ delta_age + chronological + gender + strata(HPV.status), data = DFsurv)
+    results$hpv_stratified <- summary(hpv_strat_model)
+  }
+  
+  # 3. Meta Age Model
+  meta_age_model <- coxph(surv ~ meta_age + chronological + gender, data = DFsurv)
+  results$meta_age_model <- summary(meta_age_model)
+  
+  # 4. Age Stratified Model
+  age_stratified_model <- coxph(surv ~ delta_age + chronological + gender + strata(age_strata), data = DFsurv)
+  results$age_stratified <- summary(age_stratified_model)
+  
+  # 5. Interaction Term Model
+  interaction_model <- coxph(surv ~ delta_age * chronological + gender, data = DFsurv)
+  results$interaction_model <- summary(interaction_model)
+  
+  # 6. Interaction Term + Age Stratified Model
+  interaction_age_model <- coxph(surv ~ delta_age * chronological + gender + strata(age_strata), data = DFsurv)
+  results$interaction_age_model <- summary(interaction_age_model)
+  
+  # 7. Time-Dependent Model
+  time_dependent_model <- coxph(surv ~ delta_age + chronological + tt(chronological) + gender, data = DFsurv,
+                                tt = function(x, t, ...) x * log(t + 1))
+  results$time_dependent <- summary(time_dependent_model)
+  
+  # 8. Proportional Hazards Tests
+  results$ph_test_interaction <- cox.zph(interaction_model)
+  results$ph_test_interaction_age <- cox.zph(interaction_age_model)
+  
+  # Plotting Proportional Hazards Tests
+  par(mfrow = c(2, 1))  # Set plot layout
+  plot(results$ph_test_interaction, main = "Proportional Hazards Test: Interaction")
+  plot(results$ph_test_interaction_age, main = "Proportional Hazards Test: Interaction + Age Stratified")
+  par(mfrow = c(1, 1))  # Reset plot layout
+  
+  # Return all results
+  return(results)
+}
+```
+# RNAseqElNet
+```{r Prep for RNAseqElNet surv}
+RNAseqElNet <- read_csv("ModelBuildingOutput/RNAseqElNet.csv")
+metadata_table <- make_meta_df(HNSC)
+sum(is.na(metadata_table$submitter_id))
+RNAseqElNet$Age <- round(RNAseqElNet$Age, digits = 13)
+metadata_table$Age <- round(metadata_table$Age, digits = 13)
+
+RNAseqElNet_meta <- RNAseqElNet %>%
+  left_join(metadata_table, by = "Age")
+
+sum(is.na(RNAseqElNet_meta$submitter_id))
+
+missing_rows <- RNAseqElNet_meta %>%
+  filter(is.na(submitter_id))
+
+RNAseqElNet_meta$submitter_id
+print(RNAseqElNet_meta)
+
+length(RNAseqElNet_meta$Age)
+length(RNAseqElNet$Age)
+length(RNAseqElNet_meta$submitter_id)
+
+duplicated_RNAseqElNet <- RNAseqElNet$Age[duplicated(RNAseqElNet$Age)]
+duplicated_metadata <- metadata_table$Age[duplicated(metadata_table$Age)]
+print(duplicated_RNAseqElNet)
+print(duplicated_metadata)
+
+duplicated_metadata <- metadata_table$Age[duplicated(metadata_table$Age)]
+
+# Check which of these duplicated values are in RNAseqElNet$Age
+overlapping_values <- intersect(duplicated_metadata, RNAseqElNet$Age)
+
+# Print the overlapping values
+print(overlapping_values)
+
+#> print(overlapping_values): 60.73101("TCGA-CR-7399"(check) "TCGA-CV-5434") 67.23614("TCGA-CR-7374"(check) "TCGA-D6-A6EK") 51.24709 ("TCGA-DQ-7590" "TCGA-HD-8634"(check))
+#Model not perfect but might be ok for predicting survival ~ 3% off, so maybe not
+#################################
+# Filter rows with specific Age values
+filter1 <- RNAseqElNet_meta[RNAseqElNet_meta$Age > 51.246, ]
+filter2 <- filter1[filter1$Age < 51.248, ]
+test <- filter2[filter2$submitter_id %in% c("TCGA-DQ-7590","TCGA-HD-8634"), ]
+test$submitter_id
+test$gender
+###################################
+#now taking out columns that don't belong to have accurate data:
+to_take_out <- c("TCGA-CV-5434","TCGA-D6-A6EK","TCGA-DQ-7590")
+RNAseqElNet_meta_filtered <- RNAseqElNet_meta[!RNAseqElNet_meta$submitter_id %in% to_take_out, ]
+length(rownames(RNAseqElNet_meta))
+length(rownames(RNAseqElNet_meta_filtered))
+sum(is.na(RNAseqElNet_meta$submitter_id))
+#Here I filtered out rows that didn't belong
+###################################
+##Preparing DF for survival analysis######
+rownames(RNAseqElNet_meta_filtered) <- RNAseqElNet_meta_filtered$submitter_id
+predicted_ages <- data.frame(predicted_age = RNAseqElNet_meta_filtered$predicted_age)
+rownames(predicted_ages) <- RNAseqElNet_meta_filtered$submitter_id
+
+RNAseqElNet_meta_filtered_surv <- create_DFsurv(predicted_ages,RNAseqElNet_meta_filtered)
+
+RNAseqElNet_meta_filtered_surv$chronological <- round(RNAseqElNet_meta_filtered_surv$chronological, digits = 5)
+RNAseqElNet_meta_filtered$Age <- round(RNAseqElNet_meta_filtered$Age, digits = 5)
+
+sum(is.na(RNAseqElNet_meta_filtered$submitter_id))
+
+RNAseqElNet_meta_filtered_surv_meta <- RNAseqElNet_meta_filtered_surv %>%
+  inner_join(RNAseqElNet_meta_filtered, by = c("chronological" = "Age"))
+
+RNAseqElNet_meta_filtered_surv_meta #survival object with predicted ages
+
+######Setting which combinations of statistical tests to run
+# Identify columns with all NAs or all zeros
+dropped_columns <- colnames(RNAseqElNet_meta_filtered_surv_meta)[
+  apply(RNAseqElNet_meta_filtered_surv_meta, 2, function(col) all(is.na(col) | col == 0))
+]
+dropped_columns
+length(colnames(RNAseqElNet_meta_filtered_surv_meta))
+# Drop these columns
+RNAseqElNet_meta_filtered_surv_meta_filtered <- RNAseqElNet_meta_filtered_surv_meta[, !colnames(RNAseqElNet_meta_filtered_surv_meta) %in% dropped_columns]
+
+########################################################
+#identify columns that have zero's in the fu and survival matrix
+sum(is.na(RNAseqElNet_meta_filtered_surv_meta_filtered$submitter_id)) #!!!!!
+RNAseqElNet_meta_filtered_surv_meta_filtered$vital_status
+sum(is.na(RNAseqElNet_meta_filtered_surv_meta_filtered$fu))
+zeros <- RNAseqElNet_meta_filtered_surv_meta_filtered[RNAseqElNet_meta_filtered_surv_meta_filtered$fu == 0, ]
+length(rownames(zeros))
+table(zeros$fu)
+zeros$age_strata
+
+sum(isage_stratasum(is.na(HNSC$ajcc_pathologic_stage)) #75 na's
+sum(is.na(HNSC$ajcc_clinical_stage)) #14 na's
+sum(is.na(HNSC$tumor_stage)) #NULL
+
+metadata_table$icd_10_code
+length(colnames(metadata_table)) #75 metadata objects
+sum(is.na(HNSC$days_to_last_follow_up)) #160
+na_fu_test <- metadata_table[metadata_table$days_to_last_follow_up == 0, ]
+length(rownames(na_fu_test))
+sum(is.na(na_fu_test$ajcc_pathologic_m))
+table(RNAseqElNet_meta_filtered_surv_meta$ajcc_clinical_stage)
+table(zeros$fu)
+zeros$fu
+#Doesn't seem entirely random, seems like it follows some sort of normal distribution, wth mean closer to stage 4A/B
+# tumor_stage(/), ajcc_pathologic_stage, ajcc_clinical_stage
+#tumor_grade(/), ajcc_pathologic_tumor_grade(/)
+#ajcc_pathologic_t, ajcc_pathologic_n, ajcc_pathologic_m
+# Therefore I will eep the zero values but take away the samples tha have NA for fu analysis
+########################################################
+#Conclusion: I need the data with the submitter ID's, the following analysis might not be acccurate
+
+RNAseqElNet_meta_filtered_surv$chronological
+sum(is.na(RNAseqElNet_meta_filtered$Survival_Time))
+sum(is.na(RNAseqElNet_meta_filtered$days_to_last_follow_up))
+sum(is.na(RNAseqElNet_meta_filtered$vital_status))
+#160 missing values in fu, but in the test set only 3
+
+
+sum(is.na(HNSC$days_to_last_follow_up))
+sum(is.na(HNSC$vital_status))
+HNSC$vital_status
+RNAseqElNet_meta_filtered$vital_status
+####################################
+RNAseqElNet_meta_filtered_surv_meta_filtered$submitter_id
+#Conclusion: I need the data with the submitter ID's, the following analysis might not be accurate
+
+```
+# Running Statistical Analyses
+
+## Cox PH {.tabset}
+### Background Model (surv_results_chron, surv_results_age_strata, surv_results_chron_gender, )
+```{r}
+#1. Background model
+
+predicted_ages <- as.data.frame(HNSC$Age + 1)#dummy variable
+colnames(predicted_ages) <- "predicted_age"
+rownames(predicted_ages) <- HNSC$submitter_id
+
+metadata_table <- make_meta_df(HNSC)
+rownames(metadata_table) <- metadata_table$submitter_id
+hnsc_df <- create_DFsurv(predicted_ages, metadata_table)
+
+singlets_results <- singlets(hnsc_df_meta, metadata_table)
+singlets_results_table <- singlets_results$results_table
+singlets_results_table_tests <- singlets_results$tests
+singlets_results$tests$ajcc_clinical_stage.x
+
+#Now that you have the effect of individual terms, you can check for multicolinearity of the significant terms, so to include in further combinations
+significant_singlets <- singlets_results_table[singlets_results_table$p_value < 0.05, ]
+
+test1 <- coxph(surv ~ chronological + gender.y + race, data = hnsc_df_meta)
+summary(test1)
+#######
+```
+
+```{r}
+HNSC = readRDS("/restricted/projectnb/agedisease/CBMrepositoryData/TCGA-GDC/RNAseq/processed_data/filtered/TCGA-HNSC_RNAseq_filtered.rds")
+
+three_layers_elnet <- read_csv("ModelBuildingOutput/3LayersElNet.csv")
+write.csv(three_layers_elnet, file = "ModelBuildingOutput/3LayersElNet_nice_result.csv", row.names = FALSE)
+
+predicted_ages <- three_layers_elnet %>%
+  dplyr::select(submitter_id, predicted_age)
+length(rownames(predicted_ages)) #343
+
+metadata_table <- make_meta_df(HNSC)
+rownames(metadata_table) <- metadata_table$submitter_id
+
+filtered_metadata <- metadata_table %>%
+  dplyr::semi_join(predicted_ages, by = "submitter_id")
+
+length(rownames(metadata_table)) #Bigger set: 520
+length(rownames(predicted_ages)) #Smaller set: 343
+length(rownames(filtered_metadata)) #Alligned: 343
+
+rownames(filtered_metadata) <- filtered_metadata$submitter_id
+rownames(predicted_ages) <- predicted_ages$submitter_id
+
+hnsc_three_layers_elnet <- create_DFsurv(predicted_ages, filtered_metadata)
+
+singlets_results <- singlets(hnsc_three_layers_elnet, filtered_metadata)
+singlets_results_table <- singlets_results$results_table
+singlets_results_table_tests <- singlets_results$tests
+singlets_results$tests$ajcc_clinical_stage.x
+view(singlets_results_table)
+#Now that you have the effect of individual terms, you can check for multicolinearity of the significant terms, so to include in further combinations
+
+significant_singlets <- singlets_results_table[singlets_results_table$p_value < 0.05, ]
+view(significant_singlets)
+
+hnsc_three_layers_elnet_meta <- hnsc_three_layers_elnet %>%
+  inner_join(filtered_metadata, by = "submitter_id")
+
+test1 <- coxph(surv ~ chronological + delta_age + gender.y + race, data = hnsc_three_layers_elnet_meta)
+summary(test1)
+
+test1 <- coxph(surv ~ chronological*delta_age + gender.y + race, data = hnsc_three_layers_elnet_meta)
+summary(test1) #concordance: 0.61 Wuhuuuuuu!!!!!!!!
+#Concordance= 0.61  (se = 0.025 )
+#Likelihood ratio test= 30.94  on 8 df,   p=1e-04
+#Wald test            = 17.46  on 8 df,   p=0.03
+#Score (logrank) test = 35.61  on 8 df,   p=2e-05
+
+```
+
+```{r survival}
+source("run_analysis_pipeline.R")
+three_layers_elnet_surv_results <- run_analysis_pipeline(HNSC, three_layers_elnet)
+three_layers_elnet_surv_results$interaction_summary$logtest #log likelihood test
+three_layers_elnet_surv_results$interaction_summary$concordance #concordance
+```
+```{r }
+three_layers_elnet_b4 <- read_csv("ModelBuildingOutput/3LayersElNet.csv")
+source("run_analysis_pipeline.R")
+three_layers_elnet_surv_results_b4 <- run_analysis_pipeline(HNSC, three_layers_elnet_b4)
+three_layers_elnet_surv_results_b4$interaction_summary$logtest #log likelihood test
+three_layers_elnet_surv_results_b4$interaction_summary$concordance #concordance
+```
+
+
+
+
+
+
+
+
+hnsc_three_layers_elnet
+
+
+
+
+
+
+length(HNSC)
+rownames(predicted_ages) <- HNSC$submitter_id
+
+
+summary(test1)
+
+test2 <- coxph(surv ~ chronological*gender.y, data = hnsc_df_meta)
+summary(test2)
+
+
+test1 <- coxph(surv ~ chronological + gender.y + demographic_id, data = hnsc_df_meta)
+summary(test1)
+#covariate <- dependent/independent variables
+
+
+test1 <- coxph(surv ~ chronological + delta_age + gender + demographic_id + subtype_protein + ) 
+
+hnsc_df_meta$gender.y
+hnsc_df_meta$demographic_id
+hnsc_df_meta$subtype_protein
+
+
+coxph(surv ~ chronological*delta_age + )
+
+singlets_results$results_table
+
+
+
+coxph(surv~ chronological + delta_age, data)
+coxph(surv~ chronological, data)
+coxph(surv~ tumor_type, data)
+coxph(surv~ ethnicity, data)
+
+
+
+#chronological -> hnsc
+
+
+
+
+
+
+
+results_table <- singlets_results$results_table
+  
+correlations <- check_coxph_correlations(results_table, hnsc_df_meta)
+correlations
+
+singlets_results$results_table$variable
+check_correlations(check_correlations
+                   
+check_coxph_correlations()
+
+check_coxph_correlations <- function(results_table, hnsc_df_meta) {
+  library(survival)
+  library(dplyr)
+  
+  # Extract significant variables
+  significant_features <- results_table %>%
+    filter(p_value < 0.05) %>%
+    pull(variable)
+  
+  # Ensure features exist in hnsc_df_meta
+  significant_features <- intersect(significant_features, colnames(hnsc_df_meta))
+  
+  if (length(significant_features) < 2) {
+    stop("Not enough significant features to assess relationships.")
+  }
+  
+  # Store CoxPH results
+  cox_results <- list()
+  
+  # Loop through significant features
+  for (i in seq_along(significant_features)) {
+    dependent_var <- significant_features[i]
+    independent_vars <- significant_features[-i]
+    
+    # Build CoxPH formula
+    formula <- as.formula(
+      paste("Surv(fu_yrs, vitals_boolean) ~", paste(independent_vars, collapse = " + "))
+    )
+    
+    tryCatch({
+      # Fit the CoxPH model
+      cox_model <- coxph(formula, data = hnsc_df_meta)
+      model_summary <- summary(cox_model)
+      
+      # Store results
+      cox_results[[dependent_var]] <- list(
+        formula = formula,
+        concordance = model_summary$concordance,
+        coefficients = model_summary$coefficients
+      )
+    }, error = function(e) {
+      message(paste("Skipping feature:", dependent_var, "due to error:", e$message))
+    })
+  }
+  
+  # Return the results
+  return(cox_results)
+}
+
+                   
+compute_correlations <- function(results_table, hnsc_df_meta) {
+  library(dplyr)
+  
+  # Extract the variables from the results table
+  features <- results_table %>%
+    filter(variable %in% colnames(hnsc_df_meta)) %>%
+    pull(variable)
+  
+  # Check if there are any matching features
+  if (length(features) == 0) {
+    stop("No matching features found in hnsc_df_meta.")
+  }
+  
+  # Subset the dataset for the selected features
+  significant_data <- hnsc_df_meta %>%
+    select(all_of(features)) %>%
+    drop_na()  # Remove rows with NA values
+  
+  # Compute pairwise Pearson correlation
+  correlation_matrix <- cor(significant_data, use = "complete.obs", method = "pearson")
+  
+  # Return the correlation matrix
+  return(correlation_matrix)
+}
+
+                   
+                   
+                   
+                   
+check_correlations <- function(results_table, hnsc_df_meta) {
+  library(dplyr)
+  
+  # Extract significant variables from the results table
+  significant_features <- results_table %>%
+    filter(p_value < 0.05) %>%
+    pull(variable) %>%
+    intersect(colnames(hnsc_df_meta))  # Retain only features present in hnsc_df_meta
+  
+  if (length(significant_features) == 0) {
+    stop("No significant features found in hnsc_df_meta.")
+  }
+  
+  # Subset the dataset for significant features
+  significant_data <- hnsc_df_meta %>%
+    select(all_of(significant_features)) %>%
+    drop_na()  # Remove rows with NA values
+  
+  # Compute correlation matrix
+correlation_matrix <- cor(significant_data, use = "complete.obs", method = "pearson")
+  correlation_matrix <- cor(significant_data, use = "complete.obs", method = "pearson")
+compute_correlations <- function(results_table, hnsc_df_meta) {
+  library(dplyr)
+  
+  # Extract the variables from the results table
+  features <- results_table %>%
+    filter(variable %in% colnames(hnsc_df_meta)) %>%
+    pull(variable)
+  
+  # Subset the dataset for the selected features
+  feature_data <- hnsc_df_meta %>%
+    select(all_of(features)) %>%
+    drop_na()  # Remove rows with NA values
+  
+  # Compute pairwise Pearson correlation
+  correlation_matrix <- cor(feature_data, use = "complete.obs", method = "pearson")
+  
+  # Return the correlation matrix
+  return(correlation_matrix)
+}
+
+  
+  
+  
+  # Print correlation matrix
+  print(correlation_matrix)
+  
+  # Highlight high correlations (e.g., > 0.8 or < -0.8)
+  high_corr <- which(abs(correlation_matrix) > 0.8 & abs(correlation_matrix) < 1, arr.ind = TRUE)
+  
+  if (nrow(high_corr) > 0) {
+    message("The following pairs of variables have high correlation (> 0.8):")
+    print(high_corr)
+  } else {
+    message("No highly correlated variables detected.")
+  }
+  
+  return(correlation_matrix)
+}
+
+
+
+
+
+
+check_correlations <- function(results_table, hnsc_df_meta) {
+  library(dplyr)
+  
+  # Extract significant variables from the results table
+  significant_features <- results_table %>%
+    filter(p_value < 0.05) %>%
+    pull(variable)
+  
+  # Subset the dataset for significant features
+  significant_data <- hnsc_df_meta %>%
+    select(all_of(significant_features)) %>%
+    drop_na()  # Remove rows with NA values
+  
+  # Compute correlation matrix
+  correlation_matrix <- cor(significant_data, use = "complete.obs", method = "pearson")
+  
+  # Print correlation matrix
+  print(correlation_matrix)
+  
+  # Highlight high correlations (e.g., > 0.8 or < -0.8)
+  high_corr <- which(abs(correlation_matrix) > 0.8 & abs(correlation_matrix) < 1, arr.ind = TRUE)
+  
+  if (nrow(high_corr) > 0) {
+    message("The following pairs of variables have high correlation (> 0.8):")
+    print(high_corr)
+  } else {
+    message("No highly correlated variables detected.")
+  }
+  
+  return(correlation_matrix)
+}
+
+
+
+
+check_correlations <- function(results_table, hnsc_df_meta) {
+  library(dplyr)
+  
+  # Extract significant variables from the results table
+  significant_features <- results_table %>%
+    filter(p_value < 0.05) %>%
+    pull(variable)
+  
+  # Subset the dataset for significant features
+  significant_data <- hnsc_df_meta %>%
+    select(all_of(significant_features)) %>%
+    drop_na()  # Remove rows with NA values
+  
+  # Compute correlation matrix
+  correlation_matrix <- cor(significant_data, use = "complete.obs", method = "pearson")
+  
+  # Print correlation matrix
+  print(correlation_matrix)
+  
+  # Highlight high correlations (e.g., > 0.8 or < -0.8)
+  high_corr <- which(abs(correlation_matrix) > 0.8 & abs(correlation_matrix) < 1, arr.ind = TRUE)
+  
+  if (nrow(high_corr) > 0) {
+    message("The following pairs of variables have high correlation (> 0.8):")
+    print(high_corr)
+  } else {
+    message("No highly correlated variables detected.")
+  }
+  
+  return(correlation_matrix)
+}
+
+
+check_correlations <- function(results_table, hnsc_df_meta) {
+  library(dplyr)
+  
+  # Extract significant variables from the results table
+  significant_features <- results_table %>%
+    filter(p_value < 0.05) %>%
+    pull(variable)
+  
+  # Subset the dataset for significant features
+  significant_data <- hnsc_df_meta %>%
+    select(all_of(significant_features)) %>%
+    drop_na()  # Remove rows with NA values
+  
+  # Compute correlation matrix
+  correlation_matrix <- cor(significant_data, use = "complete.obs", method = "pearson")
+  
+  # Print correlation matrix
+  print(correlation_matrix)
+  
+  # Highlight high correlations (e.g., > 0.8 or < -0.8)
+  high_corr <- which(abs(correlation_matrix) > 0.8 & abs(correlation_matrix) < 1, arr.ind = TRUE)
+  
+  if (nrow(high_corr) > 0) {
+    message("The following pairs of variables have high correlation (> 0.8):")
+    print(high_corr)
+  } else {
+    message("No highly correlated variables detected.")
+  }
+  
+  return(correlation_matrix)
+}
+
+
+
+library(car)
+vif_values <- car::vif(lm_model)
+
+
+hist(singlets_results$results_table$p_value)
+length(singlets_results$results_table$p_value)
+length(significant_singlets$p_value)
+
+```
+
+```{r}
+library(dplyr)
+library(survival)
+library(ggplot2)
+
+surv_results <- coxph(Surv(fu, vitals_boolean) ~ chronological, data = hnsc_df_meta)
+summary(surv_results_chron_yrs1)
+hnsc_df_meta$vital_status
+hnsc_df_meta$vitals_boolean <- ifelse(hnsc_df$vitals == "Dead", 1, 0)
+hnsc_df_meta$fu_yrs <- hnsc_df$fu/365
+
+surv_results <- coxph(Surv(fu_yrs, vitals_boolean) ~ chronological, data = hnsc_df_meta)
+surv_results <- coxph(Surv(fu_yrs, vitals_boolean) ~ ethnicity, data = hnsc_df_meta)
+surv_results <- coxph(Surv(fu_yrs, vitals_boolean) ~ race, data = hnsc_df_meta)
+
+singlets_results <- singlets(hnsc_df_meta, metadata_table)
+singlets_results_table <- singlets_results$results_table
+singlets_results_table_tests <- singlets_results$tests
+
+
+
+
+
+
+
+
+
+
+singlets <- function(hnsc_df, metadata_table) {
+  library(survival)
+  library(dplyr)
+  
+  # Add vitals_boolean and fu_yrs to hnsc_df
+  hnsc_df$vitals_boolean <- ifelse(hnsc_df$vitals == "Dead", 1, 0)
+  hnsc_df$fu_yrs <- hnsc_df$fu / 365
+  
+  # Merge hnsc_df with metadata_table
+  hnsc_df_meta <- hnsc_df %>%
+    left_join(metadata_table, by = "submitter_id")
+  
+  # Initialize an empty results table
+  results <- data.frame(
+    variable = character(),
+    likelihood_ratio = numeric(),
+    p_value = numeric(),
+    stringsAsFactors = FALSE
+  )
+  
+  # Initialize a list to store test summaries
+  tests <- list()
+  
+  # Columns to exclude
+  d_cols <- c("fu_yrs", "vitals_boolean", "submitter_id")
+  
+  # Identify relevant columns (numeric or factor, excluding d_cols)
+  cols <- colnames(hnsc_df_meta)
+  variables <- cols[!cols %in% d_cols & (sapply(hnsc_df_meta, is.numeric) | sapply(hnsc_df_meta, is.factor))]
+  
+  # Run Cox proportional hazards models for each variable
+  for (var in variables) {
+    tryCatch({
+      # Fit the Cox model
+      formula <- as.formula(paste("Surv(fu_yrs, vitals_boolean) ~", var))
+      surv_results <- coxph(formula, data = hnsc_df_meta)
+      model_summary <- summary(surv_results)
+      
+      # Extract likelihood ratio test result and p-value
+      likelihood_ratio <- model_summary$logtest["test"]
+      p_value <- model_summary$logtest["pvalue"]
+      
+      # Append results to the table
+      results <- rbind(results, data.frame(
+        variable = var,
+        likelihood_ratio = likelihood_ratio,
+        p_value = p_value
+      ))
+      
+      # Save the test summary in the list
+      tests[[var]] <- model_summary
+      
+    }, error = function(e) {
+      message(paste("Skipping variable:", var, "due to error:", e$message))
+    })
+  }
+  
+  # Add a significance column to results
+  results$significance <- ifelse(results$p_value < 0.05, "*", "")
+  
+  # Return both results table and test summaries
+  return(list(
+    results_table = results,
+    tests = tests
+  ))
+}
+
+  
+  
+  
+  
+  # Add a significance column
+  results$significance <- ifelse(results$p_value < 0.05, "*", "")
+  
+  # Print the results table
+  print(results)
+  
+  # Return the results table
+  return(results)
+}
+
+
+
+
+
+
+
+
+
+#taking out the variables already used to remove redundancy
+d_cols <- c("fu_yrs","vitals_boolean","submitter_id")
+d_cols <- c("")
+cols <- colnames(hnsc_df_meta)
+variables <- cols[!cols %in% d_cols]
+
+# Run Cox proportional hazards models for each variable
+for (var in variables) {
+  formula <- as.formula(paste("Surv(fu_yrs, vitals_boolean) ~", var))
+  surv_results <- coxph(formula, data = hnsc_df_meta)
+  model_summary <- summary(surv_results)
+  
+  # Extract likelihood ratio test result and p-value
+  likelihood_ratio <- model_summary$logtest["test"]
+  p_value <- model_summary$logtest["pvalue"]
+  
+  # Append results to the table
+  results <- rbind(results, data.frame(
+    variable = var,
+    likelihood_ratio = likelihood_ratio,
+    p_value = p_value
+  ))
+}
+
+# Add a significance column for plotting
+results$significance <- ifelse(results$p_value < 0.05, "*", "")
+
+# View the table
+print(results)
+
+# Create a bar plot
+ggplot(results, aes(x = variable, y = likelihood_ratio, fill = variable)) +
+  geom_bar(stat = "identity", color = "black") +
+  geom_text(aes(label = significance), vjust = -0.5, size = 5, color = "red") +
+  theme_minimal() +
+  labs(
+    title = "Likelihood Ratio Test for Cox Proportional Hazards Models",
+    x = "Variable",
+    y = "Likelihood Ratio Test Statistic",
+    fill = "Variable"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
+
+surv_results
+
+res <- run_survival_analysis(hnsc_df_meta)
+run_survival_analysis <- function(hnsc_df_meta) {
+  # Initialize a results data frame to store metrics
+  results <- data.frame(
+    column = character(),
+    AIC = numeric(),
+    concordance = numeric(),
+    log_hazard_ratio = numeric(),
+    log_likelihood = numeric(),
+    p_value = numeric(),
+    stringsAsFactors = FALSE
+  )
+  
+  # Survival object formula
+  survival_formula <- as.formula("Surv(fu_yrs, vitals_boolean)")
+  
+  # Iterate over each column in hnsc_df_meta
+  for (col in colnames(hnsc_df_meta)) {
+    if (!col %in% c("fu_yrs", "vitals_boolean", "submitter_id")) {  # Skip non-predictor columns
+      tryCatch({
+        # Create a dynamic formula
+        formula <- update(survival_formula, paste(". ~", col))
+        
+        # Fit the Cox proportional hazards model
+        surv_results <- coxph(formula, data = hnsc_df_meta)
+        
+        # Extract metrics
+        model_summary <- summary(surv_results)
+        aic <- extractAIC(surv_results)[2]
+        concordance <- model_summary$concordance[1]
+        log_hazard_ratio <- model_summary$coefficients[1]
+        log_likelihood <- model_summary$loglik[2]
+        p_value <- model_summary$coefficients[, "Pr(>|z|)"][1]
+        
+        # Append results if the model is significant (p < 0.05)
+        if (p_value < 0.05) {
+          results <- rbind(results, data.frame(
+            column = col,
+            AIC = aic,
+            concordance = concordance,
+            log_hazard_ratio = log_hazard_ratio,
+            log_likelihood = log_likelihood,
+            p_value = p_value
+          ))
+        }
+      }, error = function(e) {
+        message(paste("Skipping column:", col, "due to error:", e$message))
+      })
+    }
+  }
+  
+  # Create a barplot of metrics for significant models
+  if (nrow(results) > 0) {
+    results_long <- results %>%
+      tidyr::pivot_longer(-column, names_to = "metric", values_to = "value")
+    
+    ggplot(results_long, aes(x = column, y = value, fill = metric)) +
+      geom_bar(stat = "identity", position = "dodge") +
+      theme_minimal() +
+      labs(
+        title = "Comparison of Metrics for Significant Models (p < 0.05)",
+        x = "Feature",
+        y = "Metric Value",
+        fill = "Metric"
+      ) +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  } else {
+    message("No significant models found (p < 0.05).")
+  }
+  
+  return(results)
+}
+```
+surv_results <- coxph(Surv(fu_yrs, vitals_boolean) ~ chronological, data = hnsc_df_meta)
+summary(surv_results_chron_yrs1)
+
+
+
+
+
+surv_results_chron_days1 <- coxph(surv ~ chronological, data = hnsc_df)
+surv_results_chron_days2 <- coxph(Surv(fu,vitals_boolean) ~ chronological, data = hnsc_df) #This works!
+summary(surv_results_chron_days1)
+summary(surv_results_chron_days2)
+
+surv_results_chron_yrs1 <- coxph(Surv(fu_yrs, vitals_boolean) ~ chronological, data = hnsc_df)
+summary(surv_results_chron_yrs1) #nvm, the years trasnformation didn't change anything
+
+surv_results_chron <- coxph(surv ~ chronological, data = hnsc_df)
+colnames(hnsc_df)
+surv_results_chron_gender <- coxph(surv ~ chronological + gender, data = hnsc_df)
+table(hnsc_df$age_strata)
+
+surv_results_chron_yrs1 <- coxph(Surv(fu_yrs, vitals_boolean) ~ chronological, data = hnsc_df)
+
+coxph(surv ~ chronological , data = hnsc_df)
+coxph(surv ~ age_strata , data = hnsc_df)
+#0-50 50-70 70-90   90+ 
+#   82   325   112     0 
+hnsc_df_updated <- hnsc_df %>%
+  left_join(metadata_table, by = intersect(colnames(hnsc_df), colnames(metadata_table)))
+
+
+
+length(cmeta_agelength(colnames(hnsc_df))
+
+hnsc_df$fu_yrs <- hnsc_df$fu/365
+
+surv_results_chron_yrs1 <- coxph(Surv(fu_yrs, vitals) ~ chronological, data = hnsc_df)
+
+table(hnsc_df$vitals)
+
+hnsc_df$vitals_boolean <- ifelse(hnsc_df$vitals == "Dead", 1, 0)
+
+
+hnsc_df$fu_yrs <- hnsc_df$fu/365
+
+
+hnsc_df$fu/365
+
+
+
+
+surv_results_chron2 <- coxph(Surv(fu, vitals) ~ chronological, data = hnsc_df)
+
+
+
+
+
+
+
+
+sum(is.na(hnsc_df$vitals))
+
+
+
+
+HNSC$days_to_last_follow_up
+temp1 <- make_meta_df(HNSC)
+table(temp1$days_to_last_follow_up)
+table(temp1$days_to_death)
+#days_to_death
+#days_to_last_follow_up
+sum(is.na(HNSC$days_to_last_follow_up))
+sum(is.na(hnsc_df$Survival_Time))
+hnsc_df$surv
+HNSC$Survival_Time[287]
+HNSC$Age[287]
+3981/365
+#fu = Survival_Time
+
+311/365
+3059/365
+3059/55
+HNSC[287]
+
+
+length(hnsc_df$fu == 0)
+
+sum(is.na(temp1$days_to_last_follow_up))
+sum(is.na(temp1$Survival_Time))
+
+temp1[temp1$days_to_last_follow_up]
+
+
+view(colData(hnsc_df))
+
+hnsc_df <- create_DFsurv(predicted_ages, metadata_table)
+
+sum(is.na(hnsc_df$fu))
+sum(is.na(hnsc_df$vitals))
+
+sum(is.na(HNSC$days_to_last_follow_up))
+sum(is.na(HNSC$vitals))
+#Filtering out the na's before survival analysis:
+na_submitter_ids_fu <- HNSC$submitter_id[is.na(HNSC$days_to_last_follow_up)]
+hnsc_df_filtered <- hnsc_df[!hnsc_df$submitter_id %in% na_submitter_ids_fu, ]
+length(rownames(hnsc_df))
+length(rownames(hnsc_df_filtered))
+length(na_submitter_ids_fu)
+
+count_zeros <- sum(hnsc_df$fu == 0, na.rm = TRUE)
+count_zeros
+table(hnsc_df$fu)
+
+na_rows_hens_df <- hens_df[hens_df$submitter_id %in% na_submitter_ids, ]
+
+
+coxph(surv ~ chvital_statuscoxph(surv ~ chronological, data = hnsc_df)
+
+coxph(Surv(fu, vitals) ~ chronological, data = hnsc_df)
+
+
+coxph(surv ~ chronological, data = RNAseqElNet_meta_filtered_surv_meta_filtered)
+
+```
+
+
+
+RNAseqElNet_meta$race
+
+head(filter2)
+
+matching_rows <- RNAseqElNet_meta[RNAseqElNet_meta$Age %in% c(60.73101, 67.23614, 51.24709), ]
+
+# Extract submitter_id and Age
+matching_ids <- matching_rows[, c("submitter_id", "Age")]
+
+# View the results
+print(matching_ids)
+
+
+
+
+
+
+matching_ids <- RNAseqElNet_meta %>%
+  filter(Age %in% overlapping_values) %>%
+  select(submitter_id, Age)
+# View the results
+print(matching_ids)
+
+
+
+
+
+
+length(table(RNAseqElNet_meta$submitter_id)
+length(RNAseqElNet$Age)
+
+create_DFsurv()
+```
+
+```
+RNAseqElNet_meta$predicted_age
+
+create_DFsurv
+
+
+
+RNAseqElNet$Age
+
+joined_table <- RNAseqElNet %>%
+  left_join(metadata_table, by = "Age")
+
+missing_rows <- joined_table %>%
+  filter(is.na(submitter_id))
+
+print(missing_rows)
+
+joined_table$
+
+
+missing_in_metadata <- setdiff(RNAseqElNet$Age, metadata_table$Age)
+missing_in_RNAseqElNet <- setdiff(metadata_table$Age, RNAseqElNet$Age)
+
+# Display results
+print(missing_in_metadata)
+print(missing_in_RNAseqElNet)
+
+
+str(RNAseqElNet$Age)
+str(metadata_table$Ag)
+print(missing_in_RNAseqElNet)
+
+min(RNAseqElNet$Age)
+max(RNAseqElNet$Age)
+
+metadata_table$submitter_id
+
+joined_table <- RNAseqElNet %>%
+  left_join(metadata_table, by = "Age")
+
+# Check rows with missing data
+missing_rows <- joined_table %>%
+  filter(is.na(submitter_id))
+
+print(missing_rows)
+
+```
+```{r}
+min(metadata_table$Age)
+max(metadata_table$Age)
+metadata_table$Age
+```
+
+# Survival Analysis
+1) Fit simple model
+2) Add potential confounders (Chronological, gender, ethnicity)
+3) Add cancer specific variables (tumor size, ...)
+4) Test interaction terms
+5) Compare models using anova, AIC, concordance
+6) Does delta_age remain significant after adjusting for these?
+
+  -One hot encoding vairables (log hazard ratio, exp to transform) -----> would get the same results otherwise, if not one-hot encoded. Gotta make sure only to include male, and on the other only female. More error prone.
+  -Categorical data
+  
+  coef: indicate log_hazard_ratio for each covariate
+  
+  cindex: concordance index measures predictive ability of model
+    summary(model)$concordance
+  
+  logLik: compares fit of nested models:
+    anova(model1, model2, test = "LRT") #model 2 more complex (nested models) (implies adding more variables to be better)
+    
+  VIF: checks multicolinearity among covariates (> 5 or 10)
+    vif(model)
+  
+  AIC (Akaike Information Criterion): penalizes overfitting
+    AIC(model1, model2) #lower AIC indicates better model fit (significance at deltaAIC > 2) (compares models, different, doesn't imply combination of models to be better)
+  
+*Check that there is no multicolinearity (predicors highly correlated to one another that can hinder interpretation of predictors, a small can significantly change the predictor)
+
+- Compare Models: using likelihood ratio tests or concordance index
+
+Hazard ratio: exp(coef)
+
+# Running the Analysis
+
+```{r Running Analysis}
+DFsurv <- create_DFsurv(predicted_ages_df, metadata_table)
+#Output: DFsurv
+table(DFsurv$age_strata)
+DFsurv
+```
+
+# Running Statistical Analyses
+
+## Cox PH {.tabset}
+### Simple Model
+```{r}
+#coxph_model_simple <- coxph(surv ~ delta_age + chronological + gender + HPV.status, data = DFsurv)
+table(DFsurv$HPV.status)
+
+#DFsurv <- DFsurv[!is.na(DFsurv$gender) & !is.na(DFsurv$HPV.status), ]
+#DFsurv$gender <- as.factor(DFsurv$gender)
+#DFsurv$HPV.status <- as.factor(DFsurv$HPV.status)
+
+#In this case, since there was no HP.status for this specific data, HPV.status was excluded from this calculation
+
+coxph_model_simple <- coxph(surv ~ delta_age + chronological + gender, data = DFsurv)
+summary(coxph_model_simple)
+
+```
+
+### HPV Stratified
+```{r}
+coxph_model_hpvstrat <- coxph(surv ~ delta_age + chronological + gender + strata(HPV.status), data = DFsurv)
+summary(coxph_model_hpvstrat)
+```
+### Meta Age
+```{r}
+#coxph_model_metage <- coxph(surv ~ meta_age + chronological + gender + HPV.status, data = DFsurv)
+coxph_model_metage <- coxph(surv ~ meta_age + chronological + gender, data = DFsurv)
+
+summary(coxph_model_metage)
+```
+
+### Age Stratified
+```{r}
+#coxph_model_agestrata <- coxph(surv ~ delta_age + chronological + gender + HPV.status + strata(age_strata), data = DFsurv)
+coxph_model_agestrata <- coxph(surv ~ delta_age + chronological + gender + strata(age_strata), data = DFsurv)
+summary(coxph_model_agestrata)
+```
+
+### Interaction Term
+```{r}
+#coxph_model_interaction <- coxph(surv ~ delta_age*chronological + gender + HPV.status, data = DFsurv)
+coxph_model_interaction <- coxph(surv ~ delta_age*chronological + gender, data = DFsurv)
+summary(coxph_model_interaction)
+```
+From Payton's code:
+Significance of delta_age: The coefficient for delta_age is highly significant, indicating that it is a predictor of survival. As delta_age increases, the risk of the event (e.g., death) increases substantially.
+
+Interaction Term: The interaction between delta_age and chronological age is significant and negatively impacts the hazard ratio. This suggests that the effect of delta_age on the hazard decreases as chronological age increases.
+
+Covariates and Model Fit: The model fits well overall, with significant test statistics across the likelihood ratio, Wald, and logrank tests.
+
+### Interaction Term (+ age stratified)
+```{r}
+#coxph_model_interaction_Age <- coxph(surv ~ delta_age*chronological + gender + HPV.status + strata(age_strata), data = DFsurv)
+coxph_model_interaction_Age <- coxph(surv ~ delta_age*chronological + gender + strata(age_strata), data = DFsurv)
+
+summary(coxph_model_interaction_Age)
+```
+
+```{r}
+#coxph_model_time_dep <- coxph(surv ~ delta_age + chronological + tt(chronological) + gender + HPV.status, data = DFsurv,
+#                              tt = function(x, t, ...) x * log(t + 1))
+coxph_model_time_dep <- coxph(surv ~ delta_age + chronological + tt(chronological) + gender, data = DFsurv,
+                              tt = function(x, t, ...) x * log(t + 1))
+summary(coxph_model_time_dep)
+
+```
+## Model Fit Plots {.tabset}
+
+#### Interaction Term (delta_Age * chronological)
+```{r}
+ph_test <- cox.zph(coxph_model_interaction)
+print(ph_test)
+plot(ph_test)
+```
+
+#### Interaction Term (delta_Age * chronological) + strata(age_strata)
+```{r}
+ph_test <- cox.zph(coxph_model_interaction_Age)
+print(ph_test)
+plot(ph_test)
+```
+# Building run_survival_analysis
+This functon implements everything above, you can access every one of these plots and tests in the results object:
+
+results <- run_survival_analysis(DFsurv)
+
+summary_simple <- results$simple_model #Access specific model summaries
+print(summary_simple)
+
+ph_test_interaction <- results$ph_test_interaction #Inspect Proportional Hazards Tests
+print(ph_test_interaction)
+
+png("ph_test_interaction.png") #Viewing and Saing Plots
+plot(results$ph_test_interaction)
+dev.off()
+
+```{r}
+run_survival_analysis <- function(DFsurv) {
+  # Ensure required libraries are loaded
+  if (!requireNamespace("survival", quietly = TRUE)) install.packages("survival")
+  if (!requireNamespace("survminer", quietly = TRUE)) install.packages("survminer")
+  library(survival)
+  library(survminer)
+  
+  results <- list()  # To store results for each model
+  
+  # 1. Simple Model
+  if ("HPV.status" %in% colnames(DFsurv)) {
+    DFsurv <- DFsurv[!is.na(DFsurv$gender) & !is.na(DFsurv$HPV.status), ]
+    DFsurv$HPV.status <- as.factor(DFsurv$HPV.status)
+  }
+  DFsurv$gender <- as.factor(DFsurv$gender)
+
+  # Run the simple model
+  simple_model <- coxph(surv ~ delta_age + chronological + gender, data = DFsurv)
+  results$simple_model <- summary(simple_model)
+  
+  # 2. HPV Stratified Model
+  if ("HPV.status" %in% colnames(DFsurv)) {
+    hpv_strat_model <- coxph(surv ~ delta_age + chronological + gender + strata(HPV.status), data = DFsurv)
+    results$hpv_stratified <- summary(hpv_strat_model)
+  }
+  
+  # 3. Meta Age Model
+  meta_age_model <- coxph(surv ~ meta_age + chronological + gender, data = DFsurv)
+  results$meta_age_model <- summary(meta_age_model)
+  
+  # 4. Age Stratified Model
+  age_stratified_model <- coxph(surv ~ delta_age + chronological + gender + strata(age_strata), data = DFsurv)
+  results$age_stratified <- summary(age_stratified_model)
+  
+  # 5. Interaction Term Model
+  interaction_model <- coxph(surv ~ delta_age * chronological + gender, data = DFsurv)
+  results$interaction_model <- summary(interaction_model)
+  
+  # 6. Interaction Term + Age Stratified Model
+  interaction_age_model <- coxph(surv ~ delta_age * chronological + gender + strata(age_strata), data = DFsurv)
+  results$interaction_age_model <- summary(interaction_age_model)
+  
+  # 7. Time-Dependent Model
+  time_dependent_model <- coxph(surv ~ delta_age + chronological + tt(chronological) + gender, data = DFsurv,
+                                tt = function(x, t, ...) x * log(t + 1))
+  results$time_dependent <- summary(time_dependent_model)
+  
+  # 8. Proportional Hazards Tests
+  results$ph_test_interaction <- cox.zph(interaction_model)
+  results$ph_test_interaction_age <- cox.zph(interaction_age_model)
+  
+  # Plotting Proportional Hazards Tests
+  par(mfrow = c(2, 1))  # Set plot layout
+  plot(results$ph_test_interaction, main = "Proportional Hazards Test: Interaction")
+  plot(results$ph_test_interaction_age, main = "Proportional Hazards Test: Interaction + Age Stratified")
+  par(mfrow = c(1, 1))  # Reset plot layout
+  
+  # Return all results
+  return(results)
+}
+```
+
+# Age importance across cancer types
+## Cox Models {.tabset}
+### Head and Neck Cancer
+```{r coxph model hncc}
+coxph_model_simple_hnscc <- coxph(surv ~ chronological + gender, data = DFsurv)
+#Since the RPPA dataset doesn't have HPV.status, no HPV.status
+#coxph_model_simple_hnscc <- coxph(surv ~ chronological + gender + HPV.status, data = DFsurv)
+summary(coxph_model_simple_hnscc)
+```
+
+### Breast Cancer
+
+still working on this one
+
+```{r}
+BRCA = readRDS("/restricted/projectnb/agedisease/CBMrepositoryData/TCGA-GDC/RPPA/processed_data/filtered/TCGA-BRCA_RPPA.rds")
+
+# Extract all elements from listData
+metadata_table <- data.frame(submitter_id = rownames(BRCA@colData))
+
+# Iterate over all elements in listData and add them as columns
+for (name in names(BRCA@colData@listData)) {
+  
+  column_data <- BRCA@colData@listData[[name]]
+  
+  metadata_table[[name]] <- column_data
+}
+# Replace all NA values with a default with 0
+metadata_table[is.na(metadata_table)] <- 0
+
+create_DFsurv(predicted_ages, metadata_table)
+run_survival_analysis
+
+coxph_model_simple_hnscc <- coxph(surv ~ chronological + gender, data = DFsurv)
+
+
+```
+
+```{r}
+sessionInfo()
+```
+
+```{r}
+(metadata_table)
+table(SARC$tissue_or_organ_of_origin)
+#Summarized exp as inpt -> Fit model that is an elastic net, random forest
+#Bias across many groups
+#Column Bind, 20-25, 25-30,...
+#Standarization before combining the datasets, where cancer type would be a covariate
+#More points in one age group than the other ---> Squared Error shouldn't change tho
+#matrix of residuals will be the ones that you fit into the clock
+#corrected on the linear model
+#Across tumor type? WHy is it performing that bad? Is it because of any part of the metadata?
+#3K, 5K
+```
