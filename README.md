@@ -1,4 +1,6 @@
-# Pancancer_Aging_Clocks
+# Pancancer Aging Clocks
+
+This is an exploration of TCGA multiomics (RNAseq, RPPA, miRNA, methylation) data for HNSC. This includes the results for the different model combinations of SVM, Elastic Nets, and Random Forests.
 
 ## Environment Setup
 
