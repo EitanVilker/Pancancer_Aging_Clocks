@@ -1,0 +1,36 @@
+---
+title: "PanEverythingSurvivalClock"
+output: html_notebook
+---
+
+```{r}
+library(e1071) 
+library(caTools) 
+library(class)
+library(randomForest) 
+library(TimeSeriesExperiment)
+library(SummarizedExperiment)
+library(Biobase)
+library(ggplot2)
+library(caret)
+source("InitialSteps.Rmd")
+source("ModelBuilding.Rmd")
+source("Output.Rmd")
+source("PanClockHelperFunctions.R")
+```
+
+```{r}
+# Get SummarizedExperiments for target layers
+paths <- getPathsByLayerAndCancer(getLayers=TRUE)
+miRNAPathHNSC <- paths[["miRNA"]][10]
+RNASeqPathHNSC <- paths[["RNAseq_filtered"]][10]
+
+layerPaths <- c(miRNAPathHNSC, RNASeqPathHNSC)
+featuresToEnsure <- c("Age", "HPV.status")
+layersList <- getExperimentsList(layerPaths, featuresToEnsure)
+
+# Ideal structure
+# experimentsList <- InitialSteps()
+# mlModelPredictionsList <- ModelBuilding(experimentsList)
+# output <- Output(mlModelPredictionsList[["model"]], mlModelPredictionsList[["predictions"]])
+```
