@@ -1,4 +1,4 @@
-run_analysis_pipeline <- function(HNSC, three_layers_elnet) {
+run_analysis_pipeline <- function(fullExperiment, prediction_object) {
   library(dplyr)
   library(survival)
   library(SummarizedExperiment)
@@ -14,10 +14,10 @@ run_analysis_pipeline <- function(HNSC, three_layers_elnet) {
   library(tidyverse)
   
   # Step 1: Create Metadata Table
-  make_meta_df <- function(HNSC) {
-    metadata_table <- data.frame(submitter_id = rownames(HNSC@colData))
-    for (name in names(HNSC@colData@listData)) {
-      metadata_table[[name]] <- HNSC@colData@listData[[name]]
+  make_meta_df <- function(fullExperiment) {
+    metadata_table <- data.frame(submitter_id = rownames(fullExperiment@colData))
+    for (name in names(fullExperiment@colData@listData)) {
+      metadata_table[[name]] <- fullExperiment@colData@listData[[name]]
     }
     metadata_table[is.na(metadata_table)] <- 0
     return(metadata_table)
@@ -55,11 +55,11 @@ run_analysis_pipeline <- function(HNSC, three_layers_elnet) {
   }
   
   # Prepare Metadata Table
-  metadata_table <- make_meta_df(HNSC)
+  metadata_table <- make_meta_df(fullExperiment)
   rownames(metadata_table) <- metadata_table$submitter_id
   
   # Prepare Predicted Ages Data
-  predicted_ages <- three_layers_elnet %>%
+  predicted_ages <- prediction_object %>%
     dplyr::select(submitter_id, predicted_age)
   rownames(predicted_ages) <- predicted_ages$submitter_id
   
@@ -69,21 +69,30 @@ run_analysis_pipeline <- function(HNSC, three_layers_elnet) {
   rownames(filtered_metadata) <- filtered_metadata$submitter_id
   
   # Create Survival Dataset
-  hnsc_three_layers_elnet <- create_DFsurv(predicted_ages, filtered_metadata)
+  experiment_prediction_object <- create_DFsurv(predicted_ages, filtered_metadata)
   
-  hnsc_three_layers_elnet_meta <- hnsc_three_layers_elnet %>%
+  experiment_prediction_object_meta <- experiment_prediction_object %>%
     inner_join(filtered_metadata, by = "submitter_id")
+  
+  formula_vector_non_interaction <- c("chronological + delta_age", "race")
+  formula_vector_interaction <- c("chronological * delta_age", "race")
+  if ("gender.y" %in% colnames(experiment_prediction_object)){
+    formula_vector_non_interaction <- c(formula_vector_non_interaction, "gender.y")
+    formula_vector_interaction <- c(formula_vector_interaction, "gender.y")
+  }
+  covariates_formula_non_interaction <- as.formula(paste("surv ~ ", paste(formula_vector_non_interaction, collapse= "+")))
+  covariates_formula_interaction <- as.formula(paste("surv ~ ", paste(formula_vector_interaction, collapse= "+")))
   
   # Run Non-Interaction CoxPH Model
   test1_non_interaction <- coxph(
-    surv ~ chronological + delta_age + gender.y + race,
-    data = hnsc_three_layers_elnet_meta
+    covariates_formula_non_interaction,
+    data = experiment_prediction_object_meta
   )
   
   # Run Interaction CoxPH Model
   test1_interaction <- coxph(
-    surv ~ chronological * delta_age + gender.y + race,
-    data = hnsc_three_layers_elnet_meta
+    covariates_formula_interaction,
+    data = experiment_prediction_object_meta
   )
   
   # Summarize Results

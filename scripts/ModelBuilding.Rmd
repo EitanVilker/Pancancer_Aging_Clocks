@@ -21,9 +21,9 @@ source("run_analysis_pipeline.R")
 ```
 
 ### Imputation (needed for methylation)
- This block performs KNN imputation to fill in missing values in the data using five nearest neighbors.
- Note that it runs slowly and may be needed just for methylation, so try to run only as needed and once
- Will skip and return unchanged if impute=TRUE
+# This block performs KNN imputation to fill in missing values in the data using five nearest neighbors.
+# Note that it runs slowly and may be needed just for methylation, so try to run only as needed and once
+# Will skip and return unchanged if impute=TRUE
 ```{r}
 #KNN imputation
 #Use five closest neighbors
@@ -561,6 +561,7 @@ setup2 <- function(setup1List, featuresToEnsure=c("Age")){
   needsImputation <- setup1List$needsImputation
   checkingAllCancers <- setup1List$checkingAllCancers
   cancerName <- setup1List$cancerName
+  removeHPVPositive <- FALSE
   # Set up reduced feature set based on association with age
   simplifiedData <- list()
   if (cancerName == "HNSC"){
@@ -628,7 +629,8 @@ standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize
 ```{r message=FALSE}
 
 # Current Test
-modelOutput <- standardizedModelBuilding(c("RPPA", "miRNA"), cancerName="UCEC")
+# modelOutput <- standardizedModelBuilding(c("RPPA", "miRNA"), cancerName="UCEC")
+# modelOutput <- standardizedModelBuilding(c("RPPA", "miRNA"), cancerName="UCEC", splitSize=0.8)
 
 # # Checking all cancers
 # RNAseq, ElasticNet, 20% holdouts, using simplified data
@@ -705,14 +707,14 @@ modelOutput <- standardizedModelBuilding(c("RPPA", "miRNA"), cancerName="UCEC")
 ```
 
 ```{r}
-# results <- read.csv("./ModelBuildingOutput/3Models3Layers5BayesLogTest.csv")
-predictions <- modelOutput$ModelBuilding$predicted
-# df <- data.frame(predicted_age=results$predicted_age, submitter_id=results$submitter_id)
-df <- data.frame(predicted_age=predictions$predicted_age, submitter_id=predictions$submitter_id)
-reducedExperimentList <- modelOutput$experimentList[[1]][, modelOutput$experimentList[[1]]$submitter_id %in% df$submitter_id]
-stats <- run_analysis_pipeline(modelOutput$experimentList[[1]], df)
-# stats$interaction_summary$logtest
-summary(stats$interaction_model)
+# # results <- read.csv("./ModelBuildingOutput/3Models3Layers5BayesLogTest.csv")
+# predictions <- modelOutput$ModelBuilding$predicted
+# # df <- data.frame(predicted_age=results$predicted_age, submitter_id=results$submitter_id)
+# df <- data.frame(predicted_age=predictions$predicted_age, submitter_id=predictions$submitter_id)
+# reducedExperimentList <- modelOutput$experimentList[[1]][, modelOutput$experimentList[[1]]$submitter_id %in% df$submitter_id]
+# stats <- run_analysis_pipeline(modelOutput$experimentList[[1]], df)
+# # stats$interaction_summary$logtest
+# summary(stats$interaction_model)
 # coxph(
 #     surv ~ chronological + delta_age + gender.y + race,
 #     data = hnsc_three_layers_elnet_meta
@@ -763,8 +765,8 @@ organizeOutputFeatures <- function(modelPredictionsPair, RNAExperiment=NULL){
   return(featureFrame)
 }
 
-featureFrame <- organizeOutputFeatures(modelPredictionsPair, RNAExperiment=experimentsList[["RNAseq"]])
-
-outFile <- "./ModelBuildingOutput/ElasticNetRNAseqHoldoutsFeatures.csv"
-write.csv(featureFrame, outFile, row.names = FALSE)
+# featureFrame <- organizeOutputFeatures(modelPredictionsPair, RNAExperiment=experimentsList[["RNAseq"]])
+# 
+# outFile <- "./ModelBuildingOutput/ElasticNetRNAseqHoldoutsFeatures.csv"
+# write.csv(featureFrame, outFile, row.names = FALSE)
 ```

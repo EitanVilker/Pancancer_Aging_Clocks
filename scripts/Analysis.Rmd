@@ -1,0 +1,56 @@
+
+```{r}
+getSurvivalStats <- function(fullExperiment, predictionObject){
+  df <- data.frame(predicted_age=predictionObject$predicted_age, submitter_id=predictionObject$submitter_id)
+  return(run_analysis_pipeline(fullExperiment, df))
+}
+
+```
+
+
+### Find coefficients of individual features
+```{r}
+## For RNAseq data
+# To find coefficients: coefficients <- coef(modelPredictionsPair$model$finalModel, modelPredictionsPair$model$bestTune$lambda)
+# To find the index of a coefficient: index <- which(coefficients@x %in% COEFFICIENT_OF_CHOICE)
+# To find the gene ID of an index: geneID <- coefficients@Dimnames[[1]][index]
+# To find the index of the gene in the full experiment: fullIndex <- which(rowRanges(experimentsList[[1]])$gene_id %in% geneID) 
+# To find the gene name: featureName <- rowRanges(experimentsList[[1]])$gene_name[fullIndex]
+# RNASeqElNet <- read.csv("./ModelBuildingOutput/RNAseqElNet.csv")
+
+organizeOutputFeatures <- function(modelPredictionsPair, RNAExperiment=NULL){
+
+  coefficients <- coef(modelPredictionsPair$model$finalModel, modelPredictionsPair$model$bestTune$lambda)
+  # coefficients2 <- coef(modelPredictionsPair$model$finalModel, unlist(modelPredictionsPair$model$bestTune))
+  featureFrame <- data.frame(features=coefficients@Dimnames[[1]][coefficients@i + 1], coefficients=coefficients@x)
+  featureNames <- c()
+  origin <- c()
+  for (name in featureFrame$features){
+    featureIdx <- which(colnames(modelPredictionsPair$predicted) %in% name)
+    if (!is.null(RNAExperiment) && substr(name, 1, 4) == "ENSG"){
+      origin <- c(origin, "RNAseq")
+      geneIndex <- which(rowRanges(experimentsList[[1]])$gene_id %in% name)
+      geneName <- rowRanges(RNAExperiment)$gene_name[geneIndex]
+      featureNames <- append(featureNames, rowRanges(experimentsList[[1]])$gene_name[geneIndex])
+    }
+    else{
+      featureNames <- append(featureNames, name)
+      if(substr(name, 2, 4) == "hsa"){origin <- c(origin, "miRNA")}
+      else if(length(featureIdx) > 0 && featureIdx < 9){origin <- c(origin, "covariate")}
+      else if(name == "(Intercept)"){origin <- c(origin, "Intercept")}
+      else{origin <- c(origin, "RPPA")}
+    }
+  }
+  
+  featureFrame$names <- featureNames
+  featureFrame$origin <- origin
+  featureFrame$absCoefficients <- abs(featureFrame$coefficients)
+  featureFrame <- featureFrame[order(featureFrame$absCoefficients, decreasing=TRUE),]
+  return(featureFrame)
+}
+
+# featureFrame <- organizeOutputFeatures(modelPredictionsPair, RNAExperiment=experimentsList[["RNAseq"]])
+# 
+# outFile <- "./ModelBuildingOutput/ElasticNetRNAseqHoldoutsFeatures.csv"
+# write.csv(featureFrame, outFile, row.names = FALSE)
+```

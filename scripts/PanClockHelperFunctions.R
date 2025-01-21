@@ -1,7 +1,7 @@
 # Function to get a list of RangedSummarizedExperiment and SummarizedExperiment objects based on provided paths
 # Removes subjects with missing values for inputted list of features
 # Get experiment out of list using syntax: experimentList[[index]]
-getExperimentsList <- function(paths, featuresToEnsure, removeHPVPositive=FALSE) {
+getExperimentsList <- function(paths, featuresToEnsure=c("Age"), removeHPVPositive=FALSE) {
   
   experimentList <- list()
   # Add each experiment
@@ -57,6 +57,15 @@ getLayerPathsForSpecificCancer <- function(paths, cancerName){
     layerPaths[[layer]] <- grep(cancerName, paths[[layer]], value=TRUE)
   }
   return(layerPaths)
+}
+
+getExperimentByLayerAndCancer <- function(layerName, cancerName){
+  revisedLayerName <- layerName
+  if (layerName == "RNAseq"){ revisedLayerName <- "RNAseq_filtered" }
+  paths <- getPathsByLayerAndCancer()
+  cancerPaths <- getLayerPathsForSpecificCancer(paths, cancerName)
+  experiment <- getExperimentsList(list(layer=cancerPaths[[revisedLayerName]]))
+  return(experiment)
 }
 
 getAllCancers <- function(paths){

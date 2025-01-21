@@ -3,34 +3,48 @@ title: "PanEverythingSurvivalClock"
 output: html_notebook
 ---
 
-```{r}
+```{r message=FALSE, warning=FALSE, include=FALSE}
 library(e1071) 
 library(caTools) 
 library(class)
-library(randomForest) 
 library(TimeSeriesExperiment)
 library(SummarizedExperiment)
 library(Biobase)
 library(ggplot2)
 library(caret)
-source("InitialSteps.Rmd")
-source("ModelBuilding.Rmd")
-source("Output.Rmd")
+# source("InitialSteps.Rmd")
+knitr::knit("ModelBuilding.Rmd", output = tempfile())
+knitr::knit("Analysis.Rmd", output = tempfile())
 source("PanClockHelperFunctions.R")
 ```
 
 ```{r}
-# Get SummarizedExperiments for target layers
-paths <- getPathsByLayerAndCancer(getLayers=TRUE)
-miRNAPathHNSC <- paths[["miRNA"]][10]
-RNASeqPathHNSC <- paths[["RNAseq_filtered"]][10]
-
-layerPaths <- c(miRNAPathHNSC, RNASeqPathHNSC)
-featuresToEnsure <- c("Age", "HPV.status")
-layersList <- getExperimentsList(layerPaths, featuresToEnsure)
-
 # Ideal structure
 # experimentsList <- InitialSteps()
 # mlModelPredictionsList <- ModelBuilding(experimentsList)
 # output <- Output(mlModelPredictionsList[["model"]], mlModelPredictionsList[["predictions"]])
 ```
+
+# Get the output of the ML model
+```{r}
+modelOutput <- standardizedModelBuilding(c("RPPA", "miRNA"), cancerName="UCEC", splitSize=0.8)
+```
+
+
+# Survival analysis given model just ran
+```{r}
+stats <- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted)
+summary(stats$interaction_model)
+
+# outFile <- "../../results/ElasticNet_HNSC_HPV_Negative/ElasticNetRPPACompleteSet.csv"
+# write.csv(predictions, outFile, row.names = FALSE)
+```
+
+# Survival analysis given previous data
+```{r}
+results <- read.csv("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/ElasticNet_HNSC_HPV_Negative/ElasticNetRNAseqCompleteSet.csv")
+experiment <- getExperimentByLayerAndCancer("miRNA", "HNSC")
+stats <- getSurvivalStats(experiment[[1]], results)
+summary(stats$interaction_model)
+```
+
