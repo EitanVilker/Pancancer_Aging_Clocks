@@ -1,8 +1,11 @@
+```{r}
+source("run_analysis_pipeline.R")
+```
 
 ```{r}
 getSurvivalStats <- function(fullExperiment, predictionObject){
   df <- data.frame(predicted_age=predictionObject$predicted_age, submitter_id=predictionObject$submitter_id)
-  return(run_analysis_pipeline(fullExperiment, df))
+  return(run_analysis_pipeline(fullExperiment, df, prediction_object=predictionObject))
 }
 
 ```

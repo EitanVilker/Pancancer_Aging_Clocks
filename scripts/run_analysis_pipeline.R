@@ -1,4 +1,5 @@
-run_analysis_pipeline <- function(fullExperiment, prediction_object) {
+run_analysis_pipeline <- function(fullExperiment, prediction_df, prediction_object=NULL) {
+  print("Good start")
   library(dplyr)
   library(survival)
   library(SummarizedExperiment)
@@ -59,7 +60,7 @@ run_analysis_pipeline <- function(fullExperiment, prediction_object) {
   rownames(metadata_table) <- metadata_table$submitter_id
   
   # Prepare Predicted Ages Data
-  predicted_ages <- prediction_object %>%
+  predicted_ages <- prediction_df %>%
     dplyr::select(submitter_id, predicted_age)
   rownames(predicted_ages) <- predicted_ages$submitter_id
   
@@ -76,11 +77,14 @@ run_analysis_pipeline <- function(fullExperiment, prediction_object) {
   
   formula_vector_non_interaction <- c("chronological + delta_age", "race")
   formula_vector_interaction <- c("chronological * delta_age", "race")
-  if ("gender.y" %in% colnames(experiment_prediction_object)){
+  print(colnames(prediction_df))
+  if (is.null(prediction_object) || "gendermale" %in% colnames(prediction_object)){
+    print("Male")
     formula_vector_non_interaction <- c(formula_vector_non_interaction, "gender.y")
     formula_vector_interaction <- c(formula_vector_interaction, "gender.y")
   }
   covariates_formula_non_interaction <- as.formula(paste("surv ~ ", paste(formula_vector_non_interaction, collapse= "+")))
+  print(covariates_formula_non_interaction)
   covariates_formula_interaction <- as.formula(paste("surv ~ ", paste(formula_vector_interaction, collapse= "+")))
   
   # Run Non-Interaction CoxPH Model

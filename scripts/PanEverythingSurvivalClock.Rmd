@@ -28,11 +28,11 @@ source("PanClockHelperFunctions.R")
 # Get the output of the ML model
 ```{r}
 # Complete Set
-# existingExperimentList <- NULL # comment in if first time running with layer and cancer combination
+existingExperimentList <- NULL # comment in if first time running with layer and cancer combination
 # modelOutput <- standardizedModelBuilding(c("methylation", "RNAseq"), cancerName="HNSC", existingExperimentList=existingExperimentList)
 
 # Holdouts
-modelOutput <- standardizedModelBuilding(c("methylation", "RNAseq"), cancerName="HNSC", splitSize=0.8, seed=44, existingExperimentsList=existingExperimentList)
+modelOutput <- standardizedModelBuilding(c("RNAseq"), cancerName="HNSC", methodNames=c("glmnet", "svmLinear", "ranger"), splitSize=0.8, seed=43, existingExperimentsList=existingExperimentList)
 existingExperimentList <- modelOutput$experimentList
 ```
 
