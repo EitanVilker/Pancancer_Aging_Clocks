@@ -129,10 +129,10 @@ getCleanedAssayData <- function(experimentsList, assayNames, useImputed, simplif
   for (i in 1:length(experimentsList)){    
     if (checkingAllCancers){ layerName <- "RNAseq" }
     else{ layerName <- names(experimentsList)[i] }
-    experiment <- experimentsList[[i]]
-    if (length(simplifiedDataPairs) > 0 && length(simplifiedDataPairs[[i]]) > 1){
-      simplifiedData <- simplifiedDataPairs[[i]]$data
-      significantFeatures <- simplifiedData[simplifiedData[[simplifiedDataPairs[[i]]$metric]] <= 0.025, ]
+    experiment <- experimentsList[[layerName]]
+    if (length(simplifiedDataPairs) > 0 && length(simplifiedDataPairs[[layerName]]) > 1){
+      simplifiedData <- simplifiedDataPairs[[layerName]]$data
+      significantFeatures <- simplifiedData[simplifiedData[[simplifiedDataPairs[[layerName]]$metric]] <= 0.025, ]
       if (assayNames[[layerName]] == "M-values"){ 
         print("M-vals simplified")
         experiment <- experiment[rownames(significantFeatures), ] }
@@ -140,8 +140,8 @@ getCleanedAssayData <- function(experimentsList, assayNames, useImputed, simplif
     }
   
     # Return the assay data for the experiment, using the imputed values if available
-    if (useImputed[[layerName]]){ assayType <- paste(assayNames[[i]],"-imputed",sep="")}
-    else { assayType <- assayNames[[i]]}
+    if (useImputed[[layerName]]){ assayType <- paste(assayNames[[layerName]],"-imputed",sep="")}
+    else { assayType <- assayNames[[layerName]]}
     assayData <- as.data.frame(t(assay(experiment, assayType)))
     assayData <- cbind(assayData, submitter_id=row.names(assayData))
     assayList[[layerName]] <- assayData
@@ -513,14 +513,13 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
     print(g1)
   }
   
-  return(list(model=modelsList, predicted=remainingTests, weights=weightsSurvival))
+  return(list(model=modelsList, predicted=remainingTests, weights=weightsSurvival, experimentsList=experimentsList))
 }
 ```
 
 # Function to get lists containing paths for each omics layer, names for the best assay type respective to each layer, and whether or not imputation is required for each layer
 ```{r}
 setup1 <- function(layersVector, cancerName="HNSC", checkingAllCancers=FALSE){
-  PATH <- file.path( Sys.getenv("PCANAGE","/restricted/projectnb/agedisease/projects/pancancer_aging_pbock")) 
   paths <- getPathsByLayerAndCancer()
   layerPaths <- list()
   cancerPaths <- list()
@@ -555,7 +554,8 @@ setup1 <- function(layersVector, cancerName="HNSC", checkingAllCancers=FALSE){
 
 # Perform second part of setup, including imputing, getting significant features
 ```{r}
-setup2 <- function(setup1List, featuresToEnsure=c("Age")){
+setup2 <- function(setup1List, featuresToEnsure=c("Age"), existingExperimentsList=NULL){
+  PATH <- file.path( Sys.getenv("PCANAGE","/restricted/projectnb/agedisease/projects/pancancer_aging_pbock")) 
   layerPaths <- setup1List$layerPaths
   assayNames <- setup1List$assayNames
   needsImputation <- setup1List$needsImputation
@@ -576,11 +576,15 @@ setup2 <- function(setup1List, featuresToEnsure=c("Age")){
       simplifiedData$methylation <- list(data=readRDS(paste(PATH,"/results/methylation/DMP_analysis/TCGA-",cancerName,"_CpG-Sites_hg19_limma.rds", sep="")), metric="adj.P.Val")
     }
     if (!is.null(layerPaths$RNAseq)) { 
-      simplifiedData$RNAseq <- list(data=readRDS(paste(PATH,"/results/RNAseq/DGE_analysis/TCGA-",cancerName, "_filtered_DESeq2_results.rds", sep="")), metric="padj")
+      simplifiedData$RNAseq <- list(data=readRDS(paste(PATH,"/results/RNAseq/DGE_analysis/TCGA-",cancerName,"_filtered_DESeq2_results.rds", sep="")), metric="padj")
     }
+    if (!is.null(layerPaths$miRNA)) { simplifiedData$miRNA <- NULL }
+    if (!is.null(layerPaths$RPPA)) { simplifiedData$RPPA <- NULL }
     
     # Get list of SummarizedExperiments for each omics layer of the cancer
-    experimentsList <- getExperimentsList(layerPaths, featuresToEnsure=featuresToEnsure, removeHPVPositive=removeHPVPositive)
+    if (is.null(existingExperimentsList)){ 
+      experimentsList <- getExperimentsList(layerPaths, featuresToEnsure=featuresToEnsure, removeHPVPositive=removeHPVPositive)
+    }
   }
   
   # Get RNAseq experiments for all cancers if this mode was chosen 
@@ -590,8 +594,8 @@ setup2 <- function(setup1List, featuresToEnsure=c("Age")){
   }
   
   # Perform imputation
-  experimentsList <- imputeMissingValues(experimentsList, assayNames, needsImputation, checkingAllCancers=checkingAllCancers) # Run if missing values in assay
-  
+  if (is.null(existingExperimentsList)) { experimentsList <- imputeMissingValues(experimentsList, assayNames, needsImputation, checkingAllCancers=checkingAllCancers) } # Run if missing values in assay
+  else { experimentsList <- existingExperimentsList }
   if (checkingAllCancers){ return(list(experimentsList=experimentsList, assayNames=assayNames, needsImputation=needsImputation, cancerSimplifiedDataList=cancerSimplifiedDataList, checkingAllCancers=checkingAllCancers))}
   return(list(experimentsList=experimentsList, assayNames=assayNames, needsImputation=needsImputation, simplifiedData=simplifiedData, checkingAllCancers=checkingAllCancers))
 }
@@ -599,16 +603,16 @@ setup2 <- function(setup1List, featuresToEnsure=c("Age")){
 
 # Wrapper for the 2 setup functions
 ```{r}
-performSetup <- function(layersVector, cancerName="HNSC", checkingAllCancers=FALSE, featuresToEnsure=c("Age"), removeHPVPositive=FALSE){
-  return(setup2(setup1(layersVector, cancerName=cancerName, checkingAllCancers=checkingAllCancers), featuresToEnsure=featuresToEnsure))
+performSetup <- function(layersVector, cancerName="HNSC", checkingAllCancers=FALSE, featuresToEnsure=c("Age"), removeHPVPositive=FALSE, existingExperimentsList=NULL){
+  return(setup2(setup1(layersVector, cancerName=cancerName, checkingAllCancers=checkingAllCancers), featuresToEnsure=featuresToEnsure, existingExperimentsList=existingExperimentsList))
 }
 ```
 
 # Wrapper for ModelBuilding with default params to make life easier. Just need to pass in vector of omics layer names and the cancer name abbreviation, but can adjust other parameters as desired like setting splitSize to 0.8 for a holdouts test
 ```{r}
-standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize=0.999, testOnCompleteData=FALSE, graphTitle="", methodNames=c("glmnet"), seed=43, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE){
+standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize=0.999, testOnCompleteData=FALSE, graphTitle="", methodNames=c("glmnet"), seed=43, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, existingExperimentsList=NULL){
   if (splitSize > 0.98){ testOnCompleteData=TRUE}
-  modelBuildingInput <- performSetup(layersVector, cancerName=cancerName)
+  modelBuildingInput <- performSetup(layersVector, cancerName=cancerName, existingExperimentsList=existingExperimentsList)
   
   # Set up title
   if (nchar(graphTitle) == 0){
@@ -704,69 +708,4 @@ standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize
 ## Methylation, Elastic Net, holdouts, using simplified data
 # modelBuildingInput <- performSetup(c("Methylation"), cancerName=cancerName)
 # modelPredictionsPair <- ModelBuilding(modelBuildingInput, splitSize=0.8, testOnCompleteData=FALSE, seed=43, graphTitle="Methylation, ElasticNet, Holdouts", methodNames=c("glmnet"), columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"))
-```
-
-```{r}
-# # results <- read.csv("./ModelBuildingOutput/3Models3Layers5BayesLogTest.csv")
-# predictions <- modelOutput$ModelBuilding$predicted
-# # df <- data.frame(predicted_age=results$predicted_age, submitter_id=results$submitter_id)
-# df <- data.frame(predicted_age=predictions$predicted_age, submitter_id=predictions$submitter_id)
-# reducedExperimentList <- modelOutput$experimentList[[1]][, modelOutput$experimentList[[1]]$submitter_id %in% df$submitter_id]
-# stats <- run_analysis_pipeline(modelOutput$experimentList[[1]], df)
-# # stats$interaction_summary$logtest
-# summary(stats$interaction_model)
-# coxph(
-#     surv ~ chronological + delta_age + gender.y + race,
-#     data = hnsc_three_layers_elnet_meta
-#   )
-
-# outFile <- "../../results/ElasticNet_HNSC_HPV_Negative/ElasticNetRPPACompleteSet.csv"
-# write.csv(predictions, outFile, row.names = FALSE)
-```
-
-### Find coefficients of individual features
-```{r}
-## For RNAseq data
-# To find coefficients: coefficients <- coef(modelPredictionsPair$model$finalModel, modelPredictionsPair$model$bestTune$lambda)
-# To find the index of a coefficient: index <- which(coefficients@x %in% COEFFICIENT_OF_CHOICE)
-# To find the gene ID of an index: geneID <- coefficients@Dimnames[[1]][index]
-# To find the index of the gene in the full experiment: fullIndex <- which(rowRanges(experimentsList[[1]])$gene_id %in% geneID) 
-# To find the gene name: featureName <- rowRanges(experimentsList[[1]])$gene_name[fullIndex]
-# RNASeqElNet <- read.csv("./ModelBuildingOutput/RNAseqElNet.csv")
-
-organizeOutputFeatures <- function(modelPredictionsPair, RNAExperiment=NULL){
-
-  coefficients <- coef(modelPredictionsPair$model$finalModel, modelPredictionsPair$model$bestTune$lambda)
-  # coefficients2 <- coef(modelPredictionsPair$model$finalModel, unlist(modelPredictionsPair$model$bestTune))
-  featureFrame <- data.frame(features=coefficients@Dimnames[[1]][coefficients@i + 1], coefficients=coefficients@x)
-  featureNames <- c()
-  origin <- c()
-  for (name in featureFrame$features){
-    featureIdx <- which(colnames(modelPredictionsPair$predicted) %in% name)
-    if (!is.null(RNAExperiment) && substr(name, 1, 4) == "ENSG"){
-      origin <- c(origin, "RNAseq")
-      geneIndex <- which(rowRanges(experimentsList[[1]])$gene_id %in% name)
-      geneName <- rowRanges(RNAExperiment)$gene_name[geneIndex]
-      featureNames <- append(featureNames, rowRanges(experimentsList[[1]])$gene_name[geneIndex])
-    }
-    else{
-      featureNames <- append(featureNames, name)
-      if(substr(name, 2, 4) == "hsa"){origin <- c(origin, "miRNA")}
-      else if(length(featureIdx) > 0 && featureIdx < 9){origin <- c(origin, "covariate")}
-      else if(name == "(Intercept)"){origin <- c(origin, "Intercept")}
-      else{origin <- c(origin, "RPPA")}
-    }
-  }
-  
-  featureFrame$names <- featureNames
-  featureFrame$origin <- origin
-  featureFrame$absCoefficients <- abs(featureFrame$coefficients)
-  featureFrame <- featureFrame[order(featureFrame$absCoefficients, decreasing=TRUE),]
-  return(featureFrame)
-}
-
-# featureFrame <- organizeOutputFeatures(modelPredictionsPair, RNAExperiment=experimentsList[["RNAseq"]])
-# 
-# outFile <- "./ModelBuildingOutput/ElasticNetRNAseqHoldoutsFeatures.csv"
-# write.csv(featureFrame, outFile, row.names = FALSE)
 ```

@@ -27,17 +27,23 @@ source("PanClockHelperFunctions.R")
 
 # Get the output of the ML model
 ```{r}
-modelOutput <- standardizedModelBuilding(c("RPPA", "miRNA"), cancerName="UCEC", splitSize=0.8)
+# Complete Set
+# existingExperimentList <- NULL # comment in if first time running with layer and cancer combination
+# modelOutput <- standardizedModelBuilding(c("methylation", "RNAseq"), cancerName="HNSC", existingExperimentList=existingExperimentList)
+
+# Holdouts
+modelOutput <- standardizedModelBuilding(c("methylation", "RNAseq"), cancerName="HNSC", splitSize=0.8, seed=44, existingExperimentsList=existingExperimentList)
+existingExperimentList <- modelOutput$experimentList
 ```
 
 
 # Survival analysis given model just ran
 ```{r}
 stats <- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted)
-summary(stats$interaction_model)
+print(summary(stats$interaction_model))
 
-# outFile <- "../../results/ElasticNet_HNSC_HPV_Negative/ElasticNetRPPACompleteSet.csv"
-# write.csv(predictions, outFile, row.names = FALSE)
+# outFile <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/ElasticNet_HNSC_HPV_Negative/ElasticNetMethylationRNAseqHoldoutsSeed44.csv"
+# write.csv(modelOutput$ModelBuilding$predicted, outFile, row.names = FALSE)
 ```
 
 # Survival analysis given previous data
