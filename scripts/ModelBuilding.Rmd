@@ -246,6 +246,27 @@ encode_covariates <- function(covariates, assayData, featuresToEncode=NULL, enco
 }
 ```
 
+
+### Function to apply systematic bias correction
+```{r}
+bias_correction <- function(predicted_age, true_age) {
+  print("Applying bias correction...")
+  
+  # Fit a linear model: predicted_age ~ true_age
+  bias_fit <- lm(predicted_age ~ true_age)
+  
+  # Extract coefficients
+  alpha <- coef(bias_fit)[1]  # Intercept
+  beta <- coef(bias_fit)[2]  # Slope
+  
+  # Correct predictions
+  corrected_predicted_age <- predicted_age - (alpha + beta * true_age)
+  
+  return(corrected_predicted_age)
+}
+```
+
+
 ### Split data into training and testing sets
 ```{r}
 splitTrainTest <- function(assayData, trainSetSize=0.8, seed=42){
@@ -261,7 +282,7 @@ splitTrainTest <- function(assayData, trainSetSize=0.8, seed=42){
 
 ### Build ML model; default is ElasticNet
 ```{r}
-train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=TRUE, seed=42, graphTitle="", stratifying=FALSE) {
+train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=TRUE, seed=42, graphTitle="", stratifying=FALSE, applyBiasCorrection=TRUE) {
   print("Training model...")
   print(methodName)
   
@@ -371,6 +392,37 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=
         # theme_minimal()
       print(g1)
 }
+
+
+
+  # Apply bias correction if enabled
+  if (applyBiasCorrection) {
+    corrected_predicted_age <- bias_correction(meta_tst$predicted_age, meta_tst$Age)
+    meta_tst$predicted_corrected_age <- corrected_predicted_age
+    R2_after <- cor(meta_tst$Age, meta_tst$predicted_corrected_age)^2
+    RMSE_after <- sqrt(mean((meta_tst$Age - meta_tst$predicted_corrected_age)^2))
+    
+    # Plot results after bias correction
+    if (do_plot && nchar(graphTitle) > 0) {
+      DF_after <- data.frame(
+        sampleID = rownames(meta_tst),
+        true_age = meta_tst$Age,
+        pred_age = meta_tst$predicted_corrected_age
+      )
+      
+      g2 <- ggplot2::ggplot(DF_after, aes(x = true_age, y = pred_age)) +
+        geom_point(color = "green") +
+        geom_smooth(method = "lm", se = FALSE, aes(color = "Regression Line")) +
+        geom_abline(intercept = 0, slope = 1, linetype = "dashed", aes(color = "Identity Line")) +
+        scale_color_manual(values = c("Regression Line" = "orange")) +
+        labs(title = paste("After Bias Correction: ", graphTitle, sep=""), x = "True Age", y = "Corrected Predicted Age", color = "Legend") +
+        labs(caption = paste("R^2:", toString(round(R2_after, 3)), "- RMSE:", toString(round(RMSE_after, 3)))) +
+        theme(plot.caption.position = "plot", plot.caption = element_text(hjust = 0))
+      
+      print(g2)
+    }
+  }
+
   # Return model and augmented data
   return(list(model = meta_model, predicted = meta_tst))
 }
