@@ -21,9 +21,13 @@ source("run_analysis_pipeline.R")
 ```
 
 ### Imputation (needed for methylation)
+
 # This block performs KNN imputation to fill in missing values in the data using five nearest neighbors.
+
 # Note that it runs slowly and may be needed just for methylation, so try to run only as needed and once
+
 # Will skip and return unchanged if impute=TRUE
+
 ```{r}
 #KNN imputation
 #Use five closest neighbors
@@ -48,6 +52,7 @@ imputeMissingValues <- function(experimentsList, assayNames, needsImputation, ch
 ```
 
 ### Combine Experiments (skip unless doing pan-cancer, not ready yet)
+
 ```{r}
 combineExperiments <- function(experimentsList, assayNames){
   match.cols <- Reduce(function(x, y){intersect(x, y@colData@rownames)}, experimentsList, init = colnames(experimentsList[[1]]))
@@ -77,6 +82,7 @@ combineExperiments <- function(experimentsList, assayNames){
 ```
 
 ### Combine Assays (skip unless doing pan-layer)
+
 ```{r}
 combineAssays <- function(assaysList){
   combinedAssays <- assaysList[[1]]
@@ -97,7 +103,6 @@ combineAssays <- function(assaysList){
 # combo <- merge(assay1, assay2, by="submitter_id", all=FALSE)
 # combo <- combineAssays(practiceList)
 ```
-
 
 ```{r}
 
@@ -120,6 +125,7 @@ filterForCovariates <- function(experimentsList, columns_to_keep=c("Age", "gende
 ```
 
 ### Gets assay data using pre-filtered data if available as well as imputed vals. Currently takes input a single experiment
+
 ```{r}
 getCleanedAssayData <- function(experimentsList, assayNames, useImputed, simplifiedDataPairs=list(), checkingAllCancers=FALSE){
   print("Getting cleaned assay data...")
@@ -150,8 +156,8 @@ getCleanedAssayData <- function(experimentsList, assayNames, useImputed, simplif
 }
 ```
 
-
 ### Do any additional feature filtering here; necessity may depend on ML method
+
 ```{r}
 # Remove features highly correlated with each other
 filterFeatures <- function(assayList, experimentsList, relativeVariance=FALSE, highCorrelationToAge=FALSE, highCorrelationToEachOther=FALSE, cutoffThreshold=0.99, checkingAllCancers=FALSE){
@@ -187,8 +193,8 @@ filterFeatures <- function(assayList, experimentsList, relativeVariance=FALSE, h
 }
 ```
 
-
 ### Set up one-hot encoding of covariates. Currently designed for one set of assay data
+
 ```{r}
 encode_covariates <- function(covariates, assayData, featuresToEncode=NULL, encodingHPV=FALSE, encodingGender=TRUE){
   print("Encoding covariates...")
@@ -246,8 +252,8 @@ encode_covariates <- function(covariates, assayData, featuresToEncode=NULL, enco
 }
 ```
 
-
 ### Function to apply systematic bias correction
+
 ```{r}
 bias_correction <- function(predicted_age, true_age) {
   print("Applying bias correction...")
@@ -266,8 +272,8 @@ bias_correction <- function(predicted_age, true_age) {
 }
 ```
 
-
 ### Split data into training and testing sets
+
 ```{r}
 splitTrainTest <- function(assayData, trainSetSize=0.8, seed=42){
   print("Train test splitting...")
@@ -281,6 +287,7 @@ splitTrainTest <- function(assayData, trainSetSize=0.8, seed=42){
 ```
 
 ### Build ML model; default is ElasticNet
+
 ```{r}
 train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=TRUE, seed=42, graphTitle="", stratifying=FALSE, applyBiasCorrection=TRUE) {
   print("Training model...")
@@ -428,10 +435,12 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=
 }
 ```
 
-
 ### Primary wrapper function to be run by other files - make sure to impute beforehand!
+
 # Returns: list object with indices "model" and "predictions"
-# Access coefficients through listName[["model"]]$finalModel, true age with listName[["predicted"]]$age, predicted age with listName[["predicted"]]$predicted_age
+
+# Access coefficients through listName[["model"]]$finalModel, true age with listName[["predicted"]]$age, predicted age with listName[["predicted"]]\$predicted_age
+
 ---
 <!-- params: -->
 <!--   inputList$experimentsList: list object of SummarizedExperiments-->
@@ -449,8 +458,9 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=
 <!--   columnsToKeep: vector of metadata column names to keep in experiments as covariates or predictors -->
 <!--   stratifying: set to TRUE to stratify subjects by age -->
 ---
+
 ```{r}
-ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCompleteData=FALSE, methodNames=c("glmnet"), graphTitle="", seed=42, pca=FALSE, columnsToKeep=c("Age", "gender", "race", "HPV.status"), stratifying=FALSE, iterationCount=5, applyBiasCorrection=TRUE){
+ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCompleteData=FALSE, methodNames=c("glmnet"), graphTitle="", seed=42, pca=FALSE, columnsToKeep=c("Age", "gender", "race", "HPV.status"), stratifying=FALSE, iterationCount=5,applyBiasCorrection=TRUE){
 
   experimentsList <- inputList$experimentsList
   assayNamesList <- inputList$assayNames
@@ -509,8 +519,7 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
     for (k in 1:length(methodNames)){
       correlations <- c()
       methodName <- methodNames[k]
-      modelPredictionPair <- train_test_wrapper(train_testInitial[["train"]], train_testInitial[["test"]], seed=seed, methodName=methodName, do_plot=FALSE, stratifying=stratifying, 
-      applyBiasCorrection = FALSE  # Bias correction not applied for individual runs in ensemble)
+      modelPredictionPair <- train_test_wrapper(train_testInitial[["train"]], train_testInitial[["test"]], seed=seed, methodName=methodName, do_plot=FALSE, stratifying=stratifying, applyBiasCorrection = FALSE)
       modelsList[[methodName]][[j]] <- modelPredictionPair[["model"]]
       predictions <- modelPredictionPair[["predicted"]]
       df <- data.frame(predicted_age=predictions$predicted_age, submitter_id=predictions$submitter_id)
@@ -602,6 +611,7 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
 ```
 
 # Function to get lists containing paths for each omics layer, names for the best assay type respective to each layer, and whether or not imputation is required for each layer
+
 ```{r}
 setup1 <- function(layersVector, cancerName="HNSC", checkingAllCancers=FALSE){
   paths <- getPathsByLayerAndCancer()
@@ -637,6 +647,7 @@ setup1 <- function(layersVector, cancerName="HNSC", checkingAllCancers=FALSE){
 ```
 
 # Perform second part of setup, including imputing, getting significant features
+
 ```{r}
 setup2 <- function(setup1List, featuresToEnsure=c("Age"), existingExperimentsList=NULL){
   PATH <- file.path( Sys.getenv("PCANAGE","/restricted/projectnb/agedisease/projects/pancancer_aging_pbock")) 
@@ -686,6 +697,7 @@ setup2 <- function(setup1List, featuresToEnsure=c("Age"), existingExperimentsLis
 ```
 
 # Wrapper for the 2 setup functions
+
 ```{r}
 performSetup <- function(layersVector, cancerName="HNSC", checkingAllCancers=FALSE, featuresToEnsure=c("Age"), removeHPVPositive=FALSE, existingExperimentsList=NULL){
   return(setup2(setup1(layersVector, cancerName=cancerName, checkingAllCancers=checkingAllCancers), featuresToEnsure=featuresToEnsure, existingExperimentsList=existingExperimentsList))
@@ -693,6 +705,7 @@ performSetup <- function(layersVector, cancerName="HNSC", checkingAllCancers=FAL
 ```
 
 # Wrapper for ModelBuilding with default params to make life easier. Just need to pass in vector of omics layer names and the cancer name abbreviation, but can adjust other parameters as desired like setting splitSize to 0.8 for a holdouts test
+
 ```{r}
 standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize=0.999, testOnCompleteData=FALSE, graphTitle="", methodNames=c("glmnet"), seed=43, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, existingExperimentsList=NULL){
   if (splitSize > 0.98){ testOnCompleteData=TRUE}
@@ -713,7 +726,9 @@ standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize
 ```
 
 ### Example Code - Run the model
+
 # Note that you must create correct input variables, running this function is not enough yet
+
 ```{r message=FALSE}
 
 # Current Test
@@ -792,4 +807,12 @@ standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize
 ## Methylation, Elastic Net, holdouts, using simplified data
 # modelBuildingInput <- performSetup(c("Methylation"), cancerName=cancerName)
 # modelPredictionsPair <- ModelBuilding(modelBuildingInput, splitSize=0.8, testOnCompleteData=FALSE, seed=43, graphTitle="Methylation, ElasticNet, Holdouts", methodNames=c("glmnet"), columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"))
+```
+
+## Test Bias correction
+
+```{r message=FALSE}
+# # RNAseq, ElasticNet, complete set, using simplified data
+modelBuildingInput <- performSetup(c("RNAseq"), cancerName=cancerName)
+modelPredictionsPair <- ModelBuilding(modelBuildingInput, splitSize=0.999, testOnCompleteData=FALSE, graphTitle="RNAseq, ElasticNet, Complete Set", methodNames=c("glmnet"), seed=42, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, )
 ```
