@@ -259,14 +259,14 @@ bias_correction <- function(predicted_age, true_age) {
   print("Applying bias correction...")
   
   # Create a data frame for calculations
-  DF <- data.frame(predicted_age = predicted_age, Age.serum = true_age)
+  DF <- data.frame(predicted_age = predicted_age, true_age = true_age)
   
   # Fit a linear model: predicted_age ~ true_age
-  age_fit <- lm(predicted_age ~ Age.serum, data = DF)
+  age_fit <- lm(predicted_age ~ true_age, data = DF)
   
   # Apply the bias correction formula
   DF <- DF |>
-    dplyr::rename(chronological = Age.serum) |>
+    dplyr::rename(chronological = true_age) |>
     dplyr::mutate(delta_age_corrected = predicted_age - age_fit$fitted.values) |>
     dplyr::mutate(predicted_corrected = delta_age_corrected + chronological)
   
