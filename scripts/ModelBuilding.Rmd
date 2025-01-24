@@ -258,17 +258,19 @@ encode_covariates <- function(covariates, assayData, featuresToEncode=NULL, enco
 bias_correction <- function(predicted_age, true_age) {
   print("Applying bias correction...")
   
+  # Create a data frame for calculations
+  DF <- data.frame(predicted_age = predicted_age, Age.serum = true_age)
+  
   # Fit a linear model: predicted_age ~ true_age
-  bias_fit <- lm(predicted_age ~ true_age)
+  age_fit <- lm(predicted_age ~ Age.serum, data = DF)
   
-  # Extract coefficients
-  alpha <- coef(bias_fit)[1]  # Intercept
-  beta <- coef(bias_fit)[2]  # Slope
+  # Apply the bias correction formula
+  DF <- DF |>
+    dplyr::rename(chronological = Age.serum) |>
+    dplyr::mutate(delta_age_corrected = predicted_age - age_fit$fitted.values) |>
+    dplyr::mutate(predicted_corrected = delta_age_corrected + chronological)
   
-  # Correct predictions
-  corrected_predicted_age <- predicted_age - (alpha + beta * true_age)
-  
-  return(corrected_predicted_age)
+  return(DF$predicted_corrected)
 }
 ```
 
@@ -813,6 +815,6 @@ standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize
 
 ```{r message=FALSE}
 # # RNAseq, ElasticNet, complete set, using simplified data
-modelBuildingInput <- performSetup(c("RNAseq"), cancerName=cancerName)
-modelPredictionsPair <- ModelBuilding(modelBuildingInput, splitSize=0.999, testOnCompleteData=FALSE, graphTitle="RNAseq, ElasticNet, Complete Set", methodNames=c("glmnet"), seed=42, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, )
+modelBuildingInput <- performSetup(c("RNAseq"), cancerName="HNSC")
+modelPredictionsPair <- ModelBuilding(modelBuildingInput, splitSize=0.999, testOnCompleteData=FALSE, graphTitle="RNAseq, ElasticNet, Complete Set", methodNames=c("glmnet"), seed=42, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, applyBiasCorrection=TRUE)
 ```
