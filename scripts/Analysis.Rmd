@@ -2,6 +2,7 @@
 source("run_analysis_pipeline.R")
 ```
 
+# Runs CoxPH given experiment and predictions and output object containing each CoxPH run
 ```{r}
 getSurvivalStats <- function(fullExperiment, predictionObject){
   df <- data.frame(predicted_age=predictionObject$predicted_age, submitter_id=predictionObject$submitter_id)
@@ -11,7 +12,7 @@ getSurvivalStats <- function(fullExperiment, predictionObject){
 ```
 
 
-### Find coefficients of individual features
+### Find coefficients of individual features used in final model
 ```{r}
 ## For RNAseq data
 # To find coefficients: coefficients <- coef(modelPredictionsPair$model$finalModel, modelPredictionsPair$model$bestTune$lambda)

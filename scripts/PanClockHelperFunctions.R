@@ -98,15 +98,3 @@ checkIfNameMatch <- function(name, experiment=NULL){
   if (is.null(experiment)){ return(FALSE) } 
   return(any(experiment$submitter_id==name))
 }
-
-# Example code
-# paths <- getPathsByLayerAndCancer(getLayers=TRUE)
-# miRNAPathHNSC <- paths[["miRNA"]][10]
-# RNASeqPathHNSC <- paths[["RNAseq_filtered"]][10]
-# 
-# layerPaths <- c(miRNAPathHNSC, RNASeqPathHNSC)
-# featuresToEnsure <- c("Age", "HPV.status")
-# layersList <- getExperimentsList(layerPaths, featuresToEnsure)
-# layersList[[2]]$Age[5]
-
-
