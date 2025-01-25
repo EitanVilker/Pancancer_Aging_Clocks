@@ -1,0 +1,135 @@
+---
+title: "Many models one cancer test"
+author: "Monti Lab"
+date:   "`r format(Sys.Date(), '%B %d, %Y')`"
+params: 
+  cancer_type: "BRCA"
+output:
+  html_document:
+    theme: united
+    code_folding: hide
+    css: style.css
+    toc: true
+    toc_float: true
+---
+
+```{r opts, echo=FALSE}
+## to prevent excessively verbose output
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+```
+
+```{r render_report, echo=FALSE}
+## this is needed only if you want to generate different versions of the output html
+render_report <- function(
+    rmd = rstudioapi::getSourceEditorContext()$path, # the current source file
+    cancer_type ) {
+  #cancer_type <- match.arg(cancer_type)
+  rmarkdown::render(
+    rmd,
+    params = list(cancer_type = cancer_type),
+    output_file = paste(tools::file_path_sans_ext(rmd), cancer_type, "html", sep = ".")
+  )
+}
+# E.g.,
+#
+#render_report(cancer_type = "HNSC") 
+#   --> "/path/<rmarkdown_stub>.hnsc.html"
+# render_report(cancer_type = "brca") 
+#   --> "/path/<rmarkdown_stub>.brca.html"
+```
+
+```{r cancer type load}
+library(glue)
+
+cancer_type <- params$cancer_type
+
+library(e1071) 
+library(caTools) 
+library(class)
+library(TimeSeriesExperiment)
+library(SummarizedExperiment)
+library(Biobase)
+library(ggplot2)
+library(caret)
+# source("InitialSteps.Rmd")
+knitr::knit("ModelBuilding.Rmd", output = tempfile())
+knitr::knit("Analysis.Rmd", output = tempfile())
+source("PanClockHelperFunctions.R")
+
+BiocManager::install("TimeSeriesExperiment")
+
+
+cancer_type_path <- glue(
+  "/restricted/projectnb/agedisease/CBMrepositoryData/TCGA-GDC/RNAseq/processed_data/filtered/TCGA-{cancer_type}_RNAseq_filtered.rds")
+
+cancer_rds <- readRDS(cancer_type_path)
+
+# E.g.,
+#
+# render_report(cancer_type = "hnsc") 
+#   --> "/path/<rmarkdown_stub>.hnsc.html"
+# render_report(cancer_type = "brca") 
+#   --> "/path/<rmarkdown_stub>.brca.html"
+#render_report(cancer_type)
+```
+
+# Get the output of the ML model (loop through all layer combinations)
+```{r}
+# Complete Set
+existingExperimentList <- NULL # comment in if first time running with layer and cancer combination
+# modelOutput <- standardizedModelBuilding(c("methylation", "RNAseq"), cancerName="HNSC", existingExperimentList=existingExperimentList)
+
+# Holdouts
+layer_combinations <- c(c("miRNA"),c("RPPA"),c("RNASeq"),c("miRNA","RPPA"))
+for (comb in layer_combinations){
+  modelOutput <- standardizedModelBuilding(comb, cancerName = cancer_type, methodNames=c("glmnet"), splitSize=0.99, seed=43)
+  #Display features here 
+  stats <- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted)
+print(summary(stats$interaction_model))
+}
+
+```
+
+
+# Histogram Cancer Ages
+```{r Histogram Cancer Ages}
+print(cancer_type)
+hist(cancer_rds@colData@listData$Age)
+
+```
+# Loading Libraries
+```{r loading libraries}
+library(Biobase)
+library(SummarizedExperiment)
+library(ggplot2)
+library(reactable)
+library(caret)
+library(glmnet)
+library(dplyr)
+library(impute)
+library(survival)
+library(survminer)
+library(vip)
+library(tidyverse)
+library(readr)
+```
+
+# Coxph model
+## Cox PH {.tabset}
+### RNAseqElNet Survival Analysis
+```{r coxph model run}
+source('/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/Core/run_analysis_pipeline_all.R')
+RNAseqElNet <- read_csv("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/Core/ModelBuildingOutput/RNAseqElNet.csv")
+RNAseq3ML <- read_csv("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/Core/ModelBuildingOutput/RNAseq3ML.csv")
+
+# List all the loaded data frames
+data_frames <- list(
+  RNAseqElNet = RNAseqElNet,
+  RNAseq3ML = RNAseq3ML)
+
+#results <- run_analysis_pipeline_all(cancer_rds, data_frames)
+
+#print(results$interaction_table)
+#print(results$non_interaction_table)
+#print(results$detailed_results)
+```

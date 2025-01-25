@@ -5,9 +5,6 @@ output: html_notebook
 
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 library(e1071) 
-library(caTools) 
-library(class)
-library(TimeSeriesExperiment)
 library(SummarizedExperiment)
 library(Biobase)
 library(ggplot2)
@@ -25,7 +22,7 @@ existingExperimentList <- NULL # comment out if running with same layer and canc
 # modelOutput <- standardizedModelBuilding(c("methylation", "RNAseq", "miRNA"), cancerName="HNSC", existingExperimentList=existingExperimentList)
 
 # Holdouts
-modelOutput <- standardizedModelBuilding(c("miRNA"), cancerName="HNSC", methodNames=c("glmnet"), splitSize=0.8, seed=43, existingExperimentsList=existingExperimentList)
+modelOutput <- standardizedModelBuilding(c("miRNA", "RPPA"), cancerName="HNSC", methodNames=c("glmnet"), splitSize=0.8, seed=43, existingExperimentsList=existingExperimentList)
 existingExperimentList <- modelOutput$experimentList
 ```
 
