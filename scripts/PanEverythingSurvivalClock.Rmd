@@ -22,14 +22,15 @@ source("PanClockHelperFunctions.R")
 # modelOutput <- standardizedModelBuilding(c("methylation", "RNAseq", "miRNA"), cancerName="HNSC", existingExperimentList=existingExperimentList)
 
 # Holdouts
-modelOutput <- standardizedModelBuilding(c("miRNA"), cancerName="HNSC", methodNames=c("glmnet"), splitSize=0.8, seed=47, existingExperimentsList=existingExperimentList, iterationCount=2)
+modelOutput <- standardizedModelBuilding(c("RNAseq"), cancerName="HNSC", methodNames=c("glmnet"), splitSize=0.99, seed=47, existingExperimentsList=existingExperimentList, iterationCount=1, applyBiasCorrection=TRUE)
 existingExperimentList <- modelOutput$experimentList
 ```
 
 
 # Survival analysis given model just ran
 ```{r}
-stats <- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted)
+stats <- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted, applyBiasCorrection=FALSE)
+# stats <- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted, applyBiasCorrection=TRUE)
 print(summary(stats$interaction_model))
 
 # outFile <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/ElasticNet_HNSC_HPV_Negative/ElasticNetMethylationRNAseqHoldoutsSeed44.csv"

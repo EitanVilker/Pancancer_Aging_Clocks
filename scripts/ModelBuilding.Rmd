@@ -17,9 +17,13 @@ source("run_analysis_pipeline.R")
 ```
 
 ### Imputation (needed for methylation)
+
 # This block performs KNN imputation to fill in missing values in the data using five nearest neighbors.
+
 # Note that it runs slowly and may be needed just for methylation, so try to run only as needed and once
+
 # Will skip and return unchanged if impute=TRUE
+
 ```{r}
 #KNN imputation
 #Use five closest neighbors
@@ -135,7 +139,6 @@ getCleanedAssayData <- function(experimentsList, assayNames, useImputed, simplif
 }
 ```
 
-
 ### Do any additional feature filtering here; necessity may depend on ML method
 ```{r}
 filterFeatures <- function(assayList, experimentsList, relativeVariance=FALSE, highCorrelationToAge=FALSE, highCorrelationToEachOther=FALSE, cutoffThreshold=0.99){
@@ -171,8 +174,8 @@ filterFeatures <- function(assayList, experimentsList, relativeVariance=FALSE, h
 }
 ```
 
-
 ### Set up one-hot encoding of covariates. Currently designed for one set of assay data
+
 ```{r}
 encode_covariates <- function(covariates, assayData, featuresToEncode=NULL, encodingHPV=FALSE, encodingGender=TRUE){
   print("Encoding covariates...")
@@ -214,7 +217,30 @@ encode_covariates <- function(covariates, assayData, featuresToEncode=NULL, enco
 }
 ```
 
+### Function to apply systematic bias correction
+
+```{r}
+bias_correction <- function(predicted_age, true_age) {
+  print("Applying bias correction...")
+  
+  # Create a data frame for calculations
+  DF <- data.frame(predicted_age = predicted_age, true_age = true_age)
+  
+  # Fit a linear model: predicted_age ~ true_age
+  age_fit <- lm(predicted_age ~ true_age, data = DF)
+  
+  # Apply the bias correction formula
+  DF <- DF |>
+    dplyr::rename(chronological = true_age) |>
+    dplyr::mutate(delta_age_corrected = predicted_age - age_fit$fitted.values) |>
+    dplyr::mutate(predicted_corrected = delta_age_corrected + chronological)
+  
+  return(DF$predicted_corrected)
+}
+```
+
 ### Split data into training and testing sets
+
 ```{r}
 splitTrainTest <- function(assayData, trainSetSize=0.8, seed=42){
   print("Train test splitting...")
@@ -228,8 +254,9 @@ splitTrainTest <- function(assayData, trainSetSize=0.8, seed=42){
 ```
 
 ### Build ML model; default is ElasticNet
+
 ```{r}
-train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=TRUE, seed=42, graphTitle="", stratifying=FALSE) {
+train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=TRUE, seed=42, graphTitle="", stratifying=FALSE, applyBiasCorrection=TRUE) {
   print("Training model...")
   print(methodName)
   
@@ -339,15 +366,46 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=
         # theme_minimal()
       print(g1)
 }
+
+  # Apply bias correction if enabled
+  if (applyBiasCorrection) {
+    corrected_predicted_age <- bias_correction(meta_tst$predicted_age, meta_tst$Age)
+    meta_tst$predicted_corrected_age <- corrected_predicted_age
+    R2_after <- cor(meta_tst$Age, meta_tst$predicted_corrected_age)^2
+    RMSE_after <- sqrt(mean((meta_tst$Age - meta_tst$predicted_corrected_age)^2))
+    
+    # Plot results after bias correction
+    if (do_plot && nchar(graphTitle) > 0) {
+      DF_after <- data.frame(
+        sampleID = rownames(meta_tst),
+        true_age = meta_tst$Age,
+        pred_age = meta_tst$predicted_corrected_age
+      )
+      
+      g2 <- ggplot2::ggplot(DF_after, aes(x = true_age, y = pred_age)) +
+        geom_point(color = "green") +
+        geom_smooth(method = "lm", se = FALSE, aes(color = "Regression Line")) +
+        geom_abline(intercept = 0, slope = 1, linetype = "dashed", aes(color = "Identity Line")) +
+        scale_color_manual(values = c("Regression Line" = "orange")) +
+        labs(title = paste("After Bias Correction: ", graphTitle, sep=""), x = "True Age", y = "Corrected Predicted Age", color = "Legend") +
+        labs(caption = paste("R^2:", toString(round(R2_after, 3)), "- RMSE:", toString(round(RMSE_after, 3)))) +
+        theme(plot.caption.position = "plot", plot.caption = element_text(hjust = 0))
+      
+      print(g2)
+    }
+  }
+
   # Return model and augmented data
   return(list(model = meta_model, predicted = meta_tst))
 }
 ```
 
-
 ### Primary wrapper function to be run by other files - make sure to impute beforehand!
+
 # Returns: list object with indices "model" and "predictions"
-# Access coefficients through listName[["model"]]$finalModel, true age with listName[["predicted"]]$age, predicted age with listName[["predicted"]]$predicted_age
+
+# Access coefficients through listName[["model"]]$finalModel, true age with listName[["predicted"]]$age, predicted age with listName[["predicted"]]\$predicted_age
+
 ---
 <!-- params: -->
 <!--   inputList$experimentsList: list object of SummarizedExperiments-->
@@ -364,8 +422,9 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=
 <!--   columnsToKeep: vector of metadata column names to keep in experiments as covariates or predictors -->
 <!--   stratifying: set to TRUE to stratify subjects by age -->
 ---
+
 ```{r}
-ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCompleteData=FALSE, methodNames=c("glmnet"), graphTitle="", seed=42, pca=FALSE, columnsToKeep=c("Age", "gender", "race", "HPV.status"), stratifying=FALSE, iterationCount=NULL){
+ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCompleteData=FALSE, methodNames=c("glmnet"), graphTitle="", seed=42, pca=FALSE, columnsToKeep=c("Age", "gender", "race", "HPV.status"), stratifying=FALSE, iterationCount=NULL, applyBiasCorrection=TRUE){
 
   experimentsList <- inputList$experimentsList
   assayNamesList <- inputList$assayNames
@@ -398,7 +457,8 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
   
   if (length(methodNames) == 1 && (is.null(iterationCount) || iterationCount < 2)){
     print("Testing only one model!")
-    return(train_test_wrapper(train_testList[["train"]], testSet, seed=seed, methodName=methodNames[1], graphTitle=graphTitle, stratifying=stratifying))
+    # Pass `applyBiasCorrection` directly to `train_test_wrapper`
+    return(train_test_wrapper(train_testList[["train"]], testSet, seed=seed, methodName=methodNames[1], graphTitle=graphTitle, stratifying=stratifying, applyBiasCorrection = applyBiasCorrection))
   }
   
   ## Mixture model
@@ -417,16 +477,16 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
     # For each iteration get a new train test split of the 80% available
     for (j in 1:iterationCount){
       seed <- seed + 1
-      train_testInitial <- splitTrainTest(train_testList[["train"]], trainSetSize=0.8, seed=seed)
+      train_testInitial <- splitTrainTest(train_testList$train, trainSetSize=0.8, seed=seed)
       # For each ML model
       for (k in 1:length(methodNames)){
         correlations <- c()
         methodName <- methodNames[k]
-        modelPredictionPair <- train_test_wrapper(train_testInitial$train, train_testInitial$test, seed=seed, methodName=methodName, do_plot=FALSE, stratifying=stratifying)
+        modelPredictionPair <- train_test_wrapper(train_testInitial$train, train_testInitial$test, seed=seed, methodName=methodName, do_plot=FALSE, stratifying=stratifying, applyBiasCorrection = FALSE)
         modelsList[[methodName]][[j]] <- modelPredictionPair$model
         predictions <- modelPredictionPair$predicted
         df <- data.frame(predicted_age=predictions$predicted_age, submitter_id=predictions$submitter_id)
-        stats <- run_analysis_pipeline(experimentsList[[1]], df)
+        # stats <- run_analysis_pipeline(experimentsList[[1]], df)
         # Weights = priors * new weights
         # weightsSurvival[k] <- weightsSurvival[k] * stats$interaction_summary$logtest[1]
         # weightsSurvival[k] <- weightsSurvival[k] * stats$interaction_summary$concordance[1]
@@ -456,16 +516,14 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
       combinedPredictions <- combinedPredictions + currentModelPredictions
       modelWeightString <- paste(modelWeightString, ", ", names(modelsList)[i], "- Weight: ", toString(round(modelWeight, digits=3)), sep="")
     }
-    
+
     R2 <- round(cor(remainingTests$Age, combinedPredictions)^2, digits=3)
     RMSE <- round(sqrt(mean((remainingTests$Age - combinedPredictions)^2)), digits=3)
-    
     remainingTests$predicted_age <- combinedPredictions
-    caption <- paste("R^2: ",toString(R2),", RMSE: ",toString(RMSE), modelWeightString, sep="")
+    
     # Plot results
-    if (TRUE) {
-      graphAgeModel(remainingTests, title=graphTitle, caption=caption)
-    }
+    caption <- paste("R^2: ",toString(R2),", RMSE: ",toString(RMSE), modelWeightString, sep="")
+    graphAgeModel(remainingTests, graphTitle, caption)
   }
   
   ## Cross validation
@@ -495,17 +553,31 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
     
     remainingTests$predicted_age <- combinedPredictions
     caption <- paste("R^2: ", toString(R2), ", RMSE: ", toString(RMSE), sep="")
-    if (TRUE) {
-      graphAgeModel(remainingTests, title=graphTitle, caption=caption)
-    }
+    graphAgeModel(remainingTests, title=graphTitle, caption=caption)
     return(list(model=modelsList, predicted=remainingTests, experimentsList=experimentsList))
   }
   else{ return(NULL) }
+
+  # Apply bias correction to ensemble predictions if enabled
+  if (applyBiasCorrection) {
+    correctedPredictions <- bias_correction(combinedPredictions, remainingTests$Age)
+    remainingTests$predicted_corrected_age <- correctedPredictions
+
+    # Plot corrected results
+    R2_corrected <- cor(remainingTests$Age, correctedPredictions)^2
+    RMSE_corrected <- sqrt(mean((remainingTests$Age - correctedPredictions)^2))
+
+    title <- paste("Corrected Ensemble Predictions -", graphTitle)
+    caption <- paste("R^2: ", toString(round(R2_corrected, 3)), "- RMSE: ", toString(round(RMSE_corrected, 3)))
+    graphAgeModel(remainingTests, title, caption, biasCorrection=TRUE)
+  }
+  
   return(list(model=modelsList, predicted=remainingTests, weights=weightsSurvival, experimentsList=experimentsList))
 }
 ```
 
 # Function to get lists containing paths for each omics layer, names for the best assay type respective to each layer, and whether or not imputation is required for each layer
+
 ```{r}
 setup1 <- function(layersVector, cancerName="HNSC"){
   paths <- getPathsByLayerAndCancer()
@@ -541,6 +613,7 @@ setup1 <- function(layersVector, cancerName="HNSC"){
 ```
 
 # Perform second part of setup, including imputing, getting significant features
+
 ```{r}
 setup2 <- function(setup1List, featuresToEnsure=c("Age"), existingExperimentsList=NULL){
   PATH <- file.path( Sys.getenv("PCANAGE","/restricted/projectnb/agedisease/projects/pancancer_aging_pbock")) 
@@ -586,8 +659,9 @@ performSetup <- function(layersVector, cancerName="HNSC", featuresToEnsure=c("Ag
 ```
 
 # Wrapper for ModelBuilding with default params to make life easier. Just need to pass in vector of omics layer names and the cancer name abbreviation, but can adjust other parameters as desired like setting splitSize to 0.8 for a holdouts test
+
 ```{r}
-standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize=0.999, testOnCompleteData=FALSE, graphTitle="", methodNames=c("glmnet"), seed=43, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, existingExperimentsList=NULL, iterationCount=NULL){
+standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize=0.999, testOnCompleteData=FALSE, graphTitle="", methodNames=c("glmnet"), seed=43, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, existingExperimentsList=NULL, iterationCount=NULL, applyBiasCorrection=FALSE){
   if (splitSize > 0.98){ testOnCompleteData=TRUE}
   modelBuildingInput <- performSetup(layersVector, cancerName=cancerName, existingExperimentsList=existingExperimentsList)
   
@@ -600,13 +674,15 @@ standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize
     graphTitle <- paste(string1, "; ", string2, "; ", string3, sep="")
   }
   
-  return(list(ModelBuilding=ModelBuilding(modelBuildingInput, cancerName=cancerName, splitSize=splitSize, testOnCompleteData=testOnCompleteData, graphTitle=graphTitle, methodNames=methodNames, seed=seed, columnsToKeep=columnsToKeep, stratifying=stratifying, iterationCount=iterationCount), experimentList=modelBuildingInput$experimentsList))
+  return(list(ModelBuilding=ModelBuilding(modelBuildingInput, cancerName=cancerName, splitSize=splitSize, testOnCompleteData=testOnCompleteData, graphTitle=graphTitle, methodNames=methodNames, seed=seed, columnsToKeep=columnsToKeep, stratifying=stratifying, iterationCount=iterationCount, applyBiasCorrection=applyBiasCorrection), experimentList=modelBuildingInput$experimentsList))
 }
 
 ```
 
 ### Example Code - Run the model
+
 # Note that you must create correct input variables, running this function is not enough yet
+
 ```{r message=FALSE}
 
 # Current Test
@@ -667,4 +743,28 @@ standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize
 ## Methylation, Elastic Net, holdouts, using simplified data
 # modelBuildingInput <- performSetup(c("Methylation"), cancerName=cancerName)
 # modelPredictionsPair <- ModelBuilding(modelBuildingInput, splitSize=0.8, testOnCompleteData=FALSE, seed=43, graphTitle="Methylation, ElasticNet, Holdouts", methodNames=c("glmnet"), columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"))
+```
+
+## Test Bias correction
+```{r message=FALSE}
+# # RNAseq, ElasticNet, complete set, using simplified data
+# modelBuildingInput <- performSetup(c("RNAseq"), cancerName="HNSC")
+# modelPredictionsPair <- ModelBuilding(modelBuildingInput, splitSize=0.999, testOnCompleteData=FALSE, graphTitle="RNAseq, ElasticNet, Complete Set", methodNames=c("glmnet"), seed=42, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, applyBiasCorrection=TRUE)
+```
+
+```{r message=FALSE}
+# # RPPA, ElNet, Complete Set
+# modelBuildingInput <- performSetup(c("RPPA"), cancerName="HNSC")
+# modelPredictionsPair <- ModelBuilding(modelBuildingInput, splitSize=0.999, testOnCompleteData=TRUE, graphTitle="RPPA, ElasticNet, Complete Set", methodNames=c("glmnet"), seed=43, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, applyBiasCorrection=TRUE)
+```
+```{r message=FALSE}
+# # miRNA, ElasticNet, complete set
+# modelBuildingInput <- performSetup(c("miRNA"), cancerName="HNSC")
+# modelPredictionsPair <- ModelBuilding(modelBuildingInput, splitSize=0.999, testOnCompleteData=TRUE, graphTitle="miRNA, ElasticNet, Complete Set", methodNames=c("glmnet"), seed=43, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, applyBiasCorrection=TRUE)
+```
+
+```{r message=FALSE}
+# # 3 Layers, ElasticNet, complete data set, using simplified data
+# modelBuildingInput <- performSetup(c("miRNA", "RPPA", "RNAseq"), cancerName="HNSC")
+# modelPredictionsPair <- ModelBuilding(modelBuildingInput, splitSize=0.99, testOnCompleteData=TRUE, graphTitle="miRNA, RPPA, RNASeq, ElNet, Complete Set", methodNames=c("glmnet"), seed=43, pca=FALSE, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE,  applyBiasCorrection=TRUE)
 ```
