@@ -154,26 +154,10 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=
   meta_tst$R2 <- R2
   meta_tst$RMSE <- RMSE
 
-  # Plot results
+  # Plot results using graphAgeModel
   if (do_plot && nchar(graphTitle) > 0) {
-      DF <- data.frame(
-        sampleID = rownames(meta_tst),
-        true_age = meta_tst$Age,
-        pred_age = meta_tst$predicted_age
-      )
-
-      g1 <- ggplot2::ggplot(DF, aes(x = true_age, y = pred_age)) +
-        geom_point(color = "blue") +
-        geom_smooth(method = "lm", se = FALSE, aes(color = "Regression Line")) +  # Adding linear model fit line with legend
-        geom_abline(intercept = 0, slope = 1, linetype = "dashed", aes(color = "Identity Line")) +  # Identity line with legend
-        scale_color_manual(values = c("Regression Line" = "red")) +  # Define custom colors
-        labs(title = paste("True Age vs Predicted Age (", graphTitle, ")", sep=""), x = "True Age", y = "Predicted Age", color = "Legend") +
-        labs(caption = paste("R^2:",toString(R2),"- RMSE:",toString(RMSE))) +
-        theme(plot.caption.position = "plot",
-        plot.caption = element_text(hjust = 0))
-        # theme_minimal()
-      print(g1)
-}
+    graphAgeModel(meta_tst, graphTitle, paste("R^2:", toString(R2), "- RMSE:", toString(RMSE)))
+  }
 
   # Apply bias correction if enabled
   if (applyBiasCorrection) {
@@ -182,26 +166,15 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=
     R2_after <- cor(meta_tst$Age, meta_tst$predicted_corrected_age)^2
     RMSE_after <- sqrt(mean((meta_tst$Age - meta_tst$predicted_corrected_age)^2))
     
-    # Plot results after bias correction
     if (do_plot && nchar(graphTitle) > 0) {
-      DF_after <- data.frame(
-        sampleID = rownames(meta_tst),
-        true_age = meta_tst$Age,
-        pred_age = meta_tst$predicted_corrected_age
-      )
-      
-      g2 <- ggplot2::ggplot(DF_after, aes(x = true_age, y = pred_age)) +
-        geom_point(color = "green") +
-        geom_smooth(method = "lm", se = FALSE, aes(color = "Regression Line")) +
-        geom_abline(intercept = 0, slope = 1, linetype = "dashed", aes(color = "Identity Line")) +
-        scale_color_manual(values = c("Regression Line" = "orange")) +
-        labs(title = paste("After Bias Correction: ", graphTitle, sep=""), x = "True Age", y = "Corrected Predicted Age", color = "Legend") +
-        labs(caption = paste("R^2:", toString(round(R2_after, 3)), "- RMSE:", toString(round(RMSE_after, 3)))) +
-        theme(plot.caption.position = "plot", plot.caption = element_text(hjust = 0))
-      
-      print(g2)
+      graphAgeModel(
+        meta_tst,
+        paste("After Bias Correction: ", graphTitle, sep = ""),
+        paste("R^2:", toString(round(R2_after, 3)), "- RMSE:", toString(round(RMSE_after, 3))),
+        biasCorrection = TRUE)
     }
   }
+  
 
   # Return model and augmented data
   return(list(model = meta_model, predicted = meta_tst))
@@ -558,14 +531,14 @@ standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize
 
 ```{r message=FALSE}
 # # RNAseq, ElasticNet, complete set, using simplified data
-modelBuildingInput <- performSetup(c("RNAseq"), cancerName="HNSC")
-modelPredictionsPair <- ModelBuilding(modelBuildingInput, splitSize=0.999, testOnCompleteData=FALSE, graphTitle="RNAseq, ElasticNet, Complete Set", methodNames=c("glmnet"), seed=42, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, applyBiasCorrection=TRUE)
+# modelBuildingInput <- performSetup(c("RNAseq"), cancerName="HNSC")
+# modelPredictionsPair <- ModelBuilding(modelBuildingInput, splitSize=0.999, testOnCompleteData=FALSE, graphTitle="RNAseq, ElasticNet, Complete Set", methodNames=c("glmnet"), seed=42, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, applyBiasCorrection=TRUE)
 ```
 
 ```{r message=FALSE}
 # # RPPA, ElNet, Complete Set
-modelBuildingInput <- performSetup(c("RPPA"), cancerName="HNSC")
-modelPredictionsPair <- ModelBuilding(modelBuildingInput, splitSize=0.999, testOnCompleteData=TRUE, graphTitle="RPPA, ElasticNet, Complete Set", methodNames=c("glmnet"), seed=43, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, applyBiasCorrection=TRUE)
+# modelBuildingInput <- performSetup(c("RPPA"), cancerName="HNSC")
+# modelPredictionsPair <- ModelBuilding(modelBuildingInput, splitSize=0.999, testOnCompleteData=TRUE, graphTitle="RPPA, ElasticNet, Complete Set", methodNames=c("glmnet"), seed=43, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, applyBiasCorrection=TRUE)
 ```
 
 ```{r message=FALSE}
