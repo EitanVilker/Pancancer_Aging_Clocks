@@ -98,3 +98,23 @@ checkIfNameMatch <- function(name, experiment=NULL){
   if (is.null(experiment)){ return(FALSE) } 
   return(any(experiment$submitter_id==name))
 }
+
+graphAgeModel <- function(tests, title, caption, biasCorrection=FALSE){
+  if (biasCorrection) { predictions <- tests$predicted_corrected_age}
+  else { predictions <- tests$predicted_age }
+  DF <- data.frame(
+    sampleID = rownames(tests),
+    true_age = tests$Age,
+    pred_age = predictions
+  )
+  g1 <- ggplot2::ggplot(DF, aes(x = true_age, y = pred_age)) +
+    geom_point(color = "blue") +
+    geom_smooth(method = "lm", se = FALSE, aes(color = "Regression Line")) +  # Adding linear model fit line with legend
+    geom_abline(intercept = 0, slope = 1, linetype = "dashed", aes(color = "Identity Line")) +  # Identity line with legend
+    scale_color_manual(values = c("Regression Line" = "red")) +  # Define custom colors
+    labs(title = paste("True Age vs Predicted Age (", title, ")", sep=""), x = "True Age", y = "Predicted Age", color = "Legend") +
+    labs(caption = caption) +
+    theme(plot.caption.position = "plot",
+          plot.caption = element_text(hjust = 0))
+  print(g1)
+}
