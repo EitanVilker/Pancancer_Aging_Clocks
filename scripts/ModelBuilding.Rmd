@@ -12,209 +12,17 @@ library(ggplot2)
 library(caret)
 #library(SEtools)
 library ("dplyr")
+if (!file.exists("preprocessing.R")) {
+  knitr::purl("preprocessing.Rmd", output = "preprocessing.R")
+}
+source("preprocessing.R")
 source("PanClockHelperFunctions.R")
 source("run_analysis_pipeline.R")
 ```
 
-### Imputation (needed for methylation)
-
-# This block performs KNN imputation to fill in missing values in the data using five nearest neighbors.
-
-# Note that it runs slowly and may be needed just for methylation, so try to run only as needed and once
-
-# Will skip and return unchanged if impute=TRUE
-
 ```{r}
-#KNN imputation
-#Use five closest neighbors
-imputeMissingValues <- function(experimentsList, assayNames, needsImputation){
-  print("Imputing...")
-  for (i in 1:length(experimentsList)){
-    layerName <- names(experimentsList)[i]
-    if (needsImputation[[layerName]]){
-      experiment <- experimentsList[[layerName]]
-      assayName <- assayNames[[layerName]]
-      k = 5
-      data_imputed <- impute::impute.knn(as.matrix(SummarizedExperiment::assay(experiment,assayName)), k = k )$data
-      data_imputed_df <- as.data.frame(data_imputed)
-    
-      SummarizedExperiment::assay(experiment,paste(assayName, "-imputed", sep="")) <- data_imputed_df
-      experimentsList[[layerName]] <- experiment
-    }
-  }
-  return(experimentsList)
-}
-```
-
-### Combine Experiments (for doing pan-cancer, which we probably won't)
-```{r}
-combineExperiments <- function(experimentsList, assayNames){
-  match.cols <- Reduce(function(x, y){intersect(x, y@colData@rownames)}, experimentsList, init = colnames(experimentsList[[1]]))
-  for (i in 1:(length(experimentsList) - 1)){
-    layerName <- names(experimentsList)[i]
-    experiment <- experimentsList[[layerName]] 
-    experimentsList[[layerName]] <- experiment[,match.cols]
-  }
-  
-  combinedAssays <- assay(experimentsList[[1]], assayNames[[1]])
-  for (i in 2:length(experimentsList)){
-    combinedAssays <- rbind(combinedAssays, assay(experimentsList[[i]], assayNames[[i]]))
-    combinedExperiment <- SummarizedExperiment(assays=combinedAssays, colData = colData(experimentsList[[1]]))
-  }
-  return(combinedExperiment)
-}
-# # Remove rows with subjects that don't match
-# for (i in 1:(length(experimentsList) - 1)){
-#   for (j in (i+1):length(experimentsList)){
-#     if (i == j){ next }
-#     experiment1 <- experimentsList[[i]]
-#     experiment2 <- experimentsList[[j]]
-#     experimentsList[[i]] <- experiment1[, sapply(experiment1$submitter_id, checkIfNameMatch, experiment=experiment2)]
-#     experimentsList[[j]] <- experiment2[, sapply(experiment2$submitter_id, checkIfNameMatch, experiment=experiment1)]
-#   }
-# }
-```
-
-### Combine the transposed assays of different SummarizedExperiments (for when more than one layer is included)
-```{r}
-combineAssays <- function(assaysList){
-  combinedAssays <- assaysList[[1]]
-  if (length(assaysList) == 1){ return(combinedAssays) }
-  print("Combining assays...")
-  for (i in 2:length(assaysList)){
-    combinedAssays <- merge(combinedAssays, assaysList[[i]], by="submitter_id", all=FALSE)
-    combinedAssays$Row.names <- NULL
-  }
-  return(combinedAssays)
-}
-```
-
-# Remove subjects missing covariates from experiments list and collect covariates
-```{r}
-# Only keep certain metadata (determined in 03_Covariates.html)
-filterForCovariates <- function(experimentsList, columns_to_keep=c("Age", "gender", "race", "HPV.status", "submitter_id")){
-  print("Filtering for covariates...")
-  covariatesList <- list()
-  for (i in 1:length(experimentsList)){
-    layerName <- names(experimentsList)[i]
-    experiment <- experimentsList[[layerName]]
-    covariates <- SummarizedExperiment::colData(experiment)[, columns_to_keep, drop = FALSE]
-    # Check for and remove rows with missing values
-    covariates <- covariates[complete.cases(covariates), ]
-    # Filter layer data to match samples
-    layer_processed <- experiment[, rownames(covariates)]
-    experimentsList[[layerName]] <- layer_processed
-    covariatesList[[layerName]] <- covariates
-  }
-  return(list(experiments=experimentsList, covariates=covariatesList))
-}
-```
-
-### Gets assay data using pre-filtered data if available as well as imputed vals.
-```{r}
-getCleanedAssayData <- function(experimentsList, assayNames, useImputed, simplifiedDataPairs=list()){
-  print("Getting cleaned assay data...")
-
-  # Only keep rows that are significantly age associated based on prior calculations
-  assayList <- list()
-  for (i in 1:length(experimentsList)){    
-    layerName <- names(experimentsList)[i]
-    experiment <- experimentsList[[layerName]]
-    if (length(simplifiedDataPairs) > 0 && length(simplifiedDataPairs[[layerName]]) > 1){
-      simplifiedData <- simplifiedDataPairs[[layerName]]$data
-      significantFeatures <- simplifiedData[simplifiedData[[simplifiedDataPairs[[layerName]]$metric]] <= 0.025, ]
-      if (assayNames[[layerName]] == "M-values"){ 
-        experiment <- experiment[rownames(significantFeatures), ] }
-      else{ experiment <- experiment[rowRanges(experiment)$gene_name %in% rownames(significantFeatures), ] }
-    }
-  
-    # Return the assay data for the experiment, using the imputed values if available
-    if (useImputed[[layerName]]){ assayType <- paste(assayNames[[layerName]],"-imputed",sep="")}
-    else { assayType <- assayNames[[layerName]]}
-    assayData <- as.data.frame(t(assay(experiment, assayType)))
-    assayData <- cbind(assayData, submitter_id=row.names(assayData))
-    assayList[[layerName]] <- assayData
-  }
-  return(assayList)
-}
-```
-
-### Do any additional feature filtering here; necessity may depend on ML method
-```{r}
-filterFeatures <- function(assayList, experimentsList, relativeVariance=FALSE, highCorrelationToAge=FALSE, highCorrelationToEachOther=FALSE, cutoffThreshold=0.99){
-  print("Additional feature filtering...")
-  for (i in 1:length(assayList)){
-    layerName <- names(assayList)[i]
-    assayData <- assayList[[layerName]]
-    
-    if (relativeVariance){
-      assayData <- assayData[, apply(assayData, 2, isRelativeVarianceHigh)]
-    }
-    if (highCorrelationToAge){
-      assayData <- assayData[, cor(experimentsList[[layerName]]$Age, assayData) > 0.001]
-    }
-    # Remove features highly correlated with each other
-    if (highCorrelationToEachOther){
-      dataLeft <- TRUE
-      i <- 1
-      while(dataLeft){
-        after_i <- seq(i+1, ncol(assayData))
-        correlations <- cor(assayData[,after_i], assayData[,i])
-        if(any(abs(correlations) > cutoffThreshold)){
-          assayData <- assayData[, -after_i[which(abs(correlations) > cutoffThreshold)]]
-        }
-        i <- i+1
-        if(ncol(assayData) <= i){ dataLeft <- FALSE }
-      }
-    }
-    
-    assayList[[layerName]] <- assayData
-  }
-  return(assayList)
-}
-```
-
-### Set up one-hot encoding of covariates. Currently designed for one set of assay data
-
-```{r}
-encode_covariates <- function(covariates, assayData, featuresToEncode=NULL, encodingHPV=FALSE, encodingGender=TRUE){
-  print("Encoding covariates...")
-
-  # One-hot encoding for gender, race, and potentially HPV.status
-  if (encodingHPV){ 
-    print("Encoding HPV...")
-    dummies <- caret::dummyVars("~ gender + race + HPV.status", data = covariates)
-    encoded_covariates <- data.frame(model.matrix(~ gender + race + HPV.status - 1, data = covariates))
-  }
-  else if (encodingGender){
-    dummies <- caret::dummyVars("~ gender + race", data = covariates)
-    encoded_covariates <- data.frame(model.matrix(~ gender + race - 1, data = covariates))
-  }
-  else{
-    dummies <- caret::dummyVars("~ race", data = covariates)
-    encoded_covariates <- data.frame(model.matrix(~ race - 1, data = covariates))
-  }
-  encoded_covariates$Age <- covariates$Age
-  encoded_covariates$submitter_id <- covariates$submitter_id
-  rownames(encoded_covariates) <- encoded_covariates$submitter_id
-
-  # Ensure no missing values in encoded_covariates
-  # stopifnot(all(!is.na(encoded_covariates)))
-  # if(!identical(rownames(encoded_covariates), rownames(assayData))) {
-  #   stop("The samples of covariates and assay data do not match!")
-  # }
-  # 
-  # Combine covariates with just rows that match
-  # if(identical(encoded_covariates$submitter_id, assayData[,"submitter_id"])) {
-  #   print("Rownames check out!")
-  #   return(cbind(encoded_covariates, assayData))
-  # }
-  # return(list(e=encoded_covariates, a=assayData))
-  assayDataWithCovariates <- merge(encoded_covariates, assayData, by="submitter_id", all=FALSE)
-  rownames(assayDataWithCovariates) <- assayDataWithCovariates$submitter_id
-  assayDataWithCovariates$Row.names <- NULL
-  return(assayDataWithCovariates)
-}
+# Confirm required functions exist in the environment
+ls()  # Lists all objects in the environment
 ```
 
 ### Function to apply systematic bias correction
@@ -346,26 +154,10 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=
   meta_tst$R2 <- R2
   meta_tst$RMSE <- RMSE
 
-  # Plot results
+  # Plot results using graphAgeModel
   if (do_plot && nchar(graphTitle) > 0) {
-      DF <- data.frame(
-        sampleID = rownames(meta_tst),
-        true_age = meta_tst$Age,
-        pred_age = meta_tst$predicted_age
-      )
-
-      g1 <- ggplot2::ggplot(DF, aes(x = true_age, y = pred_age)) +
-        geom_point(color = "blue") +
-        geom_smooth(method = "lm", se = FALSE, aes(color = "Regression Line")) +  # Adding linear model fit line with legend
-        geom_abline(intercept = 0, slope = 1, linetype = "dashed", aes(color = "Identity Line")) +  # Identity line with legend
-        scale_color_manual(values = c("Regression Line" = "red")) +  # Define custom colors
-        labs(title = paste("True Age vs Predicted Age (", graphTitle, ")", sep=""), x = "True Age", y = "Predicted Age", color = "Legend") +
-        labs(caption = paste("R^2:",toString(R2),"- RMSE:",toString(RMSE))) +
-        theme(plot.caption.position = "plot",
-        plot.caption = element_text(hjust = 0))
-        # theme_minimal()
-      print(g1)
-}
+    graphAgeModel(meta_tst, graphTitle, paste("R^2:", toString(R2), "- RMSE:", toString(RMSE)))
+  }
 
   # Apply bias correction if enabled
   if (applyBiasCorrection) {
@@ -374,26 +166,15 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=
     R2_after <- cor(meta_tst$Age, meta_tst$predicted_corrected_age)^2
     RMSE_after <- sqrt(mean((meta_tst$Age - meta_tst$predicted_corrected_age)^2))
     
-    # Plot results after bias correction
     if (do_plot && nchar(graphTitle) > 0) {
-      DF_after <- data.frame(
-        sampleID = rownames(meta_tst),
-        true_age = meta_tst$Age,
-        pred_age = meta_tst$predicted_corrected_age
-      )
-      
-      g2 <- ggplot2::ggplot(DF_after, aes(x = true_age, y = pred_age)) +
-        geom_point(color = "green") +
-        geom_smooth(method = "lm", se = FALSE, aes(color = "Regression Line")) +
-        geom_abline(intercept = 0, slope = 1, linetype = "dashed", aes(color = "Identity Line")) +
-        scale_color_manual(values = c("Regression Line" = "orange")) +
-        labs(title = paste("After Bias Correction: ", graphTitle, sep=""), x = "True Age", y = "Corrected Predicted Age", color = "Legend") +
-        labs(caption = paste("R^2:", toString(round(R2_after, 3)), "- RMSE:", toString(round(RMSE_after, 3)))) +
-        theme(plot.caption.position = "plot", plot.caption = element_text(hjust = 0))
-      
-      print(g2)
+      graphAgeModel(
+        meta_tst,
+        paste("After Bias Correction: ", graphTitle, sep = ""),
+        paste("R^2:", toString(round(R2_after, 3)), "- RMSE:", toString(round(RMSE_after, 3))),
+        biasCorrection = TRUE)
     }
   }
+  
 
   # Return model and augmented data
   return(list(model = meta_model, predicted = meta_tst))
@@ -652,6 +433,7 @@ setup2 <- function(setup1List, featuresToEnsure=c("Age"), existingExperimentsLis
 ```
 
 # Wrapper for the two setup functions
+
 ```{r}
 performSetup <- function(layersVector, cancerName="HNSC", featuresToEnsure=c("Age"), removeHPVPositive=FALSE, existingExperimentsList=NULL){
   return(setup2(setup1(layersVector, cancerName=cancerName), featuresToEnsure=featuresToEnsure, existingExperimentsList=existingExperimentsList))
@@ -746,6 +528,7 @@ standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize
 ```
 
 ## Test Bias correction
+
 ```{r message=FALSE}
 # # RNAseq, ElasticNet, complete set, using simplified data
 # modelBuildingInput <- performSetup(c("RNAseq"), cancerName="HNSC")
@@ -757,14 +540,15 @@ standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize
 # modelBuildingInput <- performSetup(c("RPPA"), cancerName="HNSC")
 # modelPredictionsPair <- ModelBuilding(modelBuildingInput, splitSize=0.999, testOnCompleteData=TRUE, graphTitle="RPPA, ElasticNet, Complete Set", methodNames=c("glmnet"), seed=43, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, applyBiasCorrection=TRUE)
 ```
+
 ```{r message=FALSE}
 # # miRNA, ElasticNet, complete set
-# modelBuildingInput <- performSetup(c("miRNA"), cancerName="HNSC")
-# modelPredictionsPair <- ModelBuilding(modelBuildingInput, splitSize=0.999, testOnCompleteData=TRUE, graphTitle="miRNA, ElasticNet, Complete Set", methodNames=c("glmnet"), seed=43, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, applyBiasCorrection=TRUE)
+modelBuildingInput <- performSetup(c("miRNA"), cancerName="HNSC")
+modelPredictionsPair <- ModelBuilding(modelBuildingInput, splitSize=0.999, testOnCompleteData=TRUE, graphTitle="miRNA, ElasticNet, Complete Set", methodNames=c("glmnet"), seed=43, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, applyBiasCorrection=TRUE)
 ```
 
 ```{r message=FALSE}
 # # 3 Layers, ElasticNet, complete data set, using simplified data
-# modelBuildingInput <- performSetup(c("miRNA", "RPPA", "RNAseq"), cancerName="HNSC")
-# modelPredictionsPair <- ModelBuilding(modelBuildingInput, splitSize=0.99, testOnCompleteData=TRUE, graphTitle="miRNA, RPPA, RNASeq, ElNet, Complete Set", methodNames=c("glmnet"), seed=43, pca=FALSE, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE,  applyBiasCorrection=TRUE)
+modelBuildingInput <- performSetup(c("miRNA", "RPPA", "RNAseq"), cancerName="HNSC")
+modelPredictionsPair <- ModelBuilding(modelBuildingInput, splitSize=0.99, testOnCompleteData=TRUE, graphTitle="miRNA, RPPA, RNASeq, ElNet, Complete Set", methodNames=c("glmnet"), seed=43, pca=FALSE, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE,  applyBiasCorrection=TRUE)
 ```
