@@ -56,9 +56,6 @@ knitr::knit("ModelBuilding.Rmd", output = tempfile())
 knitr::knit("Analysis.Rmd", output = tempfile())
 source("PanClockHelperFunctions.R")
 
-BiocManager::install("TimeSeriesExperiment")
-
-
 cancer_type_path <- glue(
   "/restricted/projectnb/agedisease/CBMrepositoryData/TCGA-GDC/RNAseq/processed_data/filtered/TCGA-{cancer_type}_RNAseq_filtered.rds")
 

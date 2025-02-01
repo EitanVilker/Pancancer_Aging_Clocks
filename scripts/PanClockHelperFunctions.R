@@ -62,6 +62,8 @@ getLayerPathsForSpecificCancer <- function(paths, cancerName){
 getExperimentByLayerAndCancer <- function(layerName, cancerName){
   revisedLayerName <- layerName
   if (layerName == "RNAseq"){ revisedLayerName <- "RNAseq_filtered" }
+  else if (layerName == "RNAseq_normal") (revisedLayerName <- "RNAseq_NORMAL_filtered")
+  else { revisedLayerName = layerName }
   paths <- getPathsByLayerAndCancer()
   cancerPaths <- getLayerPathsForSpecificCancer(paths, cancerName)
   experiment <- getExperimentsList(list(layer=cancerPaths[[revisedLayerName]]))

@@ -44,4 +44,3 @@ experiment <- getExperimentByLayerAndCancer("miRNA", "HNSC")
 stats <- getSurvivalStats(experiment[[1]], results)
 summary(stats$interaction_model)
 ```
-

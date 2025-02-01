@@ -5,7 +5,7 @@ setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/
 
 # Define the Rmd file and the output directory
 rmd_file <- "Many_models_one_cancer_test.Rmd"
-output_dir <- "Multiomics_multiple_models_per_cancer"
+output_dir <- "restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Multiomics_multiple_models_per_cancer"
 
 # Fetch cancer types dynamically from file names
 folder_path <- "/restricted/projectnb/agedisease/CBMrepositoryData/TCGA-GDC/RNAseq/processed_data/filtered"
