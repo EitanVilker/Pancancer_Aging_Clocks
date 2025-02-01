@@ -22,7 +22,7 @@ source("PanClockHelperFunctions.R")
 # modelOutput <- standardizedModelBuilding(c("methylation", "RNAseq", "miRNA"), cancerName="HNSC", existingExperimentList=existingExperimentList)
 
 # Holdouts
-modelOutput <- standardizedModelBuilding(c("miRNA"), cancerName="HNSC", methodNames=c("glmnet"), splitSize=0.99, seed=43, existingExperimentsList=existingExperimentList, iterationCount=10, applyBiasCorrection=FALSE)
+modelOutput <- standardizedModelBuilding(c("RPPA"), cancerName="HNSC", methodNames=c("glmnet"), splitSize=0.999, seed=43, existingExperimentsList=existingExperimentList, iterationCount=1, applyBiasCorrection=FALSE)
 existingExperimentList <- modelOutput$experimentList
 ```
 

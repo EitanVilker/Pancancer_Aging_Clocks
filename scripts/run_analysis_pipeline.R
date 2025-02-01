@@ -83,7 +83,7 @@ run_analysis_pipeline <- function(fullExperiment, prediction_df, prediction_obje
   }
   covariates_formula_non_interaction <- as.formula(paste("surv ~ ", paste(formula_vector_non_interaction, collapse= "+")))
   covariates_formula_interaction <- as.formula(paste("surv ~ ", paste(formula_vector_interaction, collapse= "+")))
-  
+
   # Run Non-Interaction CoxPH Model
   test1_non_interaction <- coxph(
     covariates_formula_non_interaction,
