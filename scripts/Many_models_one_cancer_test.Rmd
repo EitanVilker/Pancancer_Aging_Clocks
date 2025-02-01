@@ -3,7 +3,7 @@ title: "Many models one cancer test"
 author: "Monti Lab"
 date:   "`r format(Sys.Date(), '%B %d, %Y')`"
 params: 
-  cancer_type: "BRCA"
+  cancer_type: "HNSC"
 output:
   html_document:
     theme: united
@@ -141,4 +141,16 @@ for (comb in layer_combinations) {
   print(stats$interaction_model)
 }
 
+```
+
+```{r Function}
+sum_building <- function(){
+#input cancer type (column & row)
+#input layer combination (column)
+#input model (elastic net) (column)
+#input model r^2 & rmse
+#input all survival covariates and pval
+#input all survival tests
+# https://docs.google.com/spreadsheets/d/1paiVdNaB-B7Zz1sXkAjlRiCcc6g5gcwWacNLXxo8408/edit?gid=0#gid=0
+  }
 ```
