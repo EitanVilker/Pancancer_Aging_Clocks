@@ -31,14 +31,13 @@ imputeMissingValues <- function(experimentsList, assayNames, needsImputation){
   print("Imputing...")
   for (i in 1:length(experimentsList)){
     layerName <- names(experimentsList)[i]
+    print(layerName)
     if (needsImputation[[layerName]]){
       experiment <- experimentsList[[layerName]]
       assayName <- assayNames[[layerName]]
       k = 5
-      data_imputed <- impute::impute.knn(as.matrix(SummarizedExperiment::assay(experiment,assayName)), k = k )$data
-      data_imputed_df <- as.data.frame(data_imputed)
-    
-      SummarizedExperiment::assay(experiment,paste(assayName, "-imputed", sep="")) <- data_imputed_df
+      invisible(capture.output(data_imputed <- impute::impute.knn(as.matrix(SummarizedExperiment::assay(experiment,assayName)), k = k )$data))
+      SummarizedExperiment::assay(experiment,paste(assayName, "-imputed", sep="")) <- as.data.frame(data_imputed)
       experimentsList[[layerName]] <- experiment
     }
   }
@@ -77,12 +76,24 @@ combineExperiments <- function(experimentsList, assayNames){
 
 ### Combine the transposed assays of different SummarizedExperiments (for when more than one layer is included)
 ```{r}
-combineAssays <- function(assaysList){
+combineAssays <- function(assaysList, combiningNormal=FALSE){
+  print("Combining assays...")
   combinedAssays <- assaysList[[1]]
   if (length(assaysList) == 1){ return(combinedAssays) }
-  print("Combining assays...")
   for (i in 2:length(assaysList)){
-    combinedAssays <- merge(combinedAssays, assaysList[[i]], by="submitter_id", all=FALSE)
+    if (combiningNormal){
+      print("Taking differences with normal...")
+      normalAssay <- assaysList[[i]]
+      combinedAssays <- combinedAssays %>% filter(submitter_id %in% normalAssay$submitter_id)
+      normalAssay <- normalAssay %>% filter(submitter_id %in% combinedAssays$submitter_id)
+      combinedAssays <- combinedAssays[ , intersect(names(combinedAssays), names(normalAssay))]
+      normalAssay <- normalAssay[ , intersect(names(normalAssay), names(combinedAssays))]
+      numericColumns <- sapply(combinedAssays, is.numeric)
+      combinedAssays[numericColumns] <- combinedAssays[numericColumns] - normalAssay[numericColumns]
+    }
+    else{
+      combinedAssays <- merge(combinedAssays, assaysList[[i]], by="submitter_id", all=FALSE)
+    }
     combinedAssays$Row.names <- NULL
   }
   return(combinedAssays)
@@ -97,6 +108,7 @@ filterForCovariates <- function(experimentsList, columns_to_keep=c("Age", "gende
   covariatesList <- list()
   for (i in 1:length(experimentsList)){
     layerName <- names(experimentsList)[i]
+    print(layerName)
     experiment <- experimentsList[[layerName]]
     covariates <- SummarizedExperiment::colData(experiment)[, columns_to_keep, drop = FALSE]
     # Check for and remove rows with missing values

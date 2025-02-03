@@ -1,4 +1,4 @@
-run_analysis_pipeline <- function(fullExperiment, prediction_df, prediction_object=NULL) {
+run_analysis_pipeline <- function(fullExperiment, prediction_df, prediction_object=NULL, covariates_to_include=c("gender", "race")) {
   library(dplyr)
   library(survival)
   library(SummarizedExperiment)
@@ -75,11 +75,15 @@ run_analysis_pipeline <- function(fullExperiment, prediction_df, prediction_obje
     inner_join(filtered_metadata, by = "submitter_id")
   
   # Set up formulas, accounting for covariates appropriate to the cancer
-  formula_vector_non_interaction <- c("chronological + delta_age", "race")
-  formula_vector_interaction <- c("chronological * delta_age", "race")
-  if (is.null(prediction_object) || "gendermale" %in% colnames(prediction_object)){
+  formula_vector_non_interaction <- c("chronological + delta_age")
+  formula_vector_interaction <- c("chronological * delta_age")
+  if ("gender" %in% covariates_to_include && (is.null(prediction_object) || "gendermale" %in% colnames(prediction_object))){
     formula_vector_non_interaction <- c(formula_vector_non_interaction, "gender.y")
     formula_vector_interaction <- c(formula_vector_interaction, "gender.y")
+  }
+  if ("race" %in% covariates_to_include){
+    formula_vector_non_interaction <- c(formula_vector_non_interaction, "race")
+    formula_vector_interaction <- c(formula_vector_interaction, "race")
   }
   covariates_formula_non_interaction <- as.formula(paste("surv ~ ", paste(formula_vector_non_interaction, collapse= "+")))
   covariates_formula_interaction <- as.formula(paste("surv ~ ", paste(formula_vector_interaction, collapse= "+")))

@@ -4,11 +4,11 @@ source("run_analysis_pipeline.R")
 
 # Runs CoxPH given experiment and predictions and output object containing each CoxPH run
 ```{r}
-getSurvivalStats <- function(fullExperiment, predictionObject, applyBiasCorrection=FALSE){
+getSurvivalStats <- function(fullExperiment, predictionObject, applyBiasCorrection=FALSE, covariates_to_include=c("gender", "race")){
   if (applyBiasCorrection) { predictedAges <- predictionObject$predicted_corrected_age }
   else { predictedAges <- predictionObject$predicted_age }
   df <- data.frame(predicted_age=predictedAges, submitter_id=predictionObject$submitter_id)
-  return(run_analysis_pipeline(fullExperiment, df, prediction_object=predictionObject))
+  return(run_analysis_pipeline(fullExperiment, df, prediction_object=predictionObject, covariates_to_include=covariates_to_include))
 }
 
 ```
