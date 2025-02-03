@@ -10,7 +10,6 @@ library(SummarizedExperiment)
 library(Biobase)
 library(ggplot2)
 library(caret)
-#library(SEtools)
 library ("dplyr")
 source("PanClockHelperFunctions.R")
 source("run_analysis_pipeline.R")
@@ -108,7 +107,6 @@ filterForCovariates <- function(experimentsList, columns_to_keep=c("Age", "gende
   covariatesList <- list()
   for (i in 1:length(experimentsList)){
     layerName <- names(experimentsList)[i]
-    print(layerName)
     experiment <- experimentsList[[layerName]]
     covariates <- SummarizedExperiment::colData(experiment)[, columns_to_keep, drop = FALSE]
     # Check for and remove rows with missing values
@@ -189,39 +187,36 @@ filterFeatures <- function(assayList, experimentsList, relativeVariance=FALSE, h
 ### Set up one-hot encoding of covariates. Currently designed for one set of assay data
 
 ```{r}
-encode_covariates <- function(covariates, assayData, featuresToEncode=NULL, encodingHPV=FALSE, encodingGender=TRUE){
+encode_covariates <- function(covariates, assayData, featuresToEncode=NULL, encodingHPV=FALSE, encodingGender=FALSE, encodingRace=FALSE){
   print("Encoding covariates...")
 
-  # One-hot encoding for gender, race, and potentially HPV.status
-  if (encodingHPV){ 
-    print("Encoding HPV...")
-    dummies <- caret::dummyVars("~ gender + race + HPV.status", data = covariates)
-    encoded_covariates <- data.frame(model.matrix(~ gender + race + HPV.status - 1, data = covariates))
+    # One-hot encoding for gender, race, and potentially HPV.status
+  if (nlevels(as.factor(covariates$race)) > 1){ encodingRace <- TRUE }
+  if (nlevels(as.factor(covariates$gender)) > 1){ encodingGender <- TRUE }
+  
+  # Return early if no suitable covariates
+  if (!encodingRace && !encodingGender && !encodingHPV){ return(assayData) }
+  
+  # Build up formula depending on available covariates
+  covariateFormula = "~"
+  if (encodingGender){ covariateFormula <- paste(covariateFormula, "gender") }
+  if (encodingRace){ 
+    if (encodingGender){ covariateFormula <- paste(covariateFormula, "+") }
+    covariateFormula <- paste(covariateFormula, "race") 
   }
-  else if (encodingGender){
-    dummies <- caret::dummyVars("~ gender + race", data = covariates)
-    encoded_covariates <- data.frame(model.matrix(~ gender + race - 1, data = covariates))
+  if (encodingHPV){
+    if (encodingGender || encodingRace){ covariateFormula <- paste(covariateFormula, "+") }
+    covariateFormula <- paste(covariateFormula, "HPV.status") 
   }
-  else{
-    dummies <- caret::dummyVars("~ race", data = covariates)
-    encoded_covariates <- data.frame(model.matrix(~ race - 1, data = covariates))
-  }
+  
+  dummies <- caret::dummyVars(covariateFormula, data = covariates)
+  covariateFormula <- paste(covariateFormula, "- 1")
+  encoded_covariates <- data.frame(model.matrix(as.formula(covariateFormula), data = covariates))
+
   encoded_covariates$Age <- covariates$Age
   encoded_covariates$submitter_id <- covariates$submitter_id
   rownames(encoded_covariates) <- encoded_covariates$submitter_id
 
-  # Ensure no missing values in encoded_covariates
-  # stopifnot(all(!is.na(encoded_covariates)))
-  # if(!identical(rownames(encoded_covariates), rownames(assayData))) {
-  #   stop("The samples of covariates and assay data do not match!")
-  # }
-  # 
-  # Combine covariates with just rows that match
-  # if(identical(encoded_covariates$submitter_id, assayData[,"submitter_id"])) {
-  #   print("Rownames check out!")
-  #   return(cbind(encoded_covariates, assayData))
-  # }
-  # return(list(e=encoded_covariates, a=assayData))
   assayDataWithCovariates <- merge(encoded_covariates, assayData, by="submitter_id", all=FALSE)
   rownames(assayDataWithCovariates) <- assayDataWithCovariates$submitter_id
   assayDataWithCovariates$Row.names <- NULL

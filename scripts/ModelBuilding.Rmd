@@ -202,21 +202,15 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
   simplifiedDataPairs <- inputList$simplifiedData
 
   if (splitSize > 0.98){ testOnCompleteData <- TRUE }
-  for (name in names(experimentsList)){
-    if (name %in% c("CESC", "OV", "PRAD", "TGCT", "UCEC", "UCS", "BRCA")){ columnsToKeep <- columnsToKeep[! columnsToKeep %in% "gender"] }
-  }
-  if (any(names(experimentsList) != "HNSC")){ columnsToKeep <- columnsToKeep[! columnsToKeep %in% "HPV.status"]}
-  if (cancerName %in% c("CESC", "OV", "PRAD", "TGCT", "UCEC", "UCS", "BRCA")){ columnsToKeep <- columnsToKeep[! columnsToKeep %in% "gender"] }
   if (cancerName != "HNSC"){ columnsToKeep <- columnsToKeep[! columnsToKeep %in% "HPV.status"]}
   encodingHPV <- "HPV.status" %in% columnsToKeep
-  encodingGender <- "gender" %in% columnsToKeep
-  
+
   ## Pre-processing
   experimentsAndCovariatesList <- filterForCovariates(experimentsList, columns_to_keep=columnsToKeep)
   assayList <- getCleanedAssayData(experimentsAndCovariatesList[["experiments"]], assayNamesList, needsImputation, simplifiedDataPairs=simplifiedDataPairs)
   transformedData <- filterFeatures(assayList, experimentsAndCovariatesList[["experiments"]], highCorrelationToEachOther=FALSE, relativeVariance=FALSE)
   transformedData <- combineAssays(transformedData, combiningNormal=combiningNormal)
-  assayDataWithCovariates <- encode_covariates(experimentsAndCovariatesList[["covariates"]][[1]], transformedData, encodingHPV=encodingHPV, encodingGender=encodingGender)
+  assayDataWithCovariates <- encode_covariates(experimentsAndCovariatesList[["covariates"]][[1]], transformedData, encodingHPV=encodingHPV)
   # return(assayDataWithCovariates)
 
   ## Running model
@@ -304,7 +298,6 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
     seed <- seed^3 # So that if we increment the seed by 1 to test we aren't overlapping with the previous seed
     fullData <- train_testList$train
     folds <- caret::createFolds(fullData |> pull(submitter_id), k=iterationCount)
-    # return(list(folds=folds, train=fullData))
     modelsList <- list()
     
     # For each iteration get a new train test split of the 80% available
@@ -313,7 +306,7 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
     submitter_ids <- c()
     chronologicalAges <- c()
     predictedAges <- c()
-    # for (i in 1:iterationCount){
+
     for (fold in names(folds)){
       seed <- seed + 1
       train_testInitial <- getFold(fullData, folds[[fold]])
@@ -329,24 +322,13 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
       RMSETotal <- RMSETotal + RMSE
     }
     
-    # # Make prediction on remaining data based off all the models
-    # remainingTests <- testSet
-    # combinedPredictions <- numeric(length(remainingTests$Age))
-    # weight <- 1 / iterationCount
-    # for (i in 1:iterationCount){
-    #   combinedPredictions <- combinedPredictions + weight * predict(modelsList[[i]]$model, subset(remainingTests, select=-submitter_id))
-    # }
-    
     combinedPredictions <- data.frame(submitter_id = submitter_ids, predicted_age = predictedAges, Age = chronologicalAges)
     
     meanR2 <- round(R2Total / iterationCount, digits=3)
     meanRMSE <- round(RMSETotal / iterationCount, digits=3)
     modelsList$R2 <- meanR2
     modelsList$RMSE <- meanRMSE
-    # R2 <- round(cor(remainingTests$Age, combinedPredictions)^2, digits=3)
-    # RMSE <- round(sqrt(mean((remainingTests$Age - combinedPredictions)^2)), digits=3)
-    
-    # remainingTests$predicted_age <- combinedPredictions
+
     caption <- paste("R^2: ", toString(meanR2), ", RMSE: ", toString(meanRMSE), sep="")
     graphAgeModel(combinedPredictions, title=graphTitle, caption=caption)
     return(list(model=modelsList, predicted=combinedPredictions, experimentsList=experimentsList))

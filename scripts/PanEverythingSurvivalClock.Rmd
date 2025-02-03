@@ -9,6 +9,13 @@ library(SummarizedExperiment)
 library(Biobase)
 library(ggplot2)
 library(caret)
+library(dplyr)
+library(survival)
+library(reactable)
+library(survminer)
+library(vip)
+library(tidyverse)
+
 knitr::knit("ModelBuilding.Rmd", output = tempfile())
 knitr::knit("Analysis.Rmd", output = tempfile())
 source("PanClockHelperFunctions.R")
@@ -16,12 +23,11 @@ source("PanClockHelperFunctions.R")
 
 # Get the output of the ML model
 ```{r}
-# Complete Set
-# existingExperimentList <- NULL # comment out if running with same layer and cancer combination as last run
-# modelOutput <- standardizedModelBuilding(c("methylation", "RNAseq", "miRNA"), cancerName="HNSC", existingExperimentList=existingExperimentList)
+existingExperimentList <- NULL
 
-# Holdouts
-modelOutput <- standardizedModelBuilding(c("miRNA"), cancerName="HNSC", methodNames=c("glmnet"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=10, applyBiasCorrection=FALSE)
+# Current Test
+modelOutput <- standardizedModelBuilding(c("RNAseq", "RNAseq_Normal"), cancerName="KIRC", methodNames=c("glmnet"), splitSize=1, testOnCompleteData=TRUE, seed=43, existingExperimentsList=existingExperimentList, iterationCount=10, applyBiasCorrection=FALSE, combiningNormal=FALSE)
+
 existingExperimentList <- modelOutput$experimentList
 ```
 
@@ -29,6 +35,7 @@ existingExperimentList <- modelOutput$experimentList
 ```{r}
 stats <- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted, applyBiasCorrection=FALSE)
 # stats <- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted, applyBiasCorrection=TRUE)
+
 print(stats$interaction_summary)
 print(stats$non_interaction_summary)
 print(stats$baseline_summary)
