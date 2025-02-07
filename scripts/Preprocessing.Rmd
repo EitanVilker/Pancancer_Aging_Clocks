@@ -212,7 +212,6 @@ encode_covariates <- function(covariates, assayData, featuresToEncode=NULL, enco
   dummies <- caret::dummyVars(covariateFormula, data = covariates)
   covariateFormula <- paste(covariateFormula, "- 1")
   encoded_covariates <- data.frame(model.matrix(as.formula(covariateFormula), data = covariates))
-
   encoded_covariates$Age <- covariates$Age
   encoded_covariates$submitter_id <- covariates$submitter_id
   rownames(encoded_covariates) <- encoded_covariates$submitter_id

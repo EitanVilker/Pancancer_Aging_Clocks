@@ -211,7 +211,6 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
   transformedData <- filterFeatures(assayList, experimentsAndCovariatesList[["experiments"]], highCorrelationToEachOther=FALSE, relativeVariance=FALSE)
   transformedData <- combineAssays(transformedData, combiningNormal=combiningNormal)
   assayDataWithCovariates <- encode_covariates(experimentsAndCovariatesList[["covariates"]][[1]], transformedData, encodingHPV=encodingHPV)
-  # return(assayDataWithCovariates)
 
   ## Running model
   train_testList <- splitTrainTest(assayDataWithCovariates, trainSetSize=splitSize, seed=seed)
@@ -306,7 +305,6 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
     submitter_ids <- c()
     chronologicalAges <- c()
     predictedAges <- c()
-
     for (fold in names(folds)){
       seed <- seed + 1
       train_testInitial <- getFold(fullData, folds[[fold]])
