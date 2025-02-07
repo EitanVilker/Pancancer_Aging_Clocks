@@ -139,10 +139,8 @@ reduceExperiment <- function(exp1, exp2){
   return(exp1[, exp1$submitter_id %in% exp2$submitter_id])
 }
 
-
-# folds <- caret::createFolds(dat |> pull(Age.serum))
-getFold <- function(data, folds, i){
-  meta_trn = dat[-fold[[i]], ]
-  meta_tst = dat[fold[[i]], ]
+getFold <- function(data, fold){
+  meta_trn = data[-fold, ]
+  meta_tst = data[fold, ]
   return(list(train = meta_trn, test = meta_tst))
 }

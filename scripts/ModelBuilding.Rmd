@@ -11,8 +11,7 @@ library(Biobase)
 library(ggplot2)
 library(caret)
 library ("dplyr")
-knitr::knit("preprocessing.Rmd", output = tempfile())
-source("preprocessing.R")
+knitr::knit("Preprocessing.Rmd", output = tempfile())
 source("PanClockHelperFunctions.R")
 source("run_analysis_pipeline.R")
 ```
@@ -127,8 +126,6 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=
       data = trainData,
       method = methodName,
       trControl = cv10,
-      # preProcess = c('scale','pca'),
-      # preProcess = c('center', 'scale', 'YeoJohnson', 'nzv'),
       # metric = "RMSE",
       tuneLength = 5
     )
@@ -143,8 +140,8 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=
   meta_tst$predicted_age <- meta_age_estimate
   R2 <- cor(meta_tst$Age, meta_tst$predicted_age)^2
   RMSE <- sqrt(mean((meta_tst$Age - meta_tst$predicted_age)^2))
-  meta_tst$R2 <- R2
-  meta_tst$RMSE <- RMSE
+  meta_model$R2 <- R2
+  meta_model$RMSE <- RMSE
 
   # Plot results using graphAgeModel
   if (do_plot && nchar(graphTitle) > 0) {
@@ -197,7 +194,7 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=
 ---
 
 ```{r}
-ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCompleteData=FALSE, methodNames=c("glmnet"), graphTitle="", seed=42, pca=FALSE, columnsToKeep=c("Age", "gender", "race", "HPV.status"), stratifying=FALSE, iterationCount=NULL, applyBiasCorrection=FALSE){
+ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCompleteData=FALSE, methodNames=c("glmnet"), graphTitle="", seed=42, pca=FALSE, columnsToKeep=c("Age", "gender", "race", "HPV.status"), stratifying=FALSE, iterationCount=NULL, applyBiasCorrection=FALSE, combiningNormal=FALSE){
 
   experimentsList <- inputList$experimentsList
   assayNamesList <- inputList$assayNames
@@ -206,10 +203,10 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
 
   if (splitSize > 0.98){ testOnCompleteData <- TRUE }
   for (name in names(experimentsList)){
-    if (name %in% c("CESC", "OV", "PRAD", "TGCT", "UCEC", "UCS")){ columnsToKeep <- columnsToKeep[! columnsToKeep %in% "gender"] }
+    if (name %in% c("CESC", "OV", "PRAD", "TGCT", "UCEC", "UCS", "BRCA")){ columnsToKeep <- columnsToKeep[! columnsToKeep %in% "gender"] }
   }
   if (any(names(experimentsList) != "HNSC")){ columnsToKeep <- columnsToKeep[! columnsToKeep %in% "HPV.status"]}
-  if (cancerName %in% c("CESC", "OV", "PRAD", "TGCT", "UCEC", "UCS")){ columnsToKeep <- columnsToKeep[! columnsToKeep %in% "gender"] }
+  if (cancerName %in% c("CESC", "OV", "PRAD", "TGCT", "UCEC", "UCS", "BRCA")){ columnsToKeep <- columnsToKeep[! columnsToKeep %in% "gender"] }
   if (cancerName != "HNSC"){ columnsToKeep <- columnsToKeep[! columnsToKeep %in% "HPV.status"]}
   encodingHPV <- "HPV.status" %in% columnsToKeep
   encodingGender <- "gender" %in% columnsToKeep
@@ -218,8 +215,9 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
   experimentsAndCovariatesList <- filterForCovariates(experimentsList, columns_to_keep=columnsToKeep)
   assayList <- getCleanedAssayData(experimentsAndCovariatesList[["experiments"]], assayNamesList, needsImputation, simplifiedDataPairs=simplifiedDataPairs)
   transformedData <- filterFeatures(assayList, experimentsAndCovariatesList[["experiments"]], highCorrelationToEachOther=FALSE, relativeVariance=FALSE)
-  transformedData <- combineAssays(transformedData)
+  transformedData <- combineAssays(transformedData, combiningNormal=combiningNormal)
   assayDataWithCovariates <- encode_covariates(experimentsAndCovariatesList[["covariates"]][[1]], transformedData, encodingHPV=encodingHPV, encodingGender=encodingGender)
+  # return(assayDataWithCovariates)
 
   ## Running model
   train_testList <- splitTrainTest(assayDataWithCovariates, trainSetSize=splitSize, seed=seed)
@@ -301,33 +299,57 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
   
   ## Cross validation
   else if (iterationCount > 1){
-    print("Cross validating.../")
+
+    print("Cross validating...")
     seed <- seed^3 # So that if we increment the seed by 1 to test we aren't overlapping with the previous seed
+    fullData <- train_testList$train
+    folds <- caret::createFolds(fullData |> pull(submitter_id), k=iterationCount)
+    # return(list(folds=folds, train=fullData))
     modelsList <- list()
     
     # For each iteration get a new train test split of the 80% available
-    for (i in 1:iterationCount){
+    R2Total <- 0
+    RMSETotal <- 0
+    submitter_ids <- c()
+    chronologicalAges <- c()
+    predictedAges <- c()
+    # for (i in 1:iterationCount){
+    for (fold in names(folds)){
       seed <- seed + 1
-      train_testInitial <- splitTrainTest(train_testList$train, trainSetSize=0.8, seed=seed)
-      modelsList[[i]] <- train_test_wrapper(train_testInitial$train, train_testInitial$test, seed=seed, methodName=methodNames[1], do_plot=FALSE, stratifying=stratifying)
-      modelsList[[i]]$R2 <- round(cor(train_testInitial$test$Age, modelsList[[i]]$predicted$predicted_age)^2, digits=3)
-      modelsList[[i]]$RMSE <- round(sqrt(mean((train_testInitial$test$Age - modelsList[[i]]$predicted$predicted_age)^2)), digits=3)
+      train_testInitial <- getFold(fullData, folds[[fold]])
+      submitter_ids <- c(submitter_ids, fullData$submitter_id[folds[[fold]]])
+      modelsList[[fold]] <- train_test_wrapper(train_testInitial$train, train_testInitial$test, seed=seed, methodName=methodNames[1], do_plot=FALSE, stratifying=stratifying)
+      chronologicalAges <- c(chronologicalAges, train_testInitial$test$Age)
+      predictedAges <- c(predictedAges, modelsList[[fold]]$predicted$predicted_age)
+      R2 <- round(cor(train_testInitial$test$Age, modelsList[[fold]]$predicted$predicted_age)^2, digits=4)
+      modelsList[[fold]]$R2 <- R2
+      R2Total <- R2Total + R2
+      RMSE <- round(sqrt(mean((train_testInitial$test$Age - modelsList[[fold]]$predicted$predicted_age)^2)), digits=4)
+      modelsList[[fold]]$RMSE <- RMSE
+      RMSETotal <- RMSETotal + RMSE
     }
     
-    # Make prediction on remaining data based off all the models
-    remainingTests <- testSet
-    combinedPredictions <- numeric(length(remainingTests$Age))
-    weight <- 1 / iterationCount
-    for (i in 1:iterationCount){
-      combinedPredictions <- combinedPredictions + weight * predict(modelsList[[i]]$model, subset(remainingTests, select=-submitter_id))
-    }
-    R2 <- round(cor(remainingTests$Age, combinedPredictions)^2, digits=3)
-    RMSE <- round(sqrt(mean((remainingTests$Age - combinedPredictions)^2)), digits=3)
+    # # Make prediction on remaining data based off all the models
+    # remainingTests <- testSet
+    # combinedPredictions <- numeric(length(remainingTests$Age))
+    # weight <- 1 / iterationCount
+    # for (i in 1:iterationCount){
+    #   combinedPredictions <- combinedPredictions + weight * predict(modelsList[[i]]$model, subset(remainingTests, select=-submitter_id))
+    # }
     
-    remainingTests$predicted_age <- combinedPredictions
-    caption <- paste("R^2: ", toString(R2), ", RMSE: ", toString(RMSE), sep="")
-    graphAgeModel(remainingTests, title=graphTitle, caption=caption)
-    return(list(model=modelsList, predicted=remainingTests, experimentsList=experimentsList))
+    combinedPredictions <- data.frame(submitter_id = submitter_ids, predicted_age = predictedAges, Age = chronologicalAges)
+    
+    meanR2 <- round(R2Total / iterationCount, digits=3)
+    meanRMSE <- round(RMSETotal / iterationCount, digits=3)
+    modelsList$R2 <- meanR2
+    modelsList$RMSE <- meanRMSE
+    # R2 <- round(cor(remainingTests$Age, combinedPredictions)^2, digits=3)
+    # RMSE <- round(sqrt(mean((remainingTests$Age - combinedPredictions)^2)), digits=3)
+    
+    # remainingTests$predicted_age <- combinedPredictions
+    caption <- paste("R^2: ", toString(meanR2), ", RMSE: ", toString(meanRMSE), sep="")
+    graphAgeModel(combinedPredictions, title=graphTitle, caption=caption)
+    return(list(model=modelsList, predicted=combinedPredictions, experimentsList=experimentsList))
   }
   else{ return(NULL) }
 
@@ -380,6 +402,11 @@ setup1 <- function(layersVector, cancerName="HNSC"){
     assayNames$RPPA <- "counts"
     needsImputation$RPPA <- TRUE
   }
+  if ("RNAseq_Normal" %in% layersVector) { 
+    layerPaths$RNAseq_Normal <- cancerSpecificLayerPaths$RNAseq_NORMAL_filtered
+    assayNames$RNAseq_Normal <- "DESeq2_log"
+    needsImputation$RNAseq_Normal <- FALSE
+  }
   
   return(list(layerPaths=layerPaths, assayNames=assayNames, needsImputation=needsImputation, cancerName=cancerName))
 }
@@ -409,6 +436,11 @@ setup2 <- function(setup1List, featuresToEnsure=c("Age"), existingExperimentsLis
   if (!is.null(layerPaths$RNAseq)) { 
     simplifiedData$RNAseq <- list(data=readRDS(paste(PATH,"/results/RNAseq/DGE_analysis/TCGA-",cancerName,"_filtered_DESeq2_results.rds", sep="")), metric="padj")
   }
+  # Using same age associated features as base for normal data
+  if (!is.null(layerPaths$RNAseq_Normal)) {
+    simplifiedData$RNAseq_Normal <- list(data=readRDS(paste(PATH,"/results/RNAseq/DGE_analysis/TCGA-",cancerName,"_filtered_DESeq2_results.rds", sep="")), metric="padj")
+  }
+  # if (!is.null(layerPaths$RNAseq_Normal)) { simplifiedData$RNAseq_Normal <- NULL }
   if (!is.null(layerPaths$miRNA)) { simplifiedData$miRNA <- NULL }
   if (!is.null(layerPaths$RPPA)) { simplifiedData$RPPA <- NULL }
   
@@ -435,7 +467,7 @@ performSetup <- function(layersVector, cancerName="HNSC", featuresToEnsure=c("Ag
 # Wrapper for ModelBuilding with default params to make life easier. Just need to pass in vector of omics layer names and the cancer name abbreviation, but can adjust other parameters as desired like setting splitSize to 0.8 for a holdouts test
 
 ```{r}
-standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize=0.999, testOnCompleteData=FALSE, graphTitle="", methodNames=c("glmnet"), seed=43, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, existingExperimentsList=NULL, iterationCount=NULL, applyBiasCorrection=FALSE){
+standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize=0.999, testOnCompleteData=FALSE, graphTitle="", methodNames=c("glmnet"), seed=43, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, existingExperimentsList=NULL, iterationCount=NULL, applyBiasCorrection=FALSE, combiningNormal=FALSE){
   if (splitSize > 0.98){ testOnCompleteData=TRUE}
   modelBuildingInput <- performSetup(layersVector, cancerName=cancerName, existingExperimentsList=existingExperimentsList)
   
@@ -448,6 +480,6 @@ standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize
     graphTitle <- paste(string1, "; ", string2, "; ", string3, sep="")
   }
   
-  return(list(ModelBuilding=ModelBuilding(modelBuildingInput, cancerName=cancerName, splitSize=splitSize, testOnCompleteData=testOnCompleteData, graphTitle=graphTitle, methodNames=methodNames, seed=seed, columnsToKeep=columnsToKeep, stratifying=stratifying, iterationCount=iterationCount, applyBiasCorrection=applyBiasCorrection), experimentList=modelBuildingInput$experimentsList))
+  return(list(ModelBuilding=ModelBuilding(modelBuildingInput, cancerName=cancerName, splitSize=splitSize, testOnCompleteData=testOnCompleteData, graphTitle=graphTitle, methodNames=methodNames, seed=seed, columnsToKeep=columnsToKeep, stratifying=stratifying, iterationCount=iterationCount, applyBiasCorrection=applyBiasCorrection, combiningNormal=combiningNormal), experimentList=modelBuildingInput$experimentsList))
 }
 ```

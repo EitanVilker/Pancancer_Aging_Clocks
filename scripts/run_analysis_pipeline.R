@@ -77,13 +77,16 @@ run_analysis_pipeline <- function(fullExperiment, prediction_df, prediction_obje
   # Set up formulas, accounting for covariates appropriate to the cancer
   formula_vector_non_interaction <- c("chronological + delta_age", "race")
   formula_vector_interaction <- c("chronological * delta_age", "race")
+  formula_vector_baseline <- c("chronological", "race")
   if (is.null(prediction_object) || "gendermale" %in% colnames(prediction_object)){
     formula_vector_non_interaction <- c(formula_vector_non_interaction, "gender.y")
     formula_vector_interaction <- c(formula_vector_interaction, "gender.y")
+    formula_vector_baseline <- c(formula_vector_baseline, "gender.y")
   }
   covariates_formula_non_interaction <- as.formula(paste("surv ~ ", paste(formula_vector_non_interaction, collapse= "+")))
   covariates_formula_interaction <- as.formula(paste("surv ~ ", paste(formula_vector_interaction, collapse= "+")))
-
+  covariates_formula_baseline <- as.formula(paste("surv ~ ", paste(formula_vector_baseline, collapse= "+")))
+  
   # Run Non-Interaction CoxPH Model
   test1_non_interaction <- coxph(
     covariates_formula_non_interaction,
@@ -96,15 +99,23 @@ run_analysis_pipeline <- function(fullExperiment, prediction_df, prediction_obje
     data = experiment_prediction_object_meta
   )
   
+  test_baseline <- coxph(
+    covariates_formula_baseline,
+    data = experiment_prediction_object_meta
+  )
+  
   # Summarize Results
   non_interaction_summary <- summary(test1_non_interaction)
   interaction_summary <- summary(test1_interaction)
+  baseline_summary <- summary(test_baseline)
   
   # Return Results
   return(list(
     non_interaction_model = test1_non_interaction,
     non_interaction_summary = non_interaction_summary,
     interaction_model = test1_interaction,
-    interaction_summary = interaction_summary
+    interaction_summary = interaction_summary,
+    baseline_model = test_baseline,
+    baseline_summary = baseline_summary
   ))
 }
