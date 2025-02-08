@@ -23,11 +23,13 @@ source("PanClockHelperFunctions.R")
 
 # Get the output of the ML model
 ```{r}
+# existingExperimentList <- getNormalSize("KIRC")
 existingExperimentList <- NULL
+# expRNAseq <- getExperimentByLayerAndCancer("RNAseq", "BRCA")
+# reducedRNAseq <- reduceExperiment(expRNAseq$layer, existingExperimentList$RNAseq_Normal)
 
-# Current Test
-modelOutput <- standardizedModelBuilding(c("RNAseq", "RNAseq_Normal"), cancerName="KIRC", methodNames=c("glmnet"), splitSize=1, testOnCompleteData=TRUE, seed=43, existingExperimentsList=existingExperimentList, iterationCount=10, applyBiasCorrection=FALSE, combiningNormal=FALSE)
-
+# Current test
+modelOutput <- standardizedModelBuilding(c("RNAseq"), cancerName="KIRC", methodNames=c("glmnet"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=10, applyBiasCorrection=FALSE, combiningNormal=FALSE)
 existingExperimentList <- modelOutput$experimentList
 ```
 
