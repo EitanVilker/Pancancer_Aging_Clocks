@@ -107,7 +107,6 @@ filterForCovariates <- function(experimentsList, columns_to_keep=c("Age", "gende
   covariatesList <- list()
   for (i in 1:length(experimentsList)){
     layerName <- names(experimentsList)[i]
-    print(layerName)
     experiment <- experimentsList[[layerName]]
     covariates <- SummarizedExperiment::colData(experiment)[, columns_to_keep, drop = FALSE]
     # Check for and remove rows with missing values
@@ -185,7 +184,7 @@ filterFeatures <- function(assayList, experimentsList, relativeVariance=FALSE, h
 }
 ```
 
-### Set up one-hot encoding of covariates. Currently designed for one set of assay data
+### Set up one-hot encoding of covariates
 
 ```{r}
 encode_covariates <- function(covariates, assayData, featuresToEncode=NULL, encodingHPV=FALSE, encodingGender=FALSE, encodingRace=FALSE){

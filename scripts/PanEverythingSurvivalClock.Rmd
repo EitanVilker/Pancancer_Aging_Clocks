@@ -29,7 +29,7 @@ existingExperimentList <- NULL
 # reducedRNAseq <- reduceExperiment(expRNAseq$layer, existingExperimentList$RNAseq_Normal)
 
 # Current test
-modelOutput <- standardizedModelBuilding(c("RNAseq"), cancerName="KIRC", methodNames=c("glmnet"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=10, applyBiasCorrection=FALSE, combiningNormal=FALSE)
+modelOutput <- standardizedModelBuilding(c("RPPA"), cancerName="KIRC", methodNames=c("glmnet"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=1, applyBiasCorrection=FALSE, combiningNormal=FALSE)
 existingExperimentList <- modelOutput$experimentList
 ```
 
