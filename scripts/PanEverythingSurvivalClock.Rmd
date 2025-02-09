@@ -9,6 +9,13 @@ library(SummarizedExperiment)
 library(Biobase)
 library(ggplot2)
 library(caret)
+library(dplyr)
+library(survival)
+library(reactable)
+library(survminer)
+library(vip)
+library(tidyverse)
+
 knitr::knit("ModelBuilding.Rmd", output = tempfile())
 knitr::knit("Analysis.Rmd", output = tempfile())
 source("PanClockHelperFunctions.R")
@@ -16,8 +23,13 @@ source("PanClockHelperFunctions.R")
 
 # Get the output of the ML model
 ```{r}
-# Current Test
-modelOutput <- standardizedModelBuilding(c("RNAseq", "RNAseq_Normal"), cancerName="KIRC", methodNames=c("glmnet"), splitSize=0.999, testOnCompleteData=TRUE, seed=243, existingExperimentsList=existingExperimentList, iterationCount=1, applyBiasCorrection=FALSE, combiningNormal=TRUE)
+# existingExperimentList <- getNormalSize("KIRC")
+existingExperimentList <- NULL
+# expRNAseq <- getExperimentByLayerAndCancer("RNAseq", "BRCA")
+# reducedRNAseq <- reduceExperiment(expRNAseq$layer, existingExperimentList$RNAseq_Normal)
+
+# Current test
+modelOutput <- standardizedModelBuilding(c("RNAseq"), cancerName="KIRC", methodNames=c("glmnet"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=10, applyBiasCorrection=FALSE, combiningNormal=FALSE)
 existingExperimentList <- modelOutput$experimentList
 ```
 
@@ -25,8 +37,10 @@ existingExperimentList <- modelOutput$experimentList
 ```{r}
 stats <- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted, applyBiasCorrection=FALSE, covariates_to_include=c("race"))
 # stats <- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted, applyBiasCorrection=TRUE)
-print(summary(stats$interaction_model))
-# print(summary(stats$non_interaction_model))
+
+print(stats$interaction_summary)
+print(stats$non_interaction_summary)
+print(stats$baseline_summary)
 
 # outFile <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/ElasticNet_HNSC_HPV_Negative/ElasticNetMethylationRNAseqHoldoutsSeed44.csv"
 # write.csv(modelOutput$ModelBuilding$predicted, outFile, row.names = FALSE)

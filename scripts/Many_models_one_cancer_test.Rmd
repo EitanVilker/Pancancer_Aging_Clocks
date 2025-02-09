@@ -1,5 +1,5 @@
 ---
-title: "Many models one cancer test"
+title: "Many Elastic Net Models for `r params$cancer_type` across layers"
 author: "Monti Lab"
 date:   "`r format(Sys.Date(), '%B %d, %Y')`"
 params: 
@@ -40,8 +40,9 @@ knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
 ```
 
 ```{r cancer type load, include=FALSE}
-setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/scripts")
+library(knitr)
 library(glue)
+library(reactable)
 
 cancer_type <- params$cancer_type
 
@@ -57,23 +58,32 @@ library(caret)
 knitr::knit("ModelBuilding.Rmd", output = tempfile())
 knitr::knit("Analysis.Rmd", output = tempfile())
 source("PanClockHelperFunctions.R")
+setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/scripts")
+#cancer_type_path <- glue(
+#  "/restricted/projectnb/agedisease/CBMrepositoryData/TCGA-GDC/RNAseq/processed_data/filtered#/TCGA-{cancer_type}_RNAseq_filtered.rds")
 
-cancer_type_path <- glue(
-  "/restricted/projectnb/agedisease/CBMrepositoryData/TCGA-GDC/RNAseq/processed_data/filtered/TCGA-{cancer_type}_RNAseq_filtered.rds")
+#cancer_rds <- readRDS(cancer_type_path)
+
+# E.g.,
+#
+# render_report(cancer_type = "hnsc") 
+#   --> "/path/<rmarkdown_stub>.hnsc.html"
+# render_report(cancer_type = "brca") 
+#   --> "/path/<rmarkdown_stub>.brca.html"
+#render_report(cancer_type)
 ```
 
 # Get the output of the ML model (loop through all layer combinations)
 ```{r Setting Model Combinations}
 # Personalized Layer Combinations
 #layer_combinations <- list(c("miRNA"),c("RPPA"))
-#layer_combinations <- list(c("miRNA"),c("RPPA"),c("RNAseq"))
-
-layer_combinations <- list(c("miRNA"),c("RPPA"),c("RNASeq"))
+layer_combinations <- list(c("RPPA"))
+#layer_combinations <- list(c("miRNA"))
 #layer_combinations <- list(c("miRNA"),c("miRNA","RPPA"))
                            
 #layer_combinations <- list(c("miRNA"),c("RPPA"),c("RNASeq"),c("miRNA","RPPA"),c("miRNA","RNASeq"),c("RNASeq","RPPA"), c("miRNA","RPPA","RNAseq")) #w/o methylation
 
-#layer_combinations <- list(c("methylation"),c("miRNA"),c("RPPA"),c("RNAseq"),c("miRNA","RPPA"),c("miRNA","RNAseq"),c("RNAseq","RPPA"), c("miRNA","RPPA","RNAseq"))
+#layer_combinations <- list(c("methylation"),c("miRNA"),c("RPPA"),c("RNASeq"),c("miRNA","RPPA"),c("miRNA","RNASeq"),c("RNASeq","RPPA"), c("miRNA","RPPA","RNAseq"))
 for (comb in layer_combinations){
   print(comb)
 }
@@ -86,59 +96,148 @@ for (comb in layer_combinations){
 #}), recursive = FALSE)
 
 ```
-# Running All 8 Models and Stats
-```{r Running All 8 Models and Stats}
+# Running Elastic Net Models for: {.tabset}
+```{r, Running Models, results = 'asis'}
+#Initializing a coefficient empty list so to append after every run
+coef_list <- list()
+
+  # non_interaction_table <- data.frame(
+  #   test_name = character(),
+  #   coef = numeric(),
+  #   exp_coef = numeric(),
+  #   se = numeric(),
+  #   concordance = numeric(),
+  #   likelihood_ratio_stat = numeric(),
+  #   likelihood_ratio_df = numeric(),
+  #   likelihood_ratio_p = numeric(),
+  #   p_value_delta_age = numeric(),
+  #   stringsAsFactors = FALSE
+  # )
+  # 
+  # interaction_table <- non_interaction_table  # Same structure as above
+
+
 #{r Running All 8 Models and Stats, results='asis', echo=FALSE}
+#cat(paste("##", cancer_type, "\n"))
 
 # Iterate through all values in layer_combinations
 for (comb in layer_combinations) {
   # Generate tab heading based on the combination
   #cat(paste("Elastic Net model for", comb, "\n\n"))
-  print(comb)
-  combination <- comb
-  cat(paste("# Elastic Net model for:",cancer_type,"with layers:", comb, "\n"))
+  #combination <- comb
+  cat("\n\n##", comb, "\n\n")
 
   # Run standardized model building
   existingExperimentList <- NULL
-  modelOutput <- standardizedModelBuilding(comb, 
-                                           cancerName = cancer_type, 
-                                           methodNames = c("glmnet"), 
-                                           splitSize = 0.99, 
+  modelOutput <- standardizedModelBuilding(comb,
+                                           cancerName = cancer_type,
+                                           methodNames = c("glmnet"),
+                                           splitSize = 0.99,
                                            seed = 43)
-  
+
   # Extract lambda values and coefficients
-  finModel <- modelOutput$ModelBuilding$model$finalModel
-  lambda_values <- finModel$lambda
-  closest_lambda_index <- which.min(abs(lambda_values - finModel$lambdaOpt))
+  lambda_values <- modelOutput$ModelBuilding$model$finalModel$lambda
+  closest_lambda_index <- which.min(abs(lambda_values - modelOutput$ModelBuilding$model$finalModel$lambdaOpt))
   beta_matrix <- modelOutput$ModelBuilding$model$finalModel$beta
   coef_names <- rownames(beta_matrix)
   beta_column <- beta_matrix[, closest_lambda_index]
-  
+
   coef_df <- data.frame(
     Feature = coef_names,
     Weight = as.numeric(beta_column)
   )
   rownames(coef_df) <- coef_df$Feature
-  
+
   # Separate non-zero and zero coefficients
   non_zero_coef_df <- coef_df[coef_df$Weight != 0, ]
   zero_coef_df <- coef_df[coef_df$Weight == 0, ]
-  
+
   # Print summary statistics for non-zero coefficients
-  cat(paste("There are", nrow(non_zero_coef_df), "features with non-zero weights in this model.\n\n"))
+  cat(paste("\n\n There are", nrow(non_zero_coef_df), "features with non-zero weights in this model.\n\n"))
   cat(paste("There are", nrow(zero_coef_df), "features with zero weight in this model.\n\n"))
-  # Display non-zero coefficients as an interactive table
-  cat(paste("The following are the features and weighs:"))
-  print(coef_df)
+
+  # Save coef_df to the list with a unique name based on combination
+  coef_list[[paste0(cancer_type, "_", comb)]] <- coef_df
 
   # Calculate and display survival statistics
-  stats <- getSurvivalStats(modelOutput$experimentList[[1]], 
+  cat("\n\n### Evaluating delta age on Survival(coxph)\n\n")
+  stats <- getSurvivalStats(modelOutput$experimentList[[1]],
                             modelOutput$ModelBuilding$predicted)
-  cat("\n**Survival Statistics:**\n\n")
-  cat("**Non-Interaction Summary:**\n")
-  print(stats$non_interaction_summary)
-  cat("**Interaction Summary:**\n")
-  print(stats$interaction_model)
+  
+  cat("\n\n#### Non Interaction Coxph Model\n\n")
+  cox_summary_ni <- capture.output(stats$non_interaction_summary)
+  cat("```\n", paste(cox_summary_ni, collapse = "\n"), "\n```\n")
+  
+  cat("\n\n#### Interaction Coxph Model\n\n")
+  cox_summary_i <- capture.output(stats$interaction_summary)
+  cat("```\n", paste(cox_summary_i, collapse = "\n"), "\n```\n")
+  
+  #Making summary tables df1 <- (model performance & coxph) & df2 <- (coefficients and model weight)
+  summ_table <- rbind(non_interaction_table
+    
+  )
+  
+  # non_interaction_table <- rbind(non_interaction_table,
+  #                                  data.frame(
+  #                                    test_name = paste0(df_name, "_non_interaction"),
+  #                                    coef = non_interaction_summary$coefficients["delta_age", "coef"],
+  #                                    exp_coef = exp(non_interaction_summary$coefficients["delta_age", "coef"]),
+  #                                    se = non_interaction_summary$coefficients["delta_age", "se(coef)"],
+  #                                    concordance = non_interaction_summary$concordance[1],
+  #                                    likelihood_ratio_stat = non_interaction_summary$logtest["test"],
+  #                                    likelihood_ratio_df = non_interaction_summary$logtest["df"],
+  #                                    likelihood_ratio_p = non_interaction_summary$logtest["pvalue"],
+  #                                    p_value_delta_age = non_interaction_summary$coefficients["delta_age", "Pr(>|z|)"]
+  #                                 )
+  #   )
+  
+  # Print the summary as a Markdown-formatted code block
+  #cat("\n\n### Cox Proportional Hazards Model Summary\n\n")
+  #cat("```\n", paste(cox_summary, collapse = "\n"), "\n```\n")
+  
 }
+stats$non_interaction_model$coefficients
 
+#Extracting Model Parameters
+best_lambda <- modelOutput$ModelBuilding$model$bestTune$lambda
+best_alpha <- modelOutput$ModelBuilding$model$bestTune$alpha
+modelOutput$ModelBuilding$model$finalModel$
+#RMSE
+RMSE <- modelOutput$ModelBuilding$model$results$RMSE[
+  modelOutput$ModelBuilding$model$results$lambda == best_lambda & 
+    modelOutput$ModelBuilding$model$results$alpha == best_alpha]
+Rsquared <- modelOutput$ModelBuilding$model$results$Rsquared[
+  modelOutput$ModelBuilding$model$results$lambda == best_lambda & 
+    modelOutput$ModelBuilding$model$results$alpha == best_alpha]
+RMSE #11.42457
+Rsquared #0.2691437
+#13.02704 12.08236 11.70048 11.50940 11.42457
+modelOutput$ModelBuilding$model$results
+#Rsquared: 0.446027431754077 - RMSE: 10.1390270582199
+
+```
+
+
+## Model Weights
+```{r Printing Model Weights, results='asis'}
+#names(coef_list)
+cat("\n\n# Model Weights\n\n")
+
+library(htmltools) 
+  
+# Create a list of HTML tags, each containing a header + reactable
+all_tables <- lapply(names(coef_list), function(placeholder) {
+  div(
+    h3(placeholder),
+    reactable(coef_list[[placeholder]])
+  )
+})
+
+# Wrap them all in tagList so they render one after another
+tagList(all_tables)
+```
+
+## Session Info
+```{r session info}
+sessionInfo()
 ```

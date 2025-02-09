@@ -1,39 +1,51 @@
-## ----message=FALSE, warning=FALSE, include=FALSE--------------------------------------------------------------------------------------------------------
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
 library(e1071) 
 library(randomForest) 
 library(SummarizedExperiment)
 library(Biobase)
 library(ggplot2)
 library(caret)
-#library(SEtools)
 library ("dplyr")
 source("PanClockHelperFunctions.R")
 source("run_analysis_pipeline.R")
+```
 
+### Imputation (needed for methylation)
 
-## -------------------------------------------------------------------------------------------------------------------------------------------------------
+# This block performs KNN imputation to fill in missing values in the data using five nearest neighbors.
+
+# Note that it runs slowly and may be needed just for methylation, so try to run only as needed and once
+
+# Will skip and return unchanged if impute=TRUE
+
+```{r}
 #KNN imputation
 #Use five closest neighbors
 imputeMissingValues <- function(experimentsList, assayNames, needsImputation){
   print("Imputing...")
   for (i in 1:length(experimentsList)){
     layerName <- names(experimentsList)[i]
+    print(layerName)
     if (needsImputation[[layerName]]){
       experiment <- experimentsList[[layerName]]
       assayName <- assayNames[[layerName]]
       k = 5
-      data_imputed <- impute::impute.knn(as.matrix(SummarizedExperiment::assay(experiment,assayName)), k = k )$data
-      data_imputed_df <- as.data.frame(data_imputed)
-    
-      SummarizedExperiment::assay(experiment,paste(assayName, "-imputed", sep="")) <- data_imputed_df
+      invisible(capture.output(data_imputed <- impute::impute.knn(as.matrix(SummarizedExperiment::assay(experiment,assayName)), k = k )$data))
+      SummarizedExperiment::assay(experiment,paste(assayName, "-imputed", sep="")) <- as.data.frame(data_imputed)
       experimentsList[[layerName]] <- experiment
     }
   }
   return(experimentsList)
 }
+```
 
-
-## -------------------------------------------------------------------------------------------------------------------------------------------------------
+### Combine Experiments (for doing pan-cancer, which we probably won't)
+```{r}
 combineExperiments <- function(experimentsList, assayNames){
   match.cols <- Reduce(function(x, y){intersect(x, y@colData@rownames)}, experimentsList, init = colnames(experimentsList[[1]]))
   for (i in 1:(length(experimentsList) - 1)){
@@ -59,28 +71,43 @@ combineExperiments <- function(experimentsList, assayNames){
 #     experimentsList[[j]] <- experiment2[, sapply(experiment2$submitter_id, checkIfNameMatch, experiment=experiment1)]
 #   }
 # }
+```
 
-
-## -------------------------------------------------------------------------------------------------------------------------------------------------------
-combineAssays <- function(assaysList){
+### Combine the transposed assays of different SummarizedExperiments (for when more than one layer is included)
+```{r}
+combineAssays <- function(assaysList, combiningNormal=FALSE){
+  print("Combining assays...")
   combinedAssays <- assaysList[[1]]
   if (length(assaysList) == 1){ return(combinedAssays) }
-  print("Combining assays...")
   for (i in 2:length(assaysList)){
-    combinedAssays <- merge(combinedAssays, assaysList[[i]], by="submitter_id", all=FALSE)
+    if (combiningNormal){
+      print("Taking differences with normal...")
+      normalAssay <- assaysList[[i]]
+      combinedAssays <- combinedAssays %>% filter(submitter_id %in% normalAssay$submitter_id)
+      normalAssay <- normalAssay %>% filter(submitter_id %in% combinedAssays$submitter_id)
+      combinedAssays <- combinedAssays[ , intersect(names(combinedAssays), names(normalAssay))]
+      normalAssay <- normalAssay[ , intersect(names(normalAssay), names(combinedAssays))]
+      numericColumns <- sapply(combinedAssays, is.numeric)
+      combinedAssays[numericColumns] <- combinedAssays[numericColumns] - normalAssay[numericColumns]
+    }
+    else{
+      combinedAssays <- merge(combinedAssays, assaysList[[i]], by="submitter_id", all=FALSE)
+    }
     combinedAssays$Row.names <- NULL
   }
   return(combinedAssays)
 }
+```
 
-
-## -------------------------------------------------------------------------------------------------------------------------------------------------------
+# Remove subjects missing covariates from experiments list and collect covariates
+```{r}
 # Only keep certain metadata (determined in 03_Covariates.html)
 filterForCovariates <- function(experimentsList, columns_to_keep=c("Age", "gender", "race", "HPV.status", "submitter_id")){
   print("Filtering for covariates...")
   covariatesList <- list()
   for (i in 1:length(experimentsList)){
     layerName <- names(experimentsList)[i]
+    print(layerName)
     experiment <- experimentsList[[layerName]]
     covariates <- SummarizedExperiment::colData(experiment)[, columns_to_keep, drop = FALSE]
     # Check for and remove rows with missing values
@@ -92,9 +119,10 @@ filterForCovariates <- function(experimentsList, columns_to_keep=c("Age", "gende
   }
   return(list(experiments=experimentsList, covariates=covariatesList))
 }
+```
 
-
-## -------------------------------------------------------------------------------------------------------------------------------------------------------
+### Gets assay data using pre-filtered data if available as well as imputed vals.
+```{r}
 getCleanedAssayData <- function(experimentsList, assayNames, useImputed, simplifiedDataPairs=list()){
   print("Getting cleaned assay data...")
 
@@ -120,9 +148,10 @@ getCleanedAssayData <- function(experimentsList, assayNames, useImputed, simplif
   }
   return(assayList)
 }
+```
 
-
-## -------------------------------------------------------------------------------------------------------------------------------------------------------
+### Do any additional feature filtering here; necessity may depend on ML method
+```{r}
 filterFeatures <- function(assayList, experimentsList, relativeVariance=FALSE, highCorrelationToAge=FALSE, highCorrelationToEachOther=FALSE, cutoffThreshold=0.99){
   print("Additional feature filtering...")
   for (i in 1:length(assayList)){
@@ -154,45 +183,43 @@ filterFeatures <- function(assayList, experimentsList, relativeVariance=FALSE, h
   }
   return(assayList)
 }
+```
 
+### Set up one-hot encoding of covariates. Currently designed for one set of assay data
 
-## -------------------------------------------------------------------------------------------------------------------------------------------------------
-encode_covariates <- function(covariates, assayData, featuresToEncode=NULL, encodingHPV=FALSE, encodingGender=TRUE){
+```{r}
+encode_covariates <- function(covariates, assayData, featuresToEncode=NULL, encodingHPV=FALSE, encodingGender=FALSE, encodingRace=FALSE){
   print("Encoding covariates...")
 
-  # One-hot encoding for gender, race, and potentially HPV.status
-  if (encodingHPV){ 
-    print("Encoding HPV...")
-    dummies <- caret::dummyVars("~ gender + race + HPV.status", data = covariates)
-    encoded_covariates <- data.frame(model.matrix(~ gender + race + HPV.status - 1, data = covariates))
+    # One-hot encoding for gender, race, and potentially HPV.status
+  if (nlevels(as.factor(covariates$race)) > 1){ encodingRace <- TRUE }
+  if (nlevels(as.factor(covariates$gender)) > 1){ encodingGender <- TRUE }
+  
+  # Return early if no suitable covariates
+  if (!encodingRace && !encodingGender && !encodingHPV){ return(assayData) }
+  
+  # Build up formula depending on available covariates
+  covariateFormula = "~"
+  if (encodingGender){ covariateFormula <- paste(covariateFormula, "gender") }
+  if (encodingRace){ 
+    if (encodingGender){ covariateFormula <- paste(covariateFormula, "+") }
+    covariateFormula <- paste(covariateFormula, "race") 
   }
-  else if (encodingGender){
-    dummies <- caret::dummyVars("~ gender + race", data = covariates)
-    encoded_covariates <- data.frame(model.matrix(~ gender + race - 1, data = covariates))
+  if (encodingHPV){
+    if (encodingGender || encodingRace){ covariateFormula <- paste(covariateFormula, "+") }
+    covariateFormula <- paste(covariateFormula, "HPV.status") 
   }
-  else{
-    dummies <- caret::dummyVars("~ race", data = covariates)
-    encoded_covariates <- data.frame(model.matrix(~ race - 1, data = covariates))
-  }
+  
+  dummies <- caret::dummyVars(covariateFormula, data = covariates)
+  covariateFormula <- paste(covariateFormula, "- 1")
+  encoded_covariates <- data.frame(model.matrix(as.formula(covariateFormula), data = covariates))
   encoded_covariates$Age <- covariates$Age
   encoded_covariates$submitter_id <- covariates$submitter_id
   rownames(encoded_covariates) <- encoded_covariates$submitter_id
 
-  # Ensure no missing values in encoded_covariates
-  # stopifnot(all(!is.na(encoded_covariates)))
-  # if(!identical(rownames(encoded_covariates), rownames(assayData))) {
-  #   stop("The samples of covariates and assay data do not match!")
-  # }
-  # 
-  # Combine covariates with just rows that match
-  # if(identical(encoded_covariates$submitter_id, assayData[,"submitter_id"])) {
-  #   print("Rownames check out!")
-  #   return(cbind(encoded_covariates, assayData))
-  # }
-  # return(list(e=encoded_covariates, a=assayData))
   assayDataWithCovariates <- merge(encoded_covariates, assayData, by="submitter_id", all=FALSE)
   rownames(assayDataWithCovariates) <- assayDataWithCovariates$submitter_id
   assayDataWithCovariates$Row.names <- NULL
   return(assayDataWithCovariates)
 }
-
+```

@@ -1,7 +1,7 @@
 # Function to get a list of RangedSummarizedExperiment and SummarizedExperiment objects based on provided paths
 # Removes subjects with missing values for inputted list of features
 # Get experiment out of list using syntax: experimentList[[index]]
-getExperimentsList <- function(paths, featuresToEnsure=c("Age"), removeHPVPositive=FALSE) {
+getExperimentsList <- function(paths, featuresToEnsure=c("Age"), removeHPVPositive=FALSE, removeVitalStatusUnreported=TRUE) {
   
   experimentList <- list()
   # Add each experiment
@@ -13,6 +13,7 @@ getExperimentsList <- function(paths, featuresToEnsure=c("Age"), removeHPVPositi
       experiment <- experiment[, !is.na(experiment[[feature]])]
     }
     if (removeHPVPositive){ experiment <- experiment[, experiment$HPV.status=="Negative"] }
+    if (removeVitalStatusUnreported){ experiment <- experiment[, experiment$vital_status != "Not Reported"]}
     experiment$Age <- as.numeric(experiment$Age)
     experimentList[[name]] <- experiment
   }
@@ -62,7 +63,7 @@ getLayerPathsForSpecificCancer <- function(paths, cancerName){
 getExperimentByLayerAndCancer <- function(layerName, cancerName){
   revisedLayerName <- layerName
   if (layerName == "RNAseq"){ revisedLayerName <- "RNAseq_filtered" }
-  else if (layerName == "RNAseq_normal") (revisedLayerName <- "RNAseq_NORMAL_filtered")
+  else if (layerName == "RNAseq_Normal") (revisedLayerName <- "RNAseq_NORMAL_filtered")
   else { revisedLayerName = layerName }
   paths <- getPathsByLayerAndCancer()
   cancerPaths <- getLayerPathsForSpecificCancer(paths, cancerName)
@@ -133,4 +134,24 @@ graphAgeModel <- function(tests, title, caption, biasCorrection=FALSE) {
     )
   
   print(g1)
+}
+
+reduceExperiment <- function(exp1, exp2){
+  return(exp1[, exp1$submitter_id %in% exp2$submitter_id])
+}
+
+getFold <- function(data, fold){
+  meta_trn = data[-fold, ]
+  meta_tst = data[fold, ]
+  return(list(train = meta_trn, test = meta_tst))
+}
+
+getNormalSize <- function(cancerName){
+  normExp <- getExperimentByLayerAndCancer("RNAseq_Normal", cancerName)
+  tumorExp <- getExperimentByLayerAndCancer("RNAseq", cancerName)
+  experimentsList <- list(RNAseq = reduceExperiment(tumorExp[[1]], normExp[[1]]))
+  needsImputation <- list(RNAseq = TRUE)
+  assayNames <- list(RNAseq = "DESeq2_log")
+  imputedExperiments <- imputeMissingValues(experimentsList, assayNames, needsImputation)
+  return(imputedExperiments)
 }
