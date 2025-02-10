@@ -116,8 +116,8 @@ cancer_summary_table <- data.frame(
   logrank_score_test_df_ni = numeric(),
   logrank_score_test_pval_ni = numeric(),
   
-  Concordance_i = numeric()
-  se_concordance_i = numeric()
+  Concordance_i = numeric(),
+  se_concordance_i = numeric(),
   lik_ratio_test_i = numeric(),
   lik_ratio_test_df_i = numeric(),
   lik_ratio_test_pval_i = numeric(),
