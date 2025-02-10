@@ -24,22 +24,42 @@ source("run_analysis_pipeline.R")
 # Will skip and return unchanged if impute=TRUE
 
 ```{r}
-#KNN imputation
-#Use five closest neighbors
-imputeMissingValues <- function(experimentsList, assayNames, needsImputation){
-  print("Imputing...")
-  for (i in 1:length(experimentsList)){
+# KNN imputation
+# Uses five closest neighbors
+imputeMissingValues <- function(experimentsList, assayNames, needsImputation, cancerName, imputationDir="dataset/imputations") {
+  print("Checking for existing imputed datasets...")
+
+  for (i in seq_along(experimentsList)) {
     layerName <- names(experimentsList)[i]
-    print(layerName)
-    if (needsImputation[[layerName]]){
-      experiment <- experimentsList[[layerName]]
-      assayName <- assayNames[[layerName]]
-      k = 5
-      invisible(capture.output(data_imputed <- impute::impute.knn(as.matrix(SummarizedExperiment::assay(experiment,assayName)), k = k )$data))
-      SummarizedExperiment::assay(experiment,paste(assayName, "-imputed", sep="")) <- as.data.frame(data_imputed)
+    if (!needsImputation[[layerName]]) next  # Skip if imputation is not needed
+    
+    experiment <- experimentsList[[layerName]]
+    assayName <- assayNames[[layerName]]
+
+    # Define imputation file path: dataset/imputations/{LayerName}/TCGA-{cancerName}_{LayerName}_imputed.rds
+    imputationPath <- file.path(imputationDir, layerName, paste0("TCGA-", cancerName, "_", layerName, "_imputed.rds"))
+    
+    # Check if the imputed file exists
+    if (file.exists(imputationPath)) {
+      print(paste("Loading existing imputed dataset for", layerName, "(", cancerName, ") from", imputationPath))
+      experimentsList[[layerName]] <- readRDS(imputationPath)
+    } else {
+      print(paste("Imputing missing values for", layerName, "(", cancerName, ") and saving to", imputationPath))
+      
+      # Perform KNN imputation
+      k <- 5
+      invisible(capture.output(data_imputed <- impute::impute.knn(as.matrix(SummarizedExperiment::assay(experiment, assayName)), k = k)$data))
+      SummarizedExperiment::assay(experiment, paste0(assayName, "-imputed")) <- as.data.frame(data_imputed)
+
+      # Ensure directory exists before saving
+      dir.create(dirname(imputationPath), recursive = TRUE, showWarnings = FALSE)
+      
+      # Save the imputed dataset
+      saveRDS(experiment, imputationPath)
       experimentsList[[layerName]] <- experiment
     }
   }
+  
   return(experimentsList)
 }
 ```

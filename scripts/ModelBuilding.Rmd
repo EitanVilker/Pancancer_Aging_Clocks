@@ -415,7 +415,7 @@ setup2 <- function(setup1List, featuresToEnsure=c("Age"), existingExperimentsLis
   }
   if (!is.null(layerPaths$RNAseq)) { 
     simplifiedData$RNAseq <- list(data=readRDS(paste(PATH,"/results/RNAseq/DGE_analysis/TCGA-",cancerName,"_filtered_DESeq2_results.rds", sep="")), metric="padj")
-  }
+  }f
   # Using same age associated features as base for normal data
   if (!is.null(layerPaths$RNAseq_Normal)) {
     simplifiedData$RNAseq_Normal <- list(data=readRDS(paste(PATH,"/results/RNAseq/DGE_analysis/TCGA-",cancerName,"_filtered_DESeq2_results.rds", sep="")), metric="padj")
@@ -429,9 +429,13 @@ setup2 <- function(setup1List, featuresToEnsure=c("Age"), existingExperimentsLis
     experimentsList <- getExperimentsList(layerPaths, featuresToEnsure=featuresToEnsure, removeHPVPositive=removeHPVPositive)
   }
   
-  # Perform imputation
-  if (is.null(existingExperimentsList)) { experimentsList <- imputeMissingValues(experimentsList, assayNames, needsImputation) } # Run if missing values in assay
-  else { experimentsList <- existingExperimentsList }
+  # Perform imputation (only if an imputed version is not found)
+  if (is.null(existingExperimentsList)) { 
+    experimentsList <- imputeMissingValues(experimentsList, assayNames, needsImputation, cancerName) 
+  } else { 
+    experimentsList <- existingExperimentsList 
+  }
+
   return(list(experimentsList=experimentsList, assayNames=assayNames, needsImputation=needsImputation, simplifiedData=simplifiedData))
 }
 ```
