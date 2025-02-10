@@ -3,7 +3,7 @@ title: "Many Elastic Net Models for `r params$cancer_type` across layers"
 author: "Monti Lab"
 date:   "`r format(Sys.Date(), '%B %d, %Y')`"
 params: 
-  cancer_type: "BRCA"
+  cancer_type: "HNSC"
 output:
   html_document:
     theme: united
@@ -50,40 +50,30 @@ library(e1071)
 library(caTools) 
 library(class)
 #library(TimeSeriesExperiment)
-library(SummarizedExperiment)
-library(Biobase)
-library(ggplot2)
-library(caret)
+#library(SummarizedExperiment)
+#library(Biobase)
+#library(ggplot2)
+#library(caret)
 # source("InitialSteps.Rmd")
 knitr::knit("ModelBuilding.Rmd", output = tempfile())
 knitr::knit("Analysis.Rmd", output = tempfile())
 source("PanClockHelperFunctions.R")
 setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/scripts")
-#cancer_type_path <- glue(
-#  "/restricted/projectnb/agedisease/CBMrepositoryData/TCGA-GDC/RNAseq/processed_data/filtered#/TCGA-{cancer_type}_RNAseq_filtered.rds")
 
-#cancer_rds <- readRDS(cancer_type_path)
-
-# E.g.,
-#
-# render_report(cancer_type = "hnsc") 
-#   --> "/path/<rmarkdown_stub>.hnsc.html"
-# render_report(cancer_type = "brca") 
-#   --> "/path/<rmarkdown_stub>.brca.html"
-#render_report(cancer_type)
 ```
 
 # Get the output of the ML model (loop through all layer combinations)
 ```{r Setting Model Combinations}
 # Personalized Layer Combinations
+
 #layer_combinations <- list(c("miRNA"),c("RPPA"))
-layer_combinations <- list(c("RPPA"))
 #layer_combinations <- list(c("miRNA"))
 #layer_combinations <- list(c("miRNA"),c("miRNA","RPPA"))
-                           
 #layer_combinations <- list(c("miRNA"),c("RPPA"),c("RNASeq"),c("miRNA","RPPA"),c("miRNA","RNASeq"),c("RNASeq","RPPA"), c("miRNA","RPPA","RNAseq")) #w/o methylation
-
 #layer_combinations <- list(c("methylation"),c("miRNA"),c("RPPA"),c("RNASeq"),c("miRNA","RPPA"),c("miRNA","RNASeq"),c("RNASeq","RPPA"), c("miRNA","RPPA","RNAseq"))
+
+layer_combinations <- list(c("RPPA"))
+
 for (comb in layer_combinations){
   print(comb)
 }
@@ -101,24 +91,44 @@ for (comb in layer_combinations){
 #Initializing a coefficient empty list so to append after every run
 coef_list <- list()
 
-  # non_interaction_table <- data.frame(
-  #   test_name = character(),
-  #   coef = numeric(),
-  #   exp_coef = numeric(),
-  #   se = numeric(),
-  #   concordance = numeric(),
-  #   likelihood_ratio_stat = numeric(),
-  #   likelihood_ratio_df = numeric(),
-  #   likelihood_ratio_p = numeric(),
-  #   p_value_delta_age = numeric(),
-  #   stringsAsFactors = FALSE
-  # )
-  # 
-  # interaction_table <- non_interaction_table  # Same structure as above
-
-
-#{r Running All 8 Models and Stats, results='asis', echo=FALSE}
-#cat(paste("##", cancer_type, "\n"))
+cancer_summary_table <- data.frame(
+  test_name = character(),
+  cancer_type = numeric(),
+  layer_combination = numeric(),
+  Rsquared = modelOutput$ModelBuilding$model$R2,
+  RMSE = modelOutput$ModelBuilding$model$RMSE,
+  delta_age_coeff	= numeric(),
+  delta_age_exp_coeff = numeric(),
+  delta_age_pval = numeric(),
+  chronological_coef = numeric(),
+  chronological_exp_coef =numeric(),
+  chronological_pval = numeric(),
+  
+  Concordance_ni = numeric(),
+  se_concordance_ni = numeric(),
+  lik_ratio_test_ni = numeric(),
+  lik_ratio_test_df_ni = numeric(),
+  lik_ratio_test_pval_ni = numeric(),
+  Wald_test_ni = numeric(),
+  Wald_test_df_ni = numeric(),
+  Wald_test_pval_ni = numeric(),
+  logrank_score_test_ni = numeric(),
+  logrank_score_test_df_ni = numeric(),
+  logrank_score_test_pval_ni = numeric(),
+  
+  Concordance_i = numeric()
+  se_concordance_i = numeric()
+  lik_ratio_test_i = numeric(),
+  lik_ratio_test_df_i = numeric(),
+  lik_ratio_test_pval_i = numeric(),
+  Wald_test_i = numeric(),
+  Wald_test_df_i = numeric(),
+  Wald_test_pval_i = numeric(),
+  logrank_score_test_i = numeric(),
+  logrank_score_test_df_i = numeric(),
+  logrank_score_test_pval_i = numeric()
+  )
+  
 
 # Iterate through all values in layer_combinations
 for (comb in layer_combinations) {
@@ -196,6 +206,44 @@ for (comb in layer_combinations) {
   #cat("```\n", paste(cox_summary, collapse = "\n"), "\n```\n")
   
 }
+
+packageVersion("survival") #3.6.4
+
+cancer_type <- 
+layer_combination <- 
+Rsquared <- modelOutput$ModelBuilding$model$R2
+RMSE <- modelOutput$ModelBuilding$model$RMSE
+delta_age_coeff	<-
+delta_age_exp_coeff <-
+delta_age_pval <-
+chronological_coef <-
+chronological_exp_coef <-
+chronological_pval <-
+
+Concordance_ni <- 
+se_concordance_ni <-
+lik_ratio_test_ni <- 
+lik_ratio_test_df_ni
+lik_ratio_test_pval_ni
+Wald_test_ni
+Wald_test_df_ni
+Wald_test_pval_ni
+logrank_score_test_ni
+logrank_score_test_df_ni
+logrank_score_test_pval_ni
+
+Concordance_i <- 
+se_concordance_i <-
+lik_ratio_test_i <- 
+lik_ratio_test_df_i <- 
+lik_ratio_test_pval_i <- 
+Wald_test_i <-
+Wald_test_df_i <- 
+Wald_test_pval_i <-
+logrank_score_test_i <- 
+logrank_score_test_df_i <- 
+logrank_score_test_pval_i <-
+
 stats$non_interaction_model$coefficients
 
 #Extracting Model Parameters
@@ -216,11 +264,12 @@ modelOutput$ModelBuilding$model$results
 #Rsquared: 0.446027431754077 - RMSE: 10.1390270582199
 
 ```
-
-
 ## Model Weights
 ```{r Printing Model Weights, results='asis'}
 #names(coef_list)
+
+#searchable = true
+
 cat("\n\n# Model Weights\n\n")
 
 library(htmltools) 
@@ -229,7 +278,7 @@ library(htmltools)
 all_tables <- lapply(names(coef_list), function(placeholder) {
   div(
     h3(placeholder),
-    reactable(coef_list[[placeholder]])
+    reactable(coef_list[[placeholder]], searchable = TRUE)
   )
 })
 
