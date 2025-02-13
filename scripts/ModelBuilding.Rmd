@@ -210,7 +210,7 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
   assayList <- getCleanedAssayData(experimentsAndCovariatesList[["experiments"]], assayNamesList, needsImputation, simplifiedDataPairs=simplifiedDataPairs)
   transformedData <- filterFeatures(assayList, experimentsAndCovariatesList[["experiments"]], highCorrelationToEachOther=FALSE, relativeVariance=FALSE)
   transformedData <- combineAssays(transformedData, combiningNormal=combiningNormal)
-  assayDataWithCovariates <- encode_covariates(experimentsAndCovariatesList[["covariates"]][[1]], transformedData, encodingHPV=encodingHPV, encodingGender=encodingGender)
+  assayDataWithCovariates <- encode_covariates(experimentsAndCovariatesList[["covariates"]][[1]], transformedData)
 
   ## Running model
   train_testList <- splitTrainTest(assayDataWithCovariates, trainSetSize=splitSize, seed=seed)
@@ -329,7 +329,39 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
 
     caption <- paste("R^2: ", toString(meanR2), ", RMSE: ", toString(meanRMSE), sep="")
     graphAgeModel(combinedPredictions, title=graphTitle, caption=caption)
-    return(list(model=modelsList, predicted=combinedPredictions, experimentsList=experimentsList))
+    combinedWeights <- fullData
+    modelsList <- modelOutput$ModelBuilding$model
+    cols <- colnames(fullData)
+    combinedWeights <- data.frame(feature = cols[which(!cols %in% c("submitter_id", "Age"))])
+    nFeatures <- length(combinedWeights$feature)
+    zeroVec <- numeric(nFeatures)
+
+    for (i in 1:iterationCount){
+      model <- modelsList[[i]]
+      weights <- zeroVec
+      modelWeight <- 1 / iterationCount
+      coefficients <- coef(model$model$finalModel, model$model$bestTune$lambda)
+      featureFrame <- data.frame(features=coefficients@Dimnames[[1]][coefficients@i + 1], coefficients=coefficients@x)
+      for (j in 1:length(featureFrame$features)){
+        feature <- featureFrame$features[j]
+        coef <- featureFrame$coefficients[j]
+        idx <- which(combinedWeights$feature == feature)
+        weights[idx] <- coef * modelWeight
+      }
+      combinedWeights[toString(i)] <- weights
+    }
+    
+    combinedWeights$meanSums <- rowSums(combinedWeights[, -1])
+    
+    return(list(model=modelsList, predicted=combinedPredictions, experimentsList=experimentsList, combinedWeights=combinedWeights))
+
+    # R2 <- round(cor(remainingTests$Age, combinedPredictions)^2, digits=3)
+    # RMSE <- round(sqrt(mean((remainingTests$Age - combinedPredictions)^2)), digits=3)
+    # remainingTests$predicted_age <- combinedPredictions
+    # 
+    # # Plot results
+    # caption <- paste("R^2: ",toString(R2),", RMSE: ",toString(RMSE), modelWeightString, sep="")
+    # graphAgeModel(remainingTests, graphTitle, caption)
   }
   else{ return(NULL) }
 
