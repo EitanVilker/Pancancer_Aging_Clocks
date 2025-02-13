@@ -1,6 +1,6 @@
-<!-- # ```{r} -->
-# # library(survival)
-# # library(survminer)
+```{r}
+library(survival)
+library(survminer)
 source("run_analysis_pipeline.R")
 ```
 
