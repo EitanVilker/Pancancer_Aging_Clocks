@@ -5,14 +5,42 @@ setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/
 
 # Define the Rmd file and the output directory
 rmd_file <- "Many_models_one_cancer_test.Rmd"
-output_dir <- "restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Multiomics_multiple_models_per_cancer"
+output_dir <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results"
 
 # Fetch cancer types dynamically from file names
 folder_path <- "/restricted/projectnb/agedisease/CBMrepositoryData/TCGA-GDC/RNAseq/processed_data/filtered"
 files <- list.files(folder_path)
 
-# Extract the variable part (e.g., "HNSC") from the filenames
+#OGGGG Extract the variable part (e.g., "HNSC") from the filenames
+
+
+
+
+
 cancer_types <- unique(sub(".*TCGA-(.*)_RNAseq_filtered\\.rds", "\\1", files))
+
+#Temporary One by One:
+cancer_types1 <- c("BRCA", "CHOL", "DLBC", "GBM", "LAML", "LGG", 
+                  "LIHC", "OV", "PRAD", "SARC", "THCA", "UCEC")
+#cancer_types1 <- c("LGG", "LIHC", "OV", "PRAD", "SARC", "THCA", "UCEC")
+
+cancer_list_filtered <- setdiff(cancer_types, cancer_types1)
+
+cancer_types <- cancer_list_filtered
+
+#Problems:
+#GBM: Problems with miRNA (Report generated w/o miRNA)
+#"LGG", "LIHC", "OV", "PRAD", "SARC", "THCA", "UCEC"(Reports generated w/o methylation) 
+#"BRCA", "CHOL", "DLBC" (Reports generated w/o (methylation AND RNAseq alone))
+#LAML (Problems with RPPA only, All other(RNAseq, miRNA, methylation) individually run fine alone, but don't work when run together
+  #mi_RNA & RNAseq (runs fine)
+  #mi_RNA & methylation (runs fine)
+  #RNAseq & methylation (that's where it breaks)
+  #"miRNA","RNAseq","methylation" (that's where it breaks too)
+  #Ran with: layer_combinations <- list(c("miRNA"), c("RNAseq"), c("methylation"), c("miRNA","RNAseq"), c("miRNA","methylation"))
+
+
+
 
 # Print cancer types to verify
 print(cancer_types)
