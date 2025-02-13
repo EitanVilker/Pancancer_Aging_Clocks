@@ -1,0 +1,9 @@
+category,subcategory,ID,Description,GeneRatio,BgRatio,pvalue,p.adjust,qvalue,geneID,Count
+Metabolism,Lipid metabolism,hsa00140,Steroid hormone biosynthesis,4/89,63/8541,0.00410908797520184,0.878223037951967,0.878223037951967,9420/3292/3294/6820,4
+Metabolism,Amino acid metabolism,hsa00330,Arginine and proline metabolism,3/89,50/8541,0.0150669716412487,0.878223037951967,0.878223037951967,55748/4129/4843,3
+Organismal Systems,Immune system,hsa04672,Intestinal immune network for IgA production,3/89,50/8541,0.0150669716412487,0.878223037951967,0.878223037951967,9020/5284/115650,3
+Metabolism,Amino acid metabolism,hsa00340,Histidine metabolism,2/89,22/8541,0.0216649207171176,0.878223037951967,0.878223037951967,55748/4129,2
+Environmental Information Processing,Signaling molecules and interaction,hsa04514,Cell adhesion molecules,5/89,158/8541,0.0243371423623599,0.878223037951967,0.878223037951967,214/933/51208/4685/57502,5
+Human Diseases,Infectious disease: viral,hsa05166,Human T-cell leukemia virus 1 infection,6/89,224/8541,0.0291304624843471,0.878223037951967,0.878223037951967,25847/1959/9700/9020/5295/115650,6
+Organismal Systems,Development and regeneration,hsa04360,Axon guidance,5/89,184/8541,0.0427410410992927,0.878223037951967,0.878223037951967,658/3984/5295/64218/80031,5
+Organismal Systems,Nervous system,hsa04721,Synaptic vesicle cycle,3/89,79/8541,0.0490840580879001,0.878223037951967,0.878223037951967,22999/6507/6616,3

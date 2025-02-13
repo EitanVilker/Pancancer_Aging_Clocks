@@ -1,0 +1,307 @@
+---
+title: "Gene Pathway Enrichment Analysis"
+author: "Yousry"
+date: "`r Sys.Date()`"
+output: html_document
+params:
+  cancer_types: ["HNSC", "LUAD", "BRCA"]  # Modify this list as needed
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+## Load Required Libraries
+
+```{R load libraries}
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager")
+}
+
+BiocManager::install(c("clusterProfiler", "org.Hs.eg.db", "ReactomePA", "fgsea", "msigdbr"))
+
+if (!requireNamespace("data.table", quietly = TRUE)) {
+  install.packages("data.table")
+}
+
+if (!requireNamespace("data.table", quietly = TRUE)) {
+  install.packages("data.table")
+}
+
+# Load libraries
+library(data.table)
+library(clusterProfiler)
+library(org.Hs.eg.db)
+library(ReactomePA)
+library(fgsea)
+library(msigdbr)
+```
+
+## Define function to process GTF annotations file
+
+```{r}
+process_gtf_annotations <- function(gtf_file, annotation_output) {
+  print("🔍 Processing GTF annotation file...")
+
+  # Check if the file is compressed and load accordingly
+  if (grepl("\\.gz$", gtf_file)) {
+    gtf_data <- fread(cmd = paste("zcat", gtf_file), sep = "\t", header = FALSE)
+  } else {
+    # Remove comment lines manually before loading
+    gtf_data <- fread(cmd = paste("grep -v '^#'", gtf_file), sep = "\t", header = FALSE)
+  }
+
+  # Extract relevant columns where feature type is "gene"
+  gtf_data <- gtf_data[V3 == "gene", .(V9)]
+
+  # Extract Ensembl Gene ID and HGNC Gene Name using regex
+  gtf_data[, Ensembl_ID := sub(".*gene_id \"([^\"]+)\".*", "\\1", V9)]
+  gtf_data[, Gene_Name := sub(".*gene_name \"([^\"]+)\".*", "\\1", V9)]
+
+  # Remove version numbers from Ensembl IDs (e.g., ENSG00000101040.19 → ENSG00000101040)
+  gtf_data[, Ensembl_ID := sub("\\..*", "", Ensembl_ID)]
+
+  # Keep only unique mappings
+  gene_map <- unique(gtf_data[, .(Ensembl_ID, Gene_Name)])
+
+  # Save processed annotation file
+  dir.create(dirname(annotation_output), recursive = TRUE, showWarnings = FALSE)
+  fwrite(gene_map, annotation_output, row.names = FALSE)
+
+  print(paste("✅ Annotation file saved:", annotation_output))
+}
+
+# usage:
+# gtf_file <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/scripts/dataset/gene_annotations/gencode.v47.chr_patch_hapl_scaff.annotation.gtf"
+# annotation_output <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/features/gene_annotation.csv"
+# process_gtf_annotations(gtf_file, annotation_output)
+
+```
+
+## Define function for cancer-type specific RNA-seq models Gene_name vs weights csv
+
+```{r}
+process_gene_weights <- function(cancer_type, annotation_file) {
+  print(paste0("🔍 Processing gene weights for ", cancer_type))
+
+  # Define dynamic file paths based on cancer type
+  weights_file <- paste0("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/", cancer_type, "_elastic_net_omics_combinations_model_weights.rds")
+  output_dir <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/features"
+  output_path <- file.path(output_dir, paste0(cancer_type, "_RNAseq_weights_named.csv"))
+
+  # Load the gene annotation file
+  gene_map <- fread(annotation_file)
+
+  # Check if weights file exists
+  if (!file.exists(weights_file)) {
+    print(paste0("❌ Error: Weights file not found for ", cancer_type, " at ", weights_file))
+    return(NULL)
+  }
+  
+  # Load the filtered weights dataset
+  model_weights <- readRDS(weights_file)
+  
+  if (!paste0(cancer_type, "_RNAseq") %in% names(model_weights)) {
+    print(paste0("❌ Error: No weights found for ", cancer_type))
+    return(NULL)
+  }
+  
+  cancer_data <- model_weights[[paste0(cancer_type, "_RNAseq")]]
+  
+  # Ensure it is a data.table
+  cancer_data <- as.data.table(cancer_data)
+
+  # Check column names
+  print("🔍 Checking column names in cancer data:")
+  print(colnames(cancer_data))
+
+  # Remove version numbers from Ensembl IDs
+  cancer_data[, Feature := sub("\\..*", "", Feature)]
+
+  # Remove near-zero weight features
+  threshold <- 1e-8
+  cancer_filtered <- cancer_data[abs(Weight) > threshold]
+
+  # Remove categorical features (Keep only Ensembl Gene IDs)
+  cancer_filtered <- cancer_filtered[grepl("^ENSG", Feature)]
+
+  # Merge with annotation file to convert Ensembl IDs to Gene Names
+  cancer_named <- merge(cancer_filtered, gene_map, by.x = "Feature", by.y = "Ensembl_ID", all.x = TRUE)
+
+  # Replace missing gene names with original Ensembl IDs
+  cancer_named[, Gene_Name := ifelse(is.na(Gene_Name) | Gene_Name == "", Feature, Gene_Name)]
+
+  # Save the final cleaned file
+  dir.create(dirname(output_path), recursive = TRUE, showWarnings = FALSE)
+  fwrite(cancer_named[, .(Gene_Name, Weight)], output_path, row.names = FALSE)
+
+  print(paste("Final gene-mapped file saved at:", output_path))
+}
+
+```
+
+## Define Pathway Enrichment Analysis Function
+
+```{r}
+run_pathway_analysis <- function(cancer_type) {
+  print(paste0("🔍 Running pathway enrichment for ", cancer_type))
+  
+  input_file <- paste0("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/features/", cancer_type, "_RNAseq_weights_named.csv")
+  
+  if (!file.exists(input_file)) {
+    print(paste0("❌ Error: File not found for ", cancer_type))
+    return(NULL)
+  }
+  
+  genes <- fread(input_file)
+
+  # Remove Ensembl version numbers (if present)
+  genes[, Gene_Name := sub("\\..*", "", Gene_Name)]
+
+  # Convert Gene Symbols to Entrez IDs
+  gene_symbols <- genes$Gene_Name
+  entrez_ids <- bitr(gene_symbols, fromType = "SYMBOL", toType = "ENTREZID", OrgDb = org.Hs.eg.db)
+
+  # Merge Entrez IDs with gene weights
+  genes_mapped <- merge(genes, entrez_ids, by.x = "Gene_Name", by.y = "SYMBOL", all.x = TRUE)
+  genes_mapped <- genes_mapped[!is.na(ENTREZID)]  # Remove unmapped genes
+
+  cat("✅ Successfully mapped", nrow(genes_mapped), "out of", nrow(genes), "genes for", cancer_type, "\n")
+
+  # Define Output Directory
+  output_dir <- paste0("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/pathways/", cancer_type)
+  dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+
+  # Function to Save ORA Results
+  save_results <- function(results, name) {
+    if (!is.null(results) && nrow(as.data.frame(results@result)) > 0) {
+      results_dt <- as.data.table(results@result)
+      fwrite(results_dt, file.path(output_dir, paste0(name, "_raw.csv")))
+      
+      print(paste0("✅ ", name, " analysis completed with ", nrow(results_dt), " pathways found."))
+      
+      raw_significant <- results_dt[pvalue < 0.05]
+      if (nrow(raw_significant) > 0) {
+        fwrite(raw_significant, file.path(output_dir, paste0(name, "_raw_significant.csv")))
+        print(paste0("✅ ", nrow(raw_significant), " pathways with p-value < 0.05 found in ", name, "."))
+      } else {
+        print(paste0("⚠️ No pathways with p-value < 0.05 found in ", name, "."))
+      }
+
+      filtered_results <- results_dt[p.adjust < 0.05]
+      if (nrow(filtered_results) > 0) {
+        fwrite(filtered_results, file.path(output_dir, paste0(name, "_filtered.csv")))
+        print(paste0("✅ ", nrow(filtered_results), " pathways with adjusted p-value < 0.05 found in ", name, "."))
+      } else {
+        print(paste0("⚠️ No significant adjusted pathways found in ", name, "."))
+      }
+    } else {
+      print(paste0("❌ No pathways found in ", name, "."))
+    }
+  }
+
+  # Function to Save GSEA Results
+  save_results_gsea <- function(results, name) {
+    if (!is.null(results) && nrow(results) > 0) {
+      results_dt <- as.data.table(results)
+      fwrite(results_dt, file.path(output_dir, paste0(name, "_raw.csv")))
+      
+      print(paste0("✅ ", name, " GSEA analysis completed with ", nrow(results_dt), " pathways found."))
+
+      raw_significant <- results_dt[pval < 0.05]
+      if (nrow(raw_significant) > 0) {
+        fwrite(raw_significant, file.path(output_dir, paste0(name, "_raw_significant.csv")))
+        print(paste0("✅ ", nrow(raw_significant), " pathways with p-value < 0.05 found in ", name, " GSEA."))
+      } else {
+        print(paste0("⚠️ No pathways with p-value < 0.05 found in ", name, " GSEA."))
+      }
+
+      filtered_results <- results_dt[padj < 0.05]
+      if (nrow(filtered_results) > 0) {
+        fwrite(filtered_results, file.path(output_dir, paste0(name, "_filtered.csv")))
+        print(paste0("✅ ", nrow(filtered_results), " pathways with adjusted p-value < 0.05 found in ", name, " GSEA."))
+      } else {
+        print(paste0("⚠️ No significant adjusted pathways found in ", name, " GSEA."))
+      }
+    } else {
+      print(paste0("❌ No pathways found in ", name, " GSEA."))
+    }
+  }
+
+  # **KEGG Pathway Enrichment Analysis (ORA)**
+  kegg_results <- enrichKEGG(
+    gene = genes_mapped$ENTREZID,
+    organism = "hsa",
+    keyType = "kegg",
+    pvalueCutoff = 1.0
+  )
+  save_results(kegg_results, "KEGG")
+
+  # **Reactome Pathway Enrichment Analysis (ORA)**
+  reactome_results <- enrichPathway(
+    gene = genes_mapped$ENTREZID,
+    organism = "human",
+    pvalueCutoff = 1.0
+  )
+  save_results(reactome_results, "Reactome")
+
+  # **Gene Ontology (GO) Enrichment Analysis (ORA)**
+  go_results_bp <- enrichGO(
+    gene = genes_mapped$ENTREZID,
+    OrgDb = org.Hs.eg.db,
+    ont = "BP",
+    pvalueCutoff = 1.0,
+    readable = TRUE
+  )
+  save_results(go_results_bp, "GO")
+
+  # **Gene Set Enrichment Analysis (GSEA)**
+  gene_ranks <- setNames(genes_mapped$Weight, genes_mapped$ENTREZID)
+
+  hallmark <- msigdbr(species = "Homo sapiens", category = "H")
+  c2_pathways <- msigdbr(species = "Homo sapiens", category = "C2")
+
+  # Convert to list format
+  pathways_h <- split(hallmark$gene_symbol, hallmark$gs_name)
+  pathways_c2 <- split(c2_pathways$gene_symbol, c2_pathways$gs_name)
+
+  # Run FGSEA Multilevel
+  fgsea_results_h <- fgseaMultilevel(pathways = pathways_h, stats = gene_ranks)
+  fgsea_results_c2 <- fgseaMultilevel(pathways = pathways_c2, stats = gene_ranks)
+
+  # Save GSEA results
+  save_results_gsea(fgsea_results_h, "GSEA_H")
+  save_results_gsea(fgsea_results_c2, "GSEA_C2")
+
+  
+  # ** Done **
+  # Summary
+  print(paste0("🎉 Pathway enrichment analysis completed for ", cancer_type, "!"))
+
+}
+
+```
+
+## Run Pathways Enrichment Analysis Function
+
+```{r}
+cancer_types <- params$cancer_types  # List of cancer types
+
+annotation_file <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/features/gene_annotation.csv"
+
+# Process Gene Weights for Each Cancer Type
+for (cancer in cancer_types) {
+  process_gene_weights(cancer, annotation_file)
+}
+
+# Run the Pathway Enrichment Analysis
+for (cancer in cancer_types) {
+  run_pathway_analysis(cancer)
+}
+```
+
+## Summary
+
+```{r}
+print("Pathway enrichment analysis completed for all specified cancer types!")
+```
