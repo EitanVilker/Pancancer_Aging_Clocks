@@ -4,7 +4,8 @@ author: "Yousry"
 date: "`r Sys.Date()`"
 output: html_document
 params:
-  cancer_types: ["HNSC", "LUAD", "BRCA"]  # Modify this list as needed
+  cancer_types: ["ACC", "BLCA", "BRCA", "CESC", "CHOL", "COAD", "DLBC", "ESCA", "GBM", "HNSC", "KICH", "KIRC", "KIRP", "LAML", "LGG", "LIHC", "LUAD", "LUSC", "MESO", "OV", "PAAD", "PCPG", "PRAD", "READ", "SARC", "SKCM", "STAD", "TGCT", "THCA", "THYM", "UCEC", "UCS", "UVM"]
+  # Modify this list as needed
 ---
 
 ```{r setup, include=FALSE}
@@ -304,4 +305,5 @@ for (cancer in cancer_types) {
 
 ```{r}
 print("Pathway enrichment analysis completed for all specified cancer types!")
+
 ```
