@@ -29,7 +29,7 @@ source("PanClockHelperFunctions.R")
 # reducedRNAseq <- reduceExperiment(expRNAseq$layer, existingExperimentList$RNAseq_Normal)
 
 # Current test
-modelOutput <- standardizedModelBuilding(c("RNAseq"), cancerName="BRCA", methodNames=c("glmnet"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=3, applyBiasCorrection=FALSE, combiningNormal=FALSE)
+modelOutput <- standardizedModelBuilding(c("RNAseq"), cancerName="BRCA", methodNames=c("glmnet"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=2, applyBiasCorrection=FALSE, combiningNormal=FALSE)
 existingExperimentList <- modelOutput$experimentList
 ```
 
@@ -42,8 +42,8 @@ print(stats$interaction_summary)
 print(stats$non_interaction_summary)
 print(stats$baseline_summary)
 
-# outFile <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/ElasticNet_HNSC_HPV_Negative/ElasticNetMethylationRNAseqHoldoutsSeed44.csv"
-# write.csv(modelOutput$ModelBuilding$predicted, outFile, row.names = FALSE)
+outFile <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/CV/BRCA_RNAseq"
+write.csv(modelOutput$ModelBuilding$combinedWeights$meanSums, outFile, row.names = FALSE)
 ```
 
 # Survival analysis given previous data

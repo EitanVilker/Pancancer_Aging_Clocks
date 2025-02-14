@@ -330,7 +330,6 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
     caption <- paste("R^2: ", toString(meanR2), ", RMSE: ", toString(meanRMSE), sep="")
     graphAgeModel(combinedPredictions, title=graphTitle, caption=caption)
     combinedWeights <- fullData
-    modelsList <- modelOutput$ModelBuilding$model
     cols <- colnames(fullData)
     combinedWeights <- data.frame(feature = cols[which(!cols %in% c("submitter_id", "Age"))])
     nFeatures <- length(combinedWeights$feature)
@@ -340,6 +339,7 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
       model <- modelsList[[i]]
       weights <- zeroVec
       modelWeight <- 1 / iterationCount
+      # return(list(model=model, final=model$model$finalModel, bestTune = model$model$bestTune))
       coefficients <- coef(model$model$finalModel, model$model$bestTune$lambda)
       featureFrame <- data.frame(features=coefficients@Dimnames[[1]][coefficients@i + 1], coefficients=coefficients@x)
       for (j in 1:length(featureFrame$features)){
