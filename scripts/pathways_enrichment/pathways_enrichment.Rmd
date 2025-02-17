@@ -364,6 +364,83 @@ for (cancer in cancer_types) {
 ## Summary
 
 ```{r}
+
+# Initialize a list to store significant pathways for each cancer type
+significant_pathways_list <- list()
+
+# Define the base directory where results are stored
+base_path <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/pathways"
+
+# Loop through each cancer type
+for (cancer in params$cancer_types) {
+  # Define paths to adjusted significant pathways
+  files <- list(
+    KEGG = file.path(base_path, cancer, "KEGG_filtered.csv"),
+    Reactome = file.path(base_path, cancer, "Reactome_filtered.csv"),
+    GO = file.path(base_path, cancer, "GO_filtered.csv"),
+    GSEA_H = file.path(base_path, cancer, "GSEA_H_filtered.csv"),
+    GSEA_C2 = file.path(base_path, cancer, "GSEA_C2_filtered.csv")
+  )
+
+  # Store significant pathways for this cancer type
+  pathways <- c()
+  
+  for (name in names(files)) {
+    file <- files[[name]]
+    
+    if (file.exists(file)) {
+      data <- fread(file, select = "ID")
+      if (nrow(data) > 0) {
+        pathways <- unique(c(pathways, data$ID))  # Combine pathways safely
+      }
+    } else {
+      print(paste("⚠️ Missing:", file))
+    }
+  }
+
+  # Store unique pathways for this cancer if any exist
+  if (length(pathways) > 0) {
+    significant_pathways_list[[cancer]] <- pathways
+  }
+}
+
+# Check if any pathways were found
+if (length(significant_pathways_list) == 0) {
+  print("⚠️ No significant pathways found in any cancer type.")
+} else {
+  # Convert list to long format table
+  pathway_counts <- rbindlist(
+    lapply(names(significant_pathways_list), function(cancer) {
+      data.table(Pathway = significant_pathways_list[[cancer]], Cancer_Type = cancer)
+    }),
+    fill = TRUE
+  )
+
+  # Count occurrences of each pathway across cancer types
+  pathway_summary <- pathway_counts[, .(Cancer_Types = paste(Cancer_Type, collapse = ", "), Count = .N), by = Pathway]
+
+  # Filter for pathways that appear in two or more cancer types
+  common_pathways <- pathway_summary[Count > 1]
+
+  # Save results
+  output_path <- file.path(base_path, "common_pathways.csv")
+  fwrite(common_pathways, output_path)
+
+  # Print summary
+  print("✅ Common pathways identified across multiple cancer types:")
+  print(common_pathways)
+
+  # If running interactively, display results in a table
+  if (interactive()) {
+    library(DT)
+    datatable(common_pathways)
+  }
+}
+
+```
+
+
+```{r}
 print("Pathway enrichment analysis completed for all specified cancer types!")
 
 ```
