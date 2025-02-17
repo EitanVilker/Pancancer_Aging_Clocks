@@ -383,15 +383,16 @@ for (cancer in params$cancer_types) {
   )
 
   # Store significant pathways for this cancer type
-  pathways <- c()
+  pathways <- list()
   
-  for (name in names(files)) {
-    file <- files[[name]]
+  for (type in names(files)) {
+    file <- files[[type]]
     
     if (file.exists(file)) {
       data <- fread(file, select = "ID")
       if (nrow(data) > 0) {
-        pathways <- unique(c(pathways, data$ID))  # Combine pathways safely
+        # Store pathways along with their type
+        pathways <- append(pathways, lapply(data$ID, function(id) list(Pathway = id, Pathway_Type = type)))
       }
     } else {
       print(paste("⚠️ Missing:", file))
@@ -400,7 +401,8 @@ for (cancer in params$cancer_types) {
 
   # Store unique pathways for this cancer if any exist
   if (length(pathways) > 0) {
-    significant_pathways_list[[cancer]] <- pathways
+    significant_pathways_list[[cancer]] <- rbindlist(pathways, fill = TRUE)
+    significant_pathways_list[[cancer]][, Cancer_Type := cancer]
   }
 }
 
@@ -409,15 +411,14 @@ if (length(significant_pathways_list) == 0) {
   print("⚠️ No significant pathways found in any cancer type.")
 } else {
   # Convert list to long format table
-  pathway_counts <- rbindlist(
-    lapply(names(significant_pathways_list), function(cancer) {
-      data.table(Pathway = significant_pathways_list[[cancer]], Cancer_Type = cancer)
-    }),
-    fill = TRUE
-  )
+  pathway_counts <- rbindlist(significant_pathways_list, fill = TRUE)
 
   # Count occurrences of each pathway across cancer types
-  pathway_summary <- pathway_counts[, .(Cancer_Types = paste(Cancer_Type, collapse = ", "), Count = .N), by = Pathway]
+  pathway_summary <- pathway_counts[, .(
+    Pathway_Type = unique(Pathway_Type),
+    Cancer_Types = paste(Cancer_Type, collapse = ", "),
+    Count = .N
+  ), by = Pathway]
 
   # Filter for pathways that appear in two or more cancer types
   common_pathways <- pathway_summary[Count > 1]
@@ -438,7 +439,6 @@ if (length(significant_pathways_list) == 0) {
 }
 
 ```
-
 
 ```{r}
 print("Pathway enrichment analysis completed for all specified cancer types!")
