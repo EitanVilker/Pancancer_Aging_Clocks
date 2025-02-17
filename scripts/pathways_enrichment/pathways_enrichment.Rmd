@@ -420,21 +420,21 @@ if (length(significant_pathways_list) == 0) {
     Count = .N
   ), by = Pathway]
 
-  # Filter for pathways that appear in two or more cancer types
-  common_pathways <- pathway_summary[Count > 1]
+  # Sort pathways by Count (greatest to smallest)
+  pathway_summary <- pathway_summary[order(-Count)]
 
   # Save results
   output_path <- file.path(base_path, "common_pathways.csv")
-  fwrite(common_pathways, output_path)
+  fwrite(pathway_summary, output_path)
 
   # Print summary
-  print("✅ Common pathways identified across multiple cancer types:")
-  print(common_pathways)
+  print("✅ Pathways identified across cancer types (sorted by count):")
+  print(pathway_summary)
 
   # If running interactively, display results in a table
   if (interactive()) {
     library(DT)
-    datatable(common_pathways)
+    datatable(pathway_summary)
   }
 }
 
