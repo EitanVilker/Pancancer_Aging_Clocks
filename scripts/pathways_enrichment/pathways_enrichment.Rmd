@@ -29,6 +29,7 @@ if (!requireNamespace("data.table", quietly = TRUE)) {
   install.packages("data.table")
 }
 
+
 # Load libraries
 library(data.table)
 library(clusterProfiler)
@@ -256,31 +257,90 @@ run_pathway_analysis <- function(cancer_type) {
   )
   save_results(go_results_bp, "GO")
 
+  
   # **Gene Set Enrichment Analysis (GSEA)**
+  
+  # Create named vector for GSEA ranking
   gene_ranks <- setNames(genes_mapped$Weight, genes_mapped$ENTREZID)
-
+  
+  # Remove missing values
+  gene_ranks <- na.omit(gene_ranks)
+  
+  # Order gene ranks for GSEA
+  gene_ranks <- sort(gene_ranks, decreasing = TRUE)
+  
+  # Check if there are enough genes for GSEA
+  if (length(gene_ranks) < 10) {
+    print("⚠️ Too few genes for GSEA. Skipping GSEA for this cancer type.")
+    return(NULL)
+  }
+  
+  # Load MSigDB gene sets
   hallmark <- msigdbr(species = "Homo sapiens", category = "H")
   c2_pathways <- msigdbr(species = "Homo sapiens", category = "C2")
-
-  # Convert to list format
-  pathways_h <- split(hallmark$gene_symbol, hallmark$gs_name)
-  pathways_c2 <- split(c2_pathways$gene_symbol, c2_pathways$gs_name)
-
-  # Run FGSEA Multilevel
-  fgsea_results_h <- fgseaMultilevel(pathways = pathways_h, stats = gene_ranks)
-  fgsea_results_c2 <- fgseaMultilevel(pathways = pathways_c2, stats = gene_ranks)
-
-  # Save GSEA results
-  save_results_gsea(fgsea_results_h, "GSEA_H")
-  save_results_gsea(fgsea_results_c2, "GSEA_C2")
-
+  
+  # Convert gene symbols to Entrez IDs in pathways
+  convert_to_entrez <- function(msigdb_data) {
+    mapped <- bitr(msigdb_data$gene_symbol, fromType = "SYMBOL", toType = "ENTREZID", OrgDb = org.Hs.eg.db)
+    merged <- merge(msigdb_data, mapped, by.x = "gene_symbol", by.y = "SYMBOL", all.x = TRUE)
+  
+    # Remove rows with missing ENTREZID values
+    merged <- na.omit(merged)
+  
+    # Ensure ENTREZID is treated as a character (to avoid factor conversion issues)
+    merged$ENTREZID <- as.character(merged$ENTREZID)
+  
+    # Split into pathway-specific lists
+    split(merged$ENTREZID, merged$gs_name)
+  }
+  
+  # Convert pathways
+  pathways_h <- convert_to_entrez(hallmark)
+  pathways_c2 <- convert_to_entrez(c2_pathways)
+  
+  # Ensure pathways contain genes in gene_ranks and have enough members
+  pathways_h <- pathways_h[lengths(pathways_h) > 5 & lengths(pathways_h) <= 500]
+  pathways_c2 <- pathways_c2[lengths(pathways_c2) > 5 & lengths(pathways_c2) <= 500]
+  
+  # Check if valid pathways exist
+  if (length(pathways_h) == 0) {
+    print("❌ No valid Hallmark pathways available for GSEA.")
+  } 
+  if (length(pathways_c2) == 0) {
+    print("❌ No valid C2 pathways available for GSEA.")
+  }
+  if (length(pathways_h) == 0 && length(pathways_c2) == 0) {
+    return(NULL)
+  }
+  
+  # Run FGSEA Simple
+  if (length(pathways_h) > 0) {
+    fgsea_results_h <- fgseaSimple(
+      pathways = pathways_h, 
+      stats = gene_ranks, 
+      minSize = 10, 
+      maxSize = 500, 
+      nperm = 1000  # Lower permutation count for faster runtime
+    )
+    save_results_gsea(fgsea_results_h, "GSEA_H")
+  }
+  
+  if (length(pathways_c2) > 0) {
+    fgsea_results_c2 <- fgseaSimple(
+      pathways = pathways_c2, 
+      stats = gene_ranks, 
+      minSize = 10, 
+      maxSize = 500, 
+      nperm = 1000  # Lower permutation count for faster runtime
+    )
+    save_results_gsea(fgsea_results_c2, "GSEA_C2")
+  }
   
   # ** Done **
   # Summary
   print(paste0("🎉 Pathway enrichment analysis completed for ", cancer_type, "!"))
 
 }
-
 ```
 
 ## Run Pathways Enrichment Analysis Function
