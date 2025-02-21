@@ -82,3 +82,187 @@ organizeOutputFeatures <- function(modelPredictionsPair, RNAExperiment=NULL){
 # outFile <- "./ModelBuildingOutput/ElasticNetRNAseqHoldoutsFeatures.csv"
 # write.csv(featureFrame, outFile, row.names = FALSE)
 ```
+
+```{r}
+intializeSummaryTable <- function(){
+  cancer_summary_table <- data.frame(
+    test_name = character(),
+    cancer_type = character(),
+    layer_combination = character(),
+    
+    Rsquared = numeric(),
+    RMSE = numeric(),
+    
+    delta_age_coeff_non_interaction	= numeric(),
+    delta_age_exp_coeff_non_interaction = numeric(),
+    delta_age_pval_non_interaction = numeric(),
+    chronological_coef_non_interaction = numeric(),
+    chronological_exp_coef_non_interaction = numeric(),
+    chronological_pval_non_interaction = numeric(),
+  
+    Concordance_non_interaction = numeric(),
+    se_concordance_non_interaction = numeric(),
+    lik_ratio_test_non_interaction = numeric(),
+    lik_ratio_test_df_non_interaction = numeric(),
+    lik_ratio_test_pval_non_interaction = numeric(),
+    Wald_test_non_interaction = numeric(),
+    Wald_test_df_non_interaction = numeric(),
+    Wald_test_pval_non_interaction = numeric(),
+    logrank_score_test_non_interaction = numeric(),
+    logrank_score_test_df_non_interaction = numeric(),
+    logrank_score_test_pval_non_interaction = numeric(),
+    
+    delta_age_coeff_interaction	= numeric(),
+    delta_age_exp_coeff_interaction = numeric(),
+    delta_age_pval_interaction = numeric(),
+    chronological_coef_interaction = numeric(),
+    chronological_exp_coef_interaction = numeric(),
+    chronological_pval_interaction = numeric(),
+  
+    Concordance_interaction = numeric(),
+    se_concordance_interaction = numeric(),
+    lik_ratio_test_interaction = numeric(),
+    lik_ratio_test_df_interaction = numeric(),
+    lik_ratio_test_pval_interaction = numeric(),
+    Wald_test_interaction = numeric(),
+    Wald_test_df_interaction = numeric(),
+    Wald_test_pval_interaction = numeric(),
+    logrank_score_test_interaction = numeric(),
+    logrank_score_test_df_interaction = numeric(),
+    logrank_score_test_pval_interaction = numeric(),
+    
+    delta_age_coeff_baseline	= numeric(),
+    delta_age_exp_coeff_baseline = numeric(),
+    delta_age_pval_baseline = numeric(),
+    chronological_coef_baseline = numeric(),
+    chronological_exp_coef_baseline = numeric(),
+    chronological_pval_baseline = numeric(),
+  
+    Concordance_baseline = numeric(),
+    se_concordance_baseline = numeric(),
+    lik_ratio_test_baseline = numeric(),
+    lik_ratio_test_df_baseline = numeric(),
+    lik_ratio_test_pval_baseline = numeric(),
+    Wald_test_baseline = numeric(),
+    Wald_test_df_baseline = numeric(),
+    Wald_test_pval_baseline = numeric(),
+    logrank_score_test_baseline = numeric(),
+    logrank_score_test_df_baseline = numeric(),
+    logrank_score_test_pval_baseline = numeric()
+  )
+  return(cancer_summary_table)
+}
+```
+
+```{r}
+getSummaryTable <- function(cancer_type, comb, modelOutput, stats, test_name="elastic_net"){
+ return(data.frame(
+                    layer_combination = paste(comb, collapse = "_"),
+                    Rsquared = modelOutput$ModelBuilding$model$R2,
+                    RMSE = modelOutput$ModelBuilding$model$RMSE,
+                    
+                    delta_age_coeff_non_interaction	= stats$non_interaction_summary$coefficients["delta_age", "coef"],
+                    delta_age_exp_coeff_non_interaction = stats$non_interaction_summary$coefficients["delta_age", "exp(coef)"],
+                    delta_age_pval_non_interaction = stats$non_interaction_summary$coefficients["delta_age", "Pr(>|z|)"],
+                    chronological_coef_non_interaction = stats$non_interaction_summary$coefficients["chronological", "coef"],
+                    chronological_exp_coef_non_interaction = stats$non_interaction_summary$coefficients["chronological", "exp(coef)"],
+                    chronological_pval_non_interaction =  stats$non_interaction_summary$coefficients["chronological", "Pr(>|z|)"],
+                    
+                    Concordance_non_interaction = stats$non_interaction_summary$concordance[1],
+                    se_concordance_non_interaction = stats$non_interaction_summary$concordance[2],
+                    lik_ratio_test_non_interaction = stats$non_interaction_summary$logtest["test"],
+                    lik_ratio_test_df_non_interaction = stats$non_interaction_summary$logtest["df"],
+                    lik_ratio_test_pval_non_interaction = stats$non_interaction_summary$logtest["pvalue"],
+                    Wald_test_non_interaction = stats$non_interaction_summary$waldtest["test"],
+                    Wald_test_df_non_interaction = stats$non_interaction_summary$waldtest["df"],
+                    Wald_test_pval_non_interaction = stats$non_interaction_summary$waldtest["pvalue"],
+                    logrank_score_test_non_interaction = stats$non_interaction_summary$sctest["test"],
+                    logrank_score_test_df_non_interaction = stats$non_interaction_summary$sctest["df"],
+                    logrank_score_test_pval_non_interaction = stats$non_interaction_summary$sctest["pvalue"],
+                    
+                    delta_age_coeff_interaction = stats$interaction_summary$coefficients["delta_age", "coef"],
+                    delta_age_exp_coeff_interaction = stats$interaction_summary$coefficients["delta_age", "exp(coef)"],
+                    delta_age_pval_interaction = stats$interaction_summary$coefficients["delta_age", "Pr(>|z|)"],
+                    chronological_coef_interaction = stats$interaction_summary$coefficients["chronological", "coef"],
+                    chronological_exp_coef_interaction = stats$interaction_summary$coefficients["chronological", "exp(coef)"],
+                    chronological_pval_interaction = stats$interaction_summary$coefficients["chronological", "Pr(>|z|)"],
+                    
+                    Concordance_interaction = stats$interaction_summary$concordance[1],
+                    se_concordance_interaction = stats$interaction_summary$concordance[2],
+                    lik_ratio_test_interaction = stats$interaction_summary$logtest["test"],
+                    lik_ratio_test_df_interaction = stats$interaction_summary$logtest["df"],
+                    lik_ratio_test_pval_interaction = stats$interaction_summary$logtest["pvalue"],
+                    Wald_test_interaction = stats$interaction_summary$waldtest["test"],
+                    Wald_test_df_interaction = stats$interaction_summary$waldtest["df"],
+                    Wald_test_pval_interaction = stats$interaction_summary$waldtest["pvalue"],
+                    logrank_score_test_interaction = stats$interaction_summary$sctest["test"],
+                    logrank_score_test_df_interaction = stats$interaction_summary$sctest["df"],
+                    logrank_score_test_pval_interaction = stats$interaction_summary$sctest["pvalue"],
+                    
+                    chronological_coef_baseline = stats$baseline_summary$coefficients["chronological", "coef"],
+                    chronological_exp_coef_baseline = stats$baseline_summary$coefficients["chronological", "exp(coef)"],
+                    chronological_pval_baseline = stats$baseline_summary$coefficients["chronological", "Pr(>|z|)"],
+                    
+                    Concordance_baseline = stats$baseline_summary$concordance[1],
+                    se_concordance_baseline = stats$baseline_summary$concordance[2],
+                    lik_ratio_test_baseline = stats$baseline_summary$logtest["test"],
+                    lik_ratio_test_df_baseline = stats$baseline_summary$logtest["df"],
+                    lik_ratio_test_pval_baseline = stats$baseline_summary$logtest["pvalue"],
+                    Wald_test_baseline = stats$baseline_summary$waldtest["test"],
+                    Wald_test_df_baseline = stats$baseline_summary$waldtest["df"],
+                    Wald_test_pval_baseline = stats$baseline_summary$waldtest["pvalue"],
+                    logrank_score_test_baseline = stats$baseline_summary$sctest["test"],
+                    logrank_score_test_df_baseline = stats$baseline_summary$sctest["df"],
+                    logrank_score_test_pval_baseline = stats$baseline_summary$sctest["pvalue"]
+  ))
+}
+  
+
+
+# Iterate through all values in layer_combinations
+for (comb in layer_combinations) {
+  # Generate tab heading based on the combination
+  #cat(paste("Elastic Net model for", comb, "\n\n"))
+  #combination <- comb
+  cat("\n\n##", comb, "\n\n")
+
+  # Run standardized model building
+  existingExperimentList <- NULL
+  modelOutput <- standardizedModelBuilding(comb,
+                                           cancerName = cancer_type,
+                                           methodNames = c("glmnet"),
+                                           splitSize = 1,
+                                           seed = 43)
+  
+  coef_df <- getCoefficientDF(modelOutput)
+
+  # Print summary statistics for non-zero coefficients
+  cat(paste("\n\n There are", nrow(non_zero_coef_df), "features with non-zero weights in this model.\n\n"))
+  cat(paste("There are", nrow(zero_coef_df), "features with zero weight in this model.\n\n"))
+  # Ensure `comb` is always converted into a single string
+  coef_list[[paste0(cancer_type, "_", paste(comb, collapse = "_"))]] <- coef_df
+
+
+  # Calculate and display survival statistics
+  cat("\n\n### Evaluating delta age on Survival(coxph)\n\n")
+  stats <- getSurvivalStats(modelOutput$experimentList[[1]],
+                            modelOutput$ModelBuilding$predicted)
+  
+  cat("\n\n#### Non Interaction Coxph Model\n\n")
+  cox_summary_ni <- capture.output(stats$non_interaction_summary)
+  cat("```\n", paste(cox_summary_ni, collapse = "\n"), "\n```\n")
+  
+  cat("\n\n#### Interaction Coxph Model\n\n")
+  cox_summary_i <- capture.output(stats$interaction_summary)
+  cat("```\n", paste(cox_summary_i, collapse = "\n"), "\n```\n")
+  
+  cat("\n\n#### Baseline Coxph Model\n\n")
+  cox_summary_b <- capture.output(stats$baseline_summary)
+  cat("```\n", paste(cox_summary_b, collapse = "\n"), "\n```\n")
+  
+  #Making summary tables df1 <- (model performance & coxph) & df2 <- (coefficients and model weight)
+  return(rbind(cancer_summary_table, getSummaryTable(cancer_type, comb, modelOutput, stats)))
+}
+
+
+```

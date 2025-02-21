@@ -29,7 +29,9 @@ source("PanClockHelperFunctions.R")
 # reducedRNAseq <- reduceExperiment(expRNAseq$layer, existingExperimentList$RNAseq_Normal)
 
 # Current test
-modelOutput <- standardizedModelBuilding(c("RNAseq"), cancerName="BRCA", methodNames=c("ridge"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=10, applyBiasCorrection=FALSE, combiningNormal=FALSE)
+cancerType <- "BRCA"
+layers <- c("RNAseq")
+modelOutput <- standardizedModelBuilding(layers, cancerName=cancerType, methodNames=c("ridge"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=10, applyBiasCorrection=FALSE, combiningNormal=FALSE)
 existingExperimentList <- modelOutput$experimentList
 ```
 
@@ -45,8 +47,10 @@ print(stats$baseline_summary)
 # coefficientFrame <- getCoefficientDF(modelOutput)
 coefficientFrame <- modelOutput$ModelBuilding$combinedWeights
 saveRDS(coefficientFrame, file = "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/CoefficientFrames/BRCA/RNAseqBRCA_coef_10CV.rds")
-outFile <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/CoefficientFrames/BRCA/RNAseqBRCA_model_10CV.rds"
-write.csv(modelOutput$ModelBuilding, outFile, row.names = FALSE)
+summaryTable <- getSummaryTable(cancerType, layers, modelOutput, stats)
+
+outFile <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/CoefficientFrames/BRCA/RNAseqBRCA_summary_10CV.rds"
+write.csv(summaryTable, outFile, row.names = FALSE)
 ```
 
 # Survival analysis given previous data
