@@ -359,12 +359,12 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
         feature <- featureFrame$features[j]
         coef <- featureFrame$coefficients[j]
         idx <- which(combinedWeights$feature == feature)
-        weights[idx] <- coef * modelWeight
+        weights[idx] <- coef
       }
       combinedWeights[toString(i)] <- weights
     }
     
-    combinedWeights$meanSums <- rowSums(combinedWeights[, -1])
+    combinedWeights$meanSums <- rowMeans(combinedWeights[, -1])
     
     return(list(model=modelsList, predicted=combinedPredictions, experimentsList=experimentsList, combinedWeights=combinedWeights))
 
