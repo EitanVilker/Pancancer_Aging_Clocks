@@ -217,52 +217,53 @@ getSummaryTable <- function(cancer_type, comb, modelOutput, stats, test_name="el
   ))
 }
   
+```
 
-
-# Iterate through all values in layer_combinations
-for (comb in layer_combinations) {
-  # Generate tab heading based on the combination
-  #cat(paste("Elastic Net model for", comb, "\n\n"))
-  #combination <- comb
-  cat("\n\n##", comb, "\n\n")
-
-  # Run standardized model building
-  existingExperimentList <- NULL
-  modelOutput <- standardizedModelBuilding(comb,
-                                           cancerName = cancer_type,
-                                           methodNames = c("glmnet"),
-                                           splitSize = 1,
-                                           seed = 43)
+```{r}
+getFormattedStatsTable <- function(stats){
   
-  coef_df <- getCoefficientDF(modelOutput)
-
-  # Print summary statistics for non-zero coefficients
-  cat(paste("\n\n There are", nrow(non_zero_coef_df), "features with non-zero weights in this model.\n\n"))
-  cat(paste("There are", nrow(zero_coef_df), "features with zero weight in this model.\n\n"))
-  # Ensure `comb` is always converted into a single string
-  coef_list[[paste0(cancer_type, "_", paste(comb, collapse = "_"))]] <- coef_df
-
-
-  # Calculate and display survival statistics
-  cat("\n\n### Evaluating delta age on Survival(coxph)\n\n")
-  stats <- getSurvivalStats(modelOutput$experimentList[[1]],
-                            modelOutput$ModelBuilding$predicted)
+  cols <- c("interaction_term_pval", "delta_age_pval", "chronological_age_pval", "concordance", "logtest", "logtest pvalue", "waldtest", "waldtest pvalue", "sctest", "sctest pvalue")
+  non_interaction <- c(
+    "N/A",
+    stats$non_interaction_summary$coefficients["delta_age", "Pr(>|z|)"],
+    stats$non_interaction_summary$coefficients["chronological", "Pr(>|z|)"],
+    stats$non_interaction_summary$concordance[1],
+    stats$non_interaction_summary$logtest["test"],
+    stats$non_interaction_summary$logtest["pvalue"],
+    stats$non_interaction_summary$waldtest["test"],
+    stats$non_interaction_summary$waldtest["pvalue"],
+    stats$non_interaction_summary$sctest["test"],
+    stats$non_interaction_summary$sctest["pvalue"]
+  )
   
-  cat("\n\n#### Non Interaction Coxph Model\n\n")
-  cox_summary_ni <- capture.output(stats$non_interaction_summary)
-  cat("```\n", paste(cox_summary_ni, collapse = "\n"), "\n```\n")
+  interaction <- c(
+    stats$interaction_summary$coefficients["chronological:delta_age", "Pr(>|z|)"],
+    stats$interaction_summary$coefficients["delta_age", "Pr(>|z|)"],
+    stats$interaction_summary$coefficients["chronological", "Pr(>|z|)"],
+    stats$interaction_summary$concordance[1],
+    stats$interaction_summary$logtest["test"],
+    stats$interaction_summary$logtest["pvalue"],
+    stats$interaction_summary$waldtest["test"],
+    stats$interaction_summary$waldtest["pvalue"],
+    stats$interaction_summary$sctest["test"],
+    stats$interaction_summary$sctest["pvalue"]
+  )
   
-  cat("\n\n#### Interaction Coxph Model\n\n")
-  cox_summary_i <- capture.output(stats$interaction_summary)
-  cat("```\n", paste(cox_summary_i, collapse = "\n"), "\n```\n")
-  
-  cat("\n\n#### Baseline Coxph Model\n\n")
-  cox_summary_b <- capture.output(stats$baseline_summary)
-  cat("```\n", paste(cox_summary_b, collapse = "\n"), "\n```\n")
-  
-  #Making summary tables df1 <- (model performance & coxph) & df2 <- (coefficients and model weight)
-  return(rbind(cancer_summary_table, getSummaryTable(cancer_type, comb, modelOutput, stats)))
+  baseline <- c(
+    "N/A",
+    "N/A",
+    stats$baseline_summary$coefficients["chronological", "Pr(>|z|)"],
+    stats$baseline_summary$concordance[1],
+    stats$baseline_summary$logtest["test"],
+    stats$baseline_summary$logtest["pvalue"],
+    stats$baseline_summary$waldtest["test"],
+    stats$baseline_summary$waldtest["pvalue"],
+    stats$baseline_summary$sctest["test"],
+    stats$baseline_summary$sctest["pvalue"]
+  )
+  statsFrame <- t(data.frame(interaction=interaction, non_interaction=non_interaction, baseline=baseline))
+  colnames(statsFrame) <- cols
+  return(statsFrame)
 }
-
 
 ```

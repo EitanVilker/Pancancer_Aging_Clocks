@@ -24,14 +24,14 @@ source("PanClockHelperFunctions.R")
 # Get the output of the ML model
 ```{r}
 # existingExperimentList <- getNormalSize("KIRC")
-# existingExperimentList <- NULL
+existingExperimentList <- NULL
 # expRNAseq <- getExperimentByLayerAndCancer("RNAseq", "BRCA")
 # reducedRNAseq <- reduceExperiment(expRNAseq$layer, existingExperimentList$RNAseq_Normal)
 
 # Current test
-cancerType <- "BRCA"
+cancerType <- "LGG"
 layers <- c("RNAseq")
-modelOutput <- standardizedModelBuilding(layers, cancerName=cancerType, methodNames=c("ridge"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=10, applyBiasCorrection=FALSE, combiningNormal=FALSE)
+modelOutput <- standardizedModelBuilding(layers, cancerName=cancerType, methodNames=c("ridge"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=1, applyBiasCorrection=FALSE, combiningNormal=FALSE)
 existingExperimentList <- modelOutput$experimentList
 ```
 
@@ -44,13 +44,14 @@ print(stats$interaction_summary)
 print(stats$non_interaction_summary)
 print(stats$baseline_summary)
 
-# coefficientFrame <- getCoefficientDF(modelOutput)
-coefficientFrame <- modelOutput$ModelBuilding$combinedWeights
-saveRDS(coefficientFrame, file = "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/CoefficientFrames/BRCA/RNAseqBRCA_coef_10CV.rds")
-summaryTable <- getSummaryTable(cancerType, layers, modelOutput, stats)
+coefficientFrame <- getCoefficientDF(modelOutput)
+# coefficientFrame <- modelOutput$ModelBuilding$combinedWeights
+filePath <- paste("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/CoefficientFrames/", cancerType, "/RNAseq", cancerType, sep="")
+saveRDS(coefficientFrame, file = paste(filePath, "_coef.rds", sep=""))
 
-outFile <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/CoefficientFrames/BRCA/RNAseqBRCA_summary_10CV.rds"
-write.csv(summaryTable, outFile, row.names = FALSE)
+summaryTable <- getSummaryTable(cancerType, layers, modelOutput, stats)
+additionalDescriptor <- ""
+write.csv(summaryTable, paste(filePath, "_summary", additionalDescriptor, ".rds", sep=""), row.names = FALSE)
 ```
 
 # Survival analysis given previous data
