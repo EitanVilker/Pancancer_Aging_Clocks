@@ -186,7 +186,7 @@ for (comb in layer_combinations) {
   modelOutput <- standardizedModelBuilding(comb,
                                            cancerName = cancer_type,
                                            methodNames = c("glmnet"),
-                                           splitSize = 0.99,
+                                           splitSize = 1,
                                            seed = 43)
 
   # Extract lambda values and coefficients

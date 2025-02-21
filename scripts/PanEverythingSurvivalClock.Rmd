@@ -24,12 +24,12 @@ source("PanClockHelperFunctions.R")
 # Get the output of the ML model
 ```{r}
 # existingExperimentList <- getNormalSize("KIRC")
-# existingExperimentList <- NULL
+existingExperimentList <- NULL
 # expRNAseq <- getExperimentByLayerAndCancer("RNAseq", "BRCA")
 # reducedRNAseq <- reduceExperiment(expRNAseq$layer, existingExperimentList$RNAseq_Normal)
 
 # Current test
-modelOutput <- standardizedModelBuilding(c("RNAseq"), cancerName="BRCA", methodNames=c("glmnet"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=10, applyBiasCorrection=FALSE, combiningNormal=FALSE)
+modelOutput <- standardizedModelBuilding(c("RNAseq"), cancerName="BRCA", methodNames=c("ridge"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=1, applyBiasCorrection=FALSE, combiningNormal=FALSE)
 existingExperimentList <- modelOutput$experimentList
 ```
 
@@ -42,7 +42,9 @@ print(stats$interaction_summary)
 print(stats$non_interaction_summary)
 print(stats$baseline_summary)
 
-outFile <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/CV/BRCA_RNAseq"
+coefficientFrame <- getCoefficientDF(modelOutput)
+saveRDS(coefficientFrame, file = "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/CoefficientFrames/BRCA/RNAseqBRCA_coef.rds")
+outFile <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/CoefficientFrames/BRCA/RNAseqBRCA_model.rds"
 write.csv(modelOutput$ModelBuilding$combinedWeights, outFile, row.names = FALSE)
 ```
 

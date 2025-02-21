@@ -15,6 +15,26 @@ getSurvivalStats <- function(fullExperiment, predictionObject, applyBiasCorrecti
 
 ```
 
+### Get coefficient df
+```{r}
+getCoefficientDF <- function(modelOutput){
+  coef_list <- list()
+
+  # Extract lambda values and coefficients
+  lambda_values <- modelOutput$ModelBuilding$model$finalModel$lambda
+  closest_lambda_index <- which.min(abs(lambda_values - modelOutput$ModelBuilding$model$finalModel$lambdaOpt))
+  beta_matrix <- modelOutput$ModelBuilding$model$finalModel$beta
+  coef_names <- rownames(beta_matrix)
+  beta_column <- beta_matrix[, closest_lambda_index]
+
+  coef_df <- data.frame(
+    Feature = coef_names,
+    Weight = as.numeric(beta_column)
+  )
+  rownames(coef_df) <- coef_df$Feature
+  return(coef_df)
+}
+```
 
 ### Find coefficients of individual features used in final model
 ```{r}

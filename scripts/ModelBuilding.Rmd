@@ -104,6 +104,19 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=
       # weights = weights
     )
   }
+
+  else if (methodName == "ridge"){
+    meta_model <- caret::train(
+      Age ~ .,
+      data = meta_trn,
+      method = "glmnet",
+      trControl = cv10,
+      # metric = "RMSE",
+      # tuneLength = 5,
+      tuneGrid = expand.grid(alpha = 0,  # alpha = 0 for Ridge Regression
+                             lambda = seq(0.001, 1, length = 10))  # Grid search for lambda
+    )
+  }
   
   # Anything else
   else{
