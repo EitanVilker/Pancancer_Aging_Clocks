@@ -1808,121 +1808,15 @@ modelOutput &lt;- standardizedModelBuilding(layers, cancerName=cancerType, metho
 <h1>Survival analysis given model just ran</h1>
 <!-- rnb-text-end -->
 <!-- rnb-chunk-begin -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVjM1JoZEhNZ1BDMGdaMlYwVTNWeWRtbDJZV3hUZEdGMGN5aHRiMlJsYkU5MWRIQjFkQ1JsZUhCbGNtbHRaVzUwVEdsemRGdGJNVjFkTENCdGIyUmxiRTkxZEhCMWRDUk5iMlJsYkVKMWFXeGthVzVuSkhCeVpXUnBZM1JsWkN3Z1lYQndiSGxDYVdGelEyOXljbVZqZEdsdmJqMUdRVXhUUlN3Z1kyOTJZWEpwWVhSbGMxOTBiMTlwYm1Oc2RXUmxQV01vWENKeVlXTmxYQ0lwS1Z4dUl5QnpkR0YwY3lBOExTQm5aWFJUZFhKMmFYWmhiRk4wWVhSektHMXZaR1ZzVDNWMGNIVjBKR1Y0Y0dWeWFXMWxiblJNYVhOMFcxc3hYVjBzSUcxdlpHVnNUM1YwY0hWMEpFMXZaR1ZzUW5WcGJHUnBibWNrY0hKbFpHbGpkR1ZrTENCaGNIQnNlVUpwWVhORGIzSnlaV04wYVc5dVBWUlNWVVVwWEc1Y2JuQnlhVzUwS0hOMFlYUnpKR2x1ZEdWeVlXTjBhVzl1WDNOMWJXMWhjbmtwWEc1Z1lHQWlmUT09IC0tPlxuXG5gYGByXG5zdGF0cyA8LSBnZXRTdXJ2aXZhbFN0YXRzKG1vZGVsT3V0cHV0JGV4cGVyaW1lbnRMaXN0W1sxXV0sIG1vZGVsT3V0cHV0JE1vZGVsQnVpbGRpbmckcHJlZGljdGVkLCBhcHBseUJpYXNDb3JyZWN0aW9uPUZBTFNFLCBjb3ZhcmlhdGVzX3RvX2luY2x1ZGU9YyhcInJhY2VcIikpXG4jIHN0YXRzIDwtIGdldFN1cnZpdmFsU3RhdHMobW9kZWxPdXRwdXQkZXhwZXJpbWVudExpc3RbWzFdXSwgbW9kZWxPdXRwdXQkTW9kZWxCdWlsZGluZyRwcmVkaWN0ZWQsIGFwcGx5Qmlhc0NvcnJlY3Rpb249VFJVRSlcblxucHJpbnQoc3RhdHMkaW50ZXJhY3Rpb25fc3VtbWFyeSlcbmBgYFxuXG48IS0tIHJuYi1zb3VyY2UtZW5kIC0tPlxuIn0= -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3RhdHMgPC0gZ2V0U3Vydml2YWxTdGF0cyhtb2RlbE91dHB1dCRleHBlcmltZW50TGlzdFtbMV1dLCBtb2RlbE91dHB1dCRNb2RlbEJ1aWxkaW5nJHByZWRpY3RlZCwgYXBwbHlCaWFzQ29ycmVjdGlvbj1GQUxTRSwgY292YXJpYXRlc190b19pbmNsdWRlPWMoXCJyYWNlXCIpKVxuIyBzdGF0cyA8LSBnZXRTdXJ2aXZhbFN0YXRzKG1vZGVsT3V0cHV0JGV4cGVyaW1lbnRMaXN0W1sxXV0sIG1vZGVsT3V0cHV0JE1vZGVsQnVpbGRpbmckcHJlZGljdGVkLCBhcHBseUJpYXNDb3JyZWN0aW9uPVRSVUUpXG5cbnByaW50KHN0YXRzJGludGVyYWN0aW9uX3N1bW1hcnkpXG5gYGAifQ== -->
-<pre class="r"><code>stats &lt;- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted, applyBiasCorrection=FALSE, covariates_to_include=c(&quot;race&quot;))
-# stats &lt;- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted, applyBiasCorrection=TRUE)
-
-print(stats$interaction_summary)</code></pre>
+<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVjM1JoZEhOVVlXSnNaU0E4TFNCblpYUkdiM0p0WVhSMFpXUlRkR0YwYzFSaFlteGxLSE4wWVhSektWeHVYRzVnWUdBaWZRPT0gLS0+XG5cbmBgYHJcbnN0YXRzVGFibGUgPC0gZ2V0Rm9ybWF0dGVkU3RhdHNUYWJsZShzdGF0cylcblxuYGBgXG5cbjwhLS0gcm5iLXNvdXJjZS1lbmQgLS0+XG4ifQ== -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3RhdHNUYWJsZSA8LSBnZXRGb3JtYXR0ZWRTdGF0c1RhYmxlKHN0YXRzKVxuXG5gYGAifQ== -->
+<pre class="r"><code>statsTable &lt;- getFormattedStatsTable(stats)
+</code></pre>
 <!-- rnb-source-end -->
 <!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiQ2FsbDpcbmNveHBoKGZvcm11bGEgPSBjb3ZhcmlhdGVzX2Zvcm11bGFfaW50ZXJhY3Rpb24sIGRhdGEgPSBleHBlcmltZW50X3ByZWRpY3Rpb25fb2JqZWN0X21ldGEpXG5cbiAgbj0gNTMyLCBudW1iZXIgb2YgZXZlbnRzPSAxNzQgXG5cbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNvZWYgIGV4cChjb2VmKSAgIHNlKGNvZWYpICAgICAgeiBQcig+fHp8KSAgICBcbmNocm9ub2xvZ2ljYWwgICAgICAgICAgICAgICAgICAwLjA1NDY1ODAgIDEuMDU2MTc5NCAgMC4wMTM3MDcwICAzLjk4OCA2LjY3ZS0wNSAqKipcbmRlbHRhX2FnZSAgICAgICAgICAgICAgICAgICAgICAwLjA3MzI3NDggIDEuMDc2MDI2MiAgMC4wNTM4MTc5ICAxLjM2MiAgICAwLjE3MyAgICBcbmdlbmRlci55bWFsZSAgICAgICAgICAgICAgICAgICAwLjA2NzQ3NzYgIDEuMDY5ODA2MyAgMC4xNjAzNTYwICAwLjQyMSAgICAwLjY3NCAgICBcbnJhY2VibGFjayBvciBhZnJpY2FuIGFtZXJpY2FuICAwLjMzMjM0NjEgIDEuMzk0MjM1MiAgMS4wNDc1MTk2ICAwLjMxNyAgICAwLjc1MSAgICBcbnJhY2Vub3QgcmVwb3J0ZWQgICAgICAgICAgICAgICAwLjEyNTIwNDMgIDEuMTMzMzgwMCAgMS4yMjg4MTcwICAwLjEwMiAgICAwLjkxOSAgICBcbnJhY2V3aGl0ZSAgICAgICAgICAgICAgICAgICAgICAwLjQyMzA1MjAgIDEuNTI2NjEzNiAgMS4wMDc2NDk0ICAwLjQyMCAgICAwLjY3NSAgICBcbmNocm9ub2xvZ2ljYWw6ZGVsdGFfYWdlICAgICAgIC0wLjAwMDUwNTggIDAuOTk5NDk0NCAgMC4wMDA3NTcwIC0wLjY2OCAgICAwLjUwNCAgICBcbi0tLVxuU2lnbmlmLiBjb2RlczogIDAg4oCYKioq4oCZIDAuMDAxIOKAmCoq4oCZIDAuMDEg4oCYKuKAmSAwLjA1IOKAmC7igJkgMC4xIOKAmCDigJkgMVxuXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBleHAoY29lZikgZXhwKC1jb2VmKSBsb3dlciAuOTUgdXBwZXIgLjk1XG5jaHJvbm9sb2dpY2FsICAgICAgICAgICAgICAgICAgICAxLjA1NjIgICAgIDAuOTQ2OCAgICAxLjAyODIgICAgIDEuMDg1XG5kZWx0YV9hZ2UgICAgICAgICAgICAgICAgICAgICAgICAxLjA3NjAgICAgIDAuOTI5MyAgICAwLjk2ODMgICAgIDEuMTk2XG5nZW5kZXIueW1hbGUgICAgICAgICAgICAgICAgICAgICAxLjA2OTggICAgIDAuOTM0NyAgICAwLjc4MTMgICAgIDEuNDY1XG5yYWNlYmxhY2sgb3IgYWZyaWNhbiBhbWVyaWNhbiAgICAxLjM5NDIgICAgIDAuNzE3MiAgICAwLjE3ODkgICAgMTAuODY0XG5yYWNlbm90IHJlcG9ydGVkICAgICAgICAgICAgICAgICAxLjEzMzQgICAgIDAuODgyMyAgICAwLjEwMjAgICAgMTIuNTk5XG5yYWNld2hpdGUgICAgICAgICAgICAgICAgICAgICAgICAxLjUyNjYgICAgIDAuNjU1MCAgICAwLjIxMTggICAgMTEuMDAxXG5jaHJvbm9sb2dpY2FsOmRlbHRhX2FnZSAgICAgICAgICAwLjk5OTUgICAgIDEuMDAwNSAgICAwLjk5ODAgICAgIDEuMDAxXG5cbkNvbmNvcmRhbmNlPSAwLjYxNiAgKHNlID0gMC4wMjIgKVxuTGlrZWxpaG9vZCByYXRpbyB0ZXN0PSAyOC4xICBvbiA3IGRmLCAgIHA9MmUtMDRcbldhbGQgdGVzdCAgICAgICAgICAgID0gMjguMDEgIG9uIDcgZGYsICAgcD0yZS0wNFxuU2NvcmUgKGxvZ3JhbmspIHRlc3QgPSAyOC44NCAgb24gNyBkZiwgICBwPTJlLTA0XG4ifQ== -->
-<pre><code>Call:
-coxph(formula = covariates_formula_interaction, data = experiment_prediction_object_meta)
-
-  n= 532, number of events= 174 
-
-                                    coef  exp(coef)   se(coef)      z Pr(&gt;|z|)    
-chronological                  0.0546580  1.0561794  0.0137070  3.988 6.67e-05 ***
-delta_age                      0.0732748  1.0760262  0.0538179  1.362    0.173    
-gender.ymale                   0.0674776  1.0698063  0.1603560  0.421    0.674    
-raceblack or african american  0.3323461  1.3942352  1.0475196  0.317    0.751    
-racenot reported               0.1252043  1.1333800  1.2288170  0.102    0.919    
-racewhite                      0.4230520  1.5266136  1.0076494  0.420    0.675    
-chronological:delta_age       -0.0005058  0.9994944  0.0007570 -0.668    0.504    
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-                              exp(coef) exp(-coef) lower .95 upper .95
-chronological                    1.0562     0.9468    1.0282     1.085
-delta_age                        1.0760     0.9293    0.9683     1.196
-gender.ymale                     1.0698     0.9347    0.7813     1.465
-raceblack or african american    1.3942     0.7172    0.1789    10.864
-racenot reported                 1.1334     0.8823    0.1020    12.599
-racewhite                        1.5266     0.6550    0.2118    11.001
-chronological:delta_age          0.9995     1.0005    0.9980     1.001
-
-Concordance= 0.616  (se = 0.022 )
-Likelihood ratio test= 28.1  on 7 df,   p=2e-04
-Wald test            = 28.01  on 7 df,   p=2e-04
-Score (logrank) test = 28.84  on 7 df,   p=2e-04</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVjSEpwYm5Rb2MzUmhkSE1rYm05dVgybHVkR1Z5WVdOMGFXOXVYM04xYlcxaGNua3BYRzVnWUdBaWZRPT0gLS0+XG5cbmBgYHJcbnByaW50KHN0YXRzJG5vbl9pbnRlcmFjdGlvbl9zdW1tYXJ5KVxuYGBgXG5cbjwhLS0gcm5iLXNvdXJjZS1lbmQgLS0+XG4ifQ== -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucHJpbnQoc3RhdHMkbm9uX2ludGVyYWN0aW9uX3N1bW1hcnkpXG5gYGAifQ== -->
-<pre class="r"><code>print(stats$non_interaction_summary)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiQ2FsbDpcbmNveHBoKGZvcm11bGEgPSBjb3ZhcmlhdGVzX2Zvcm11bGFfbm9uX2ludGVyYWN0aW9uLCBkYXRhID0gZXhwZXJpbWVudF9wcmVkaWN0aW9uX29iamVjdF9tZXRhKVxuXG4gIG49IDUzMiwgbnVtYmVyIG9mIGV2ZW50cz0gMTc0IFxuXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjb2VmIGV4cChjb2VmKSBzZShjb2VmKSAgICAgeiBQcig+fHp8KSAgICBcbmNocm9ub2xvZ2ljYWwgICAgICAgICAgICAgICAgIDAuMDU0NDQgICAxLjA1NTk1ICAwLjAxMzY4IDMuOTgwICA2LjllLTA1ICoqKlxuZGVsdGFfYWdlICAgICAgICAgICAgICAgICAgICAgMC4wNDAyNSAgIDEuMDQxMDcgIDAuMDIxMzIgMS44ODggICAgMC4wNTkgLiAgXG5nZW5kZXIueW1hbGUgICAgICAgICAgICAgICAgICAwLjA2NTQyICAgMS4wNjc2MCAgMC4xNjAyMyAwLjQwOCAgICAwLjY4MyAgICBcbnJhY2VibGFjayBvciBhZnJpY2FuIGFtZXJpY2FuIDAuMzQxMTcgICAxLjQwNjU5ICAxLjA0NzQwIDAuMzI2ICAgIDAuNzQ1ICAgIFxucmFjZW5vdCByZXBvcnRlZCAgICAgICAgICAgICAgMC4xMjA2MCAgIDEuMTI4MTcgIDEuMjI4NjkgMC4wOTggICAgMC45MjIgICAgXG5yYWNld2hpdGUgICAgICAgICAgICAgICAgICAgICAwLjQ0MDUzICAgMS41NTM1MiAgMS4wMDcyNiAwLjQzNyAgICAwLjY2MiAgICBcbi0tLVxuU2lnbmlmLiBjb2RlczogIDAg4oCYKioq4oCZIDAuMDAxIOKAmCoq4oCZIDAuMDEg4oCYKuKAmSAwLjA1IOKAmC7igJkgMC4xIOKAmCDigJkgMVxuXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBleHAoY29lZikgZXhwKC1jb2VmKSBsb3dlciAuOTUgdXBwZXIgLjk1XG5jaHJvbm9sb2dpY2FsICAgICAgICAgICAgICAgICAgICAgMS4wNTYgICAgIDAuOTQ3MCAgICAxLjAyODAgICAgIDEuMDg1XG5kZWx0YV9hZ2UgICAgICAgICAgICAgICAgICAgICAgICAgMS4wNDEgICAgIDAuOTYwNSAgICAwLjk5ODUgICAgIDEuMDg1XG5nZW5kZXIueW1hbGUgICAgICAgICAgICAgICAgICAgICAgMS4wNjggICAgIDAuOTM2NyAgICAwLjc3OTkgICAgIDEuNDYxXG5yYWNlYmxhY2sgb3IgYWZyaWNhbiBhbWVyaWNhbiAgICAgMS40MDcgICAgIDAuNzEwOSAgICAwLjE4MDYgICAgMTAuOTU4XG5yYWNlbm90IHJlcG9ydGVkICAgICAgICAgICAgICAgICAgMS4xMjggICAgIDAuODg2NCAgICAwLjEwMTUgICAgMTIuNTM4XG5yYWNld2hpdGUgICAgICAgICAgICAgICAgICAgICAgICAgMS41NTQgICAgIDAuNjQzNyAgICAwLjIxNTcgICAgMTEuMTg3XG5cbkNvbmNvcmRhbmNlPSAwLjYxNiAgKHNlID0gMC4wMjIgKVxuTGlrZWxpaG9vZCByYXRpbyB0ZXN0PSAyNy42NiAgb24gNiBkZiwgICBwPTFlLTA0XG5XYWxkIHRlc3QgICAgICAgICAgICA9IDI2LjkgIG9uIDYgZGYsICAgcD0yZS0wNFxuU2NvcmUgKGxvZ3JhbmspIHRlc3QgPSAyNy4zNiAgb24gNiBkZiwgICBwPTFlLTA0XG4ifQ== -->
-<pre><code>Call:
-coxph(formula = covariates_formula_non_interaction, data = experiment_prediction_object_meta)
-
-  n= 532, number of events= 174 
-
-                                 coef exp(coef) se(coef)     z Pr(&gt;|z|)    
-chronological                 0.05444   1.05595  0.01368 3.980  6.9e-05 ***
-delta_age                     0.04025   1.04107  0.02132 1.888    0.059 .  
-gender.ymale                  0.06542   1.06760  0.16023 0.408    0.683    
-raceblack or african american 0.34117   1.40659  1.04740 0.326    0.745    
-racenot reported              0.12060   1.12817  1.22869 0.098    0.922    
-racewhite                     0.44053   1.55352  1.00726 0.437    0.662    
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-                              exp(coef) exp(-coef) lower .95 upper .95
-chronological                     1.056     0.9470    1.0280     1.085
-delta_age                         1.041     0.9605    0.9985     1.085
-gender.ymale                      1.068     0.9367    0.7799     1.461
-raceblack or african american     1.407     0.7109    0.1806    10.958
-racenot reported                  1.128     0.8864    0.1015    12.538
-racewhite                         1.554     0.6437    0.2157    11.187
-
-Concordance= 0.616  (se = 0.022 )
-Likelihood ratio test= 27.66  on 6 df,   p=1e-04
-Wald test            = 26.9  on 6 df,   p=2e-04
-Score (logrank) test = 27.36  on 6 df,   p=1e-04</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVjSEpwYm5Rb2MzUmhkSE1rWW1GelpXeHBibVZmYzNWdGJXRnllU2xjYm1CZ1lDSjkgLS0+XG5cbmBgYHJcbnByaW50KHN0YXRzJGJhc2VsaW5lX3N1bW1hcnkpXG5gYGBcblxuPCEtLSBybmItc291cmNlLWVuZCAtLT5cbiJ9 -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucHJpbnQoc3RhdHMkYmFzZWxpbmVfc3VtbWFyeSlcbmBgYCJ9 -->
-<pre class="r"><code>print(stats$baseline_summary)</code></pre>
-<!-- rnb-source-end -->
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiQ2FsbDpcbmNveHBoKGZvcm11bGEgPSBjb3ZhcmlhdGVzX2Zvcm11bGFfYmFzZWxpbmUsIGRhdGEgPSBleHBlcmltZW50X3ByZWRpY3Rpb25fb2JqZWN0X21ldGEpXG5cbiAgbj0gNTMyLCBudW1iZXIgb2YgZXZlbnRzPSAxNzQgXG5cbiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNvZWYgZXhwKGNvZWYpIHNlKGNvZWYpICAgICB6IFByKD58enwpICAgIFxuY2hyb25vbG9naWNhbCAgICAgICAgICAgICAgICAgMC4wMzE5NiAgIDEuMDMyNDcgIDAuMDA2NzEgNC43NjIgMS45MWUtMDYgKioqXG5nZW5kZXIueW1hbGUgICAgICAgICAgICAgICAgICAwLjA0NTE2ICAgMS4wNDYyMCAgMC4xNTk3MiAwLjI4MyAgICAwLjc3NyAgICBcbnJhY2VibGFjayBvciBhZnJpY2FuIGFtZXJpY2FuIDAuMjk3NzYgICAxLjM0Njg0ICAxLjA0NzExIDAuMjg0ICAgIDAuNzc2ICAgIFxucmFjZW5vdCByZXBvcnRlZCAgICAgICAgICAgICAgMC4xNTE4NiAgIDEuMTY0MDAgIDEuMjI4ODAgMC4xMjQgICAgMC45MDIgICAgXG5yYWNld2hpdGUgICAgICAgICAgICAgICAgICAgICAwLjQxNzg0ICAgMS41MTg2OCAgMS4wMDY5NCAwLjQxNSAgICAwLjY3OCAgICBcbi0tLVxuU2lnbmlmLiBjb2RlczogIDAg4oCYKioq4oCZIDAuMDAxIOKAmCoq4oCZIDAuMDEg4oCYKuKAmSAwLjA1IOKAmC7igJkgMC4xIOKAmCDigJkgMVxuXG4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICBleHAoY29lZikgZXhwKC1jb2VmKSBsb3dlciAuOTUgdXBwZXIgLjk1XG5jaHJvbm9sb2dpY2FsICAgICAgICAgICAgICAgICAgICAgMS4wMzIgICAgIDAuOTY4NSAgICAxLjAxOTAgICAgIDEuMDQ2XG5nZW5kZXIueW1hbGUgICAgICAgICAgICAgICAgICAgICAgMS4wNDYgICAgIDAuOTU1OCAgICAwLjc2NTAgICAgIDEuNDMxXG5yYWNlYmxhY2sgb3IgYWZyaWNhbiBhbWVyaWNhbiAgICAgMS4zNDcgICAgIDAuNzQyNSAgICAwLjE3MzAgICAgMTAuNDg2XG5yYWNlbm90IHJlcG9ydGVkICAgICAgICAgICAgICAgICAgMS4xNjQgICAgIDAuODU5MSAgICAwLjEwNDcgICAgMTIuOTM5XG5yYWNld2hpdGUgICAgICAgICAgICAgICAgICAgICAgICAgMS41MTkgICAgIDAuNjU4NSAgICAwLjIxMTAgICAgMTAuOTI5XG5cbkNvbmNvcmRhbmNlPSAwLjYwNyAgKHNlID0gMC4wMjMgKVxuTGlrZWxpaG9vZCByYXRpbyB0ZXN0PSAyNC4xMSAgb24gNSBkZiwgICBwPTJlLTA0XG5XYWxkIHRlc3QgICAgICAgICAgICA9IDIzLjU2ICBvbiA1IGRmLCAgIHA9M2UtMDRcblNjb3JlIChsb2dyYW5rKSB0ZXN0ID0gMjMuOTcgIG9uIDUgZGYsICAgcD0yZS0wNFxuIn0= -->
-<pre><code>Call:
-coxph(formula = covariates_formula_baseline, data = experiment_prediction_object_meta)
-
-  n= 532, number of events= 174 
-
-                                 coef exp(coef) se(coef)     z Pr(&gt;|z|)    
-chronological                 0.03196   1.03247  0.00671 4.762 1.91e-06 ***
-gender.ymale                  0.04516   1.04620  0.15972 0.283    0.777    
-raceblack or african american 0.29776   1.34684  1.04711 0.284    0.776    
-racenot reported              0.15186   1.16400  1.22880 0.124    0.902    
-racewhite                     0.41784   1.51868  1.00694 0.415    0.678    
----
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-
-                              exp(coef) exp(-coef) lower .95 upper .95
-chronological                     1.032     0.9685    1.0190     1.046
-gender.ymale                      1.046     0.9558    0.7650     1.431
-raceblack or african american     1.347     0.7425    0.1730    10.486
-racenot reported                  1.164     0.8591    0.1047    12.939
-racewhite                         1.519     0.6585    0.2110    10.929
-
-Concordance= 0.607  (se = 0.023 )
-Likelihood ratio test= 24.11  on 5 df,   p=2e-04
-Wald test            = 23.56  on 5 df,   p=3e-04
-Score (logrank) test = 23.97  on 5 df,   p=2e-04</code></pre>
-<!-- rnb-output-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG48IS0tIHJuYi1zb3VyY2UtYmVnaW4gZXlKa1lYUmhJam9pWUdCZ2NseHVJeUJqYjJWbVptbGphV1Z1ZEVaeVlXMWxJRHd0SUdkbGRFTnZaV1ptYVdOcFpXNTBSRVlvYlc5a1pXeFBkWFJ3ZFhRcFhHNWpiMlZtWm1samFXVnVkRVp5WVcxbElEd3RJRzF2WkdWc1QzVjBjSFYwSkUxdlpHVnNRblZwYkdScGJtY2tZMjl0WW1sdVpXUlhaV2xuYUhSelhHNXpZWFpsVWtSVEtHTnZaV1ptYVdOcFpXNTBSbkpoYldVc0lHWnBiR1VnUFNCY0lpOXlaWE4wY21samRHVmtMM0J5YjJwbFkzUnVZaTloWjJWa2FYTmxZWE5sTDNCeWIycGxZM1J6TDNCaGJtTmhibU5sY2w5aFoybHVaMTlqYkc5amEzTXZjbVZ6ZFd4MGN5OURiMlZtWm1samFXVnVkRVp5WVcxbGN5OUxTVkpETDFKT1FYTmxjVXRKVWtOZlkyOWxaaTV5WkhOY0lpbGNibk4xYlcxaGNubFVZV0pzWlNBOExTQm5aWFJUZFcxdFlYSjVWR0ZpYkdVb1kyRnVZMlZ5Vkhsd1pTd2diR0Y1WlhKekxDQnRiMlJsYkU5MWRIQjFkQ3dnYzNSaGRITXBYRzVjYm05MWRFWnBiR1VnUEMwZ1hDSXZjbVZ6ZEhKcFkzUmxaQzl3Y205cVpXTjBibUl2WVdkbFpHbHpaV0Z6WlM5d2NtOXFaV04wY3k5d1lXNWpZVzVqWlhKZllXZHBibWRmWTJ4dlkydHpMM0psYzNWc2RITXZRMjlsWm1acFkybGxiblJHY21GdFpYTXZTMGxTUXk5U1RrRnpaWEZMU1ZKRFgzTjFiVzFoY25rdWNtUnpYQ0pjYm5keWFYUmxMbU56ZGloemRXMXRZWEo1VkdGaWJHVXNJRzkxZEVacGJHVXNJSEp2ZHk1dVlXMWxjeUE5SUVaQlRGTkZLVnh1WUdCZ0luMD0gLS0+XG5cbmBgYHJcbiMgY29lZmZpY2llbnRGcmFtZSA8LSBnZXRDb2VmZmljaWVudERGKG1vZGVsT3V0cHV0KVxuY29lZmZpY2llbnRGcmFtZSA8LSBtb2RlbE91dHB1dCRNb2RlbEJ1aWxkaW5nJGNvbWJpbmVkV2VpZ2h0c1xuc2F2ZVJEUyhjb2VmZmljaWVudEZyYW1lLCBmaWxlID0gXCIvcmVzdHJpY3RlZC9wcm9qZWN0bmIvYWdlZGlzZWFzZS9wcm9qZWN0cy9wYW5jYW5jZXJfYWdpbmdfY2xvY2tzL3Jlc3VsdHMvQ29lZmZpY2llbnRGcmFtZXMvS0lSQy9STkFzZXFLSVJDX2NvZWYucmRzXCIpXG5zdW1tYXJ5VGFibGUgPC0gZ2V0U3VtbWFyeVRhYmxlKGNhbmNlclR5cGUsIGxheWVycywgbW9kZWxPdXRwdXQsIHN0YXRzKVxuXG5vdXRGaWxlIDwtIFwiL3Jlc3RyaWN0ZWQvcHJvamVjdG5iL2FnZWRpc2Vhc2UvcHJvamVjdHMvcGFuY2FuY2VyX2FnaW5nX2Nsb2Nrcy9yZXN1bHRzL0NvZWZmaWNpZW50RnJhbWVzL0tJUkMvUk5Bc2VxS0lSQ19zdW1tYXJ5LnJkc1wiXG53cml0ZS5jc3Yoc3VtbWFyeVRhYmxlLCBvdXRGaWxlLCByb3cubmFtZXMgPSBGQUxTRSlcbmBgYFxuXG48IS0tIHJuYi1zb3VyY2UtZW5kIC0tPlxuIn0= -->
-<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuIyBjb2VmZmljaWVudEZyYW1lIDwtIGdldENvZWZmaWNpZW50REYobW9kZWxPdXRwdXQpXG5jb2VmZmljaWVudEZyYW1lIDwtIG1vZGVsT3V0cHV0JE1vZGVsQnVpbGRpbmckY29tYmluZWRXZWlnaHRzXG5zYXZlUkRTKGNvZWZmaWNpZW50RnJhbWUsIGZpbGUgPSBcIi9yZXN0cmljdGVkL3Byb2plY3RuYi9hZ2VkaXNlYXNlL3Byb2plY3RzL3BhbmNhbmNlcl9hZ2luZ19jbG9ja3MvcmVzdWx0cy9Db2VmZmljaWVudEZyYW1lcy9LSVJDL1JOQXNlcUtJUkNfY29lZi5yZHNcIilcbnN1bW1hcnlUYWJsZSA8LSBnZXRTdW1tYXJ5VGFibGUoY2FuY2VyVHlwZSwgbGF5ZXJzLCBtb2RlbE91dHB1dCwgc3RhdHMpXG5cbm91dEZpbGUgPC0gXCIvcmVzdHJpY3RlZC9wcm9qZWN0bmIvYWdlZGlzZWFzZS9wcm9qZWN0cy9wYW5jYW5jZXJfYWdpbmdfY2xvY2tzL3Jlc3VsdHMvQ29lZmZpY2llbnRGcmFtZXMvS0lSQy9STkFzZXFLSVJDX3N1bW1hcnkucmRzXCJcbndyaXRlLmNzdihzdW1tYXJ5VGFibGUsIG91dEZpbGUsIHJvdy5uYW1lcyA9IEZBTFNFKVxuYGBgIn0= -->
-<pre class="r"><code># coefficientFrame &lt;- getCoefficientDF(modelOutput)
-coefficientFrame &lt;- modelOutput$ModelBuilding$combinedWeights
-saveRDS(coefficientFrame, file = &quot;/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/CoefficientFrames/KIRC/RNAseqKIRC_coef.rds&quot;)
-summaryTable &lt;- getSummaryTable(cancerType, layers, modelOutput, stats)
-
-outFile &lt;- &quot;/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/CoefficientFrames/KIRC/RNAseqKIRC_summary.rds&quot;
-write.csv(summaryTable, outFile, row.names = FALSE)</code></pre>
-<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiRXJyb3IgaW4gZGltbmFtZXMoeCkgPC0gZG4gOiBcbiAgbGVuZ3RoIG9mICdkaW1uYW1lcycgWzJdIG5vdCBlcXVhbCB0byBhcnJheSBleHRlbnRcbiJ9 -->
+<pre><code>Error in dimnames(x) &lt;- dn : 
+  length of &#39;dimnames&#39; [2] not equal to array extent</code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
 <!-- rnb-text-begin -->
@@ -1957,7 +1851,7 @@ summary(stats$interaction_model)</code></pre>
 <!-- rnb-chunk-end -->
 </div>
 
-<div id="rmd-source-code">LS0tCnRpdGxlOiAiUGFuRXZlcnl0aGluZ1N1cnZpdmFsQ2xvY2siCm91dHB1dDogaHRtbF9ub3RlYm9vawotLS0KCmBgYHtyIG1lc3NhZ2U9RkFMU0UsIHdhcm5pbmc9RkFMU0UsIGluY2x1ZGU9RkFMU0V9CmxpYnJhcnkoZTEwNzEpIApsaWJyYXJ5KFN1bW1hcml6ZWRFeHBlcmltZW50KQpsaWJyYXJ5KEJpb2Jhc2UpCmxpYnJhcnkoZ2dwbG90MikKbGlicmFyeShjYXJldCkKbGlicmFyeShkcGx5cikKbGlicmFyeShzdXJ2aXZhbCkKbGlicmFyeShyZWFjdGFibGUpCmxpYnJhcnkoc3Vydm1pbmVyKQpsaWJyYXJ5KHZpcCkKbGlicmFyeSh0aWR5dmVyc2UpCgprbml0cjo6a25pdCgiTW9kZWxCdWlsZGluZy5SbWQiLCBvdXRwdXQgPSB0ZW1wZmlsZSgpKQprbml0cjo6a25pdCgiQW5hbHlzaXMuUm1kIiwgb3V0cHV0ID0gdGVtcGZpbGUoKSkKc291cmNlKCJQYW5DbG9ja0hlbHBlckZ1bmN0aW9ucy5SIikKYGBgCgojIEdldCB0aGUgb3V0cHV0IG9mIHRoZSBNTCBtb2RlbApgYGB7cn0KIyBleGlzdGluZ0V4cGVyaW1lbnRMaXN0IDwtIGdldE5vcm1hbFNpemUoIktJUkMiKQpleGlzdGluZ0V4cGVyaW1lbnRMaXN0IDwtIE5VTEwKIyBleHBSTkFzZXEgPC0gZ2V0RXhwZXJpbWVudEJ5TGF5ZXJBbmRDYW5jZXIoIlJOQXNlcSIsICJCUkNBIikKIyByZWR1Y2VkUk5Bc2VxIDwtIHJlZHVjZUV4cGVyaW1lbnQoZXhwUk5Bc2VxJGxheWVyLCBleGlzdGluZ0V4cGVyaW1lbnRMaXN0JFJOQXNlcV9Ob3JtYWwpCgojIEN1cnJlbnQgdGVzdApjYW5jZXJUeXBlIDwtICJMR0ciCmxheWVycyA8LSBjKCJSTkFzZXEiKQptb2RlbE91dHB1dCA8LSBzdGFuZGFyZGl6ZWRNb2RlbEJ1aWxkaW5nKGxheWVycywgY2FuY2VyTmFtZT1jYW5jZXJUeXBlLCBtZXRob2ROYW1lcz1jKCJyaWRnZSIpLCBzcGxpdFNpemU9MSwgc2VlZD00MywgZXhpc3RpbmdFeHBlcmltZW50c0xpc3Q9ZXhpc3RpbmdFeHBlcmltZW50TGlzdCwgaXRlcmF0aW9uQ291bnQ9MSwgYXBwbHlCaWFzQ29ycmVjdGlvbj1GQUxTRSwgY29tYmluaW5nTm9ybWFsPUZBTFNFKQpleGlzdGluZ0V4cGVyaW1lbnRMaXN0IDwtIG1vZGVsT3V0cHV0JGV4cGVyaW1lbnRMaXN0CmBgYAoKIyBTdXJ2aXZhbCBhbmFseXNpcyBnaXZlbiBtb2RlbCBqdXN0IHJhbgpgYGB7cn0Kc3RhdHMgPC0gZ2V0U3Vydml2YWxTdGF0cyhtb2RlbE91dHB1dCRleHBlcmltZW50TGlzdFtbMV1dLCBtb2RlbE91dHB1dCRNb2RlbEJ1aWxkaW5nJHByZWRpY3RlZCwgYXBwbHlCaWFzQ29ycmVjdGlvbj1GQUxTRSwgY292YXJpYXRlc190b19pbmNsdWRlPWMoInJhY2UiKSkKIyBzdGF0cyA8LSBnZXRTdXJ2aXZhbFN0YXRzKG1vZGVsT3V0cHV0JGV4cGVyaW1lbnRMaXN0W1sxXV0sIG1vZGVsT3V0cHV0JE1vZGVsQnVpbGRpbmckcHJlZGljdGVkLCBhcHBseUJpYXNDb3JyZWN0aW9uPVRSVUUpCgpwcmludChzdGF0cyRpbnRlcmFjdGlvbl9zdW1tYXJ5KQpwcmludChzdGF0cyRub25faW50ZXJhY3Rpb25fc3VtbWFyeSkKcHJpbnQoc3RhdHMkYmFzZWxpbmVfc3VtbWFyeSkKCmNvZWZmaWNpZW50RnJhbWUgPC0gZ2V0Q29lZmZpY2llbnRERihtb2RlbE91dHB1dCkKIyBjb2VmZmljaWVudEZyYW1lIDwtIG1vZGVsT3V0cHV0JE1vZGVsQnVpbGRpbmckY29tYmluZWRXZWlnaHRzCmZpbGVQYXRoIDwtIHBhc3RlKCIvcmVzdHJpY3RlZC9wcm9qZWN0bmIvYWdlZGlzZWFzZS9wcm9qZWN0cy9wYW5jYW5jZXJfYWdpbmdfY2xvY2tzL3Jlc3VsdHMvQ29lZmZpY2llbnRGcmFtZXMvIiwgY2FuY2VyVHlwZSwgIi9STkFzZXEiLCBjYW5jZXJUeXBlLCBzZXA9IiIpCnNhdmVSRFMoY29lZmZpY2llbnRGcmFtZSwgZmlsZSA9IHBhc3RlKGZpbGVQYXRoLCAiX2NvZWYucmRzIiwgc2VwPSIiKSkKCnN1bW1hcnlUYWJsZSA8LSBnZXRTdW1tYXJ5VGFibGUoY2FuY2VyVHlwZSwgbGF5ZXJzLCBtb2RlbE91dHB1dCwgc3RhdHMpCmFkZGl0aW9uYWxEZXNjcmlwdG9yIDwtICIiCndyaXRlLmNzdihzdW1tYXJ5VGFibGUsIHBhc3RlKGZpbGVQYXRoLCAiX3N1bW1hcnkiLCBhZGRpdGlvbmFsRGVzY3JpcHRvciwgIi5yZHMiLCBzZXA9IiIpLCByb3cubmFtZXMgPSBGQUxTRSkKYGBgCgojIFN1cnZpdmFsIGFuYWx5c2lzIGdpdmVuIHByZXZpb3VzIGRhdGEKYGBge3J9CnJlc3VsdHMgPC0gcmVhZC5jc3YoIi9yZXN0cmljdGVkL3Byb2plY3RuYi9hZ2VkaXNlYXNlL3Byb2plY3RzL3BhbmNhbmNlcl9hZ2luZ19jbG9ja3MvcmVzdWx0cy9FbGFzdGljTmV0X0hOU0NfSFBWX05lZ2F0aXZlL0VsYXN0aWNOZXRSTkFzZXFDb21wbGV0ZVNldC5jc3YiKQpleHBlcmltZW50IDwtIGdldEV4cGVyaW1lbnRCeUxheWVyQW5kQ2FuY2VyKCJtaVJOQSIsICJITlNDIikKc3RhdHMgPC0gZ2V0U3Vydml2YWxTdGF0cyhleHBlcmltZW50W1sxXV0sIHJlc3VsdHMpCnN1bW1hcnkoc3RhdHMkaW50ZXJhY3Rpb25fbW9kZWwpCmBgYAo=</div>
+<div id="rmd-source-code">LS0tCnRpdGxlOiAiUGFuRXZlcnl0aGluZ1N1cnZpdmFsQ2xvY2siCm91dHB1dDogaHRtbF9ub3RlYm9vawotLS0KCmBgYHtyIG1lc3NhZ2U9RkFMU0UsIHdhcm5pbmc9RkFMU0UsIGluY2x1ZGU9RkFMU0V9CmxpYnJhcnkoZTEwNzEpIApsaWJyYXJ5KFN1bW1hcml6ZWRFeHBlcmltZW50KQpsaWJyYXJ5KEJpb2Jhc2UpCmxpYnJhcnkoZ2dwbG90MikKbGlicmFyeShjYXJldCkKbGlicmFyeShkcGx5cikKbGlicmFyeShzdXJ2aXZhbCkKbGlicmFyeShyZWFjdGFibGUpCmxpYnJhcnkoc3Vydm1pbmVyKQpsaWJyYXJ5KHZpcCkKbGlicmFyeSh0aWR5dmVyc2UpCgprbml0cjo6a25pdCgiTW9kZWxCdWlsZGluZy5SbWQiLCBvdXRwdXQgPSB0ZW1wZmlsZSgpKQprbml0cjo6a25pdCgiQW5hbHlzaXMuUm1kIiwgb3V0cHV0ID0gdGVtcGZpbGUoKSkKc291cmNlKCJQYW5DbG9ja0hlbHBlckZ1bmN0aW9ucy5SIikKYGBgCgojIEdldCB0aGUgb3V0cHV0IG9mIHRoZSBNTCBtb2RlbApgYGB7cn0KIyBleGlzdGluZ0V4cGVyaW1lbnRMaXN0IDwtIGdldE5vcm1hbFNpemUoIktJUkMiKQpleGlzdGluZ0V4cGVyaW1lbnRMaXN0IDwtIE5VTEwKIyBleHBSTkFzZXEgPC0gZ2V0RXhwZXJpbWVudEJ5TGF5ZXJBbmRDYW5jZXIoIlJOQXNlcSIsICJCUkNBIikKIyByZWR1Y2VkUk5Bc2VxIDwtIHJlZHVjZUV4cGVyaW1lbnQoZXhwUk5Bc2VxJGxheWVyLCBleGlzdGluZ0V4cGVyaW1lbnRMaXN0JFJOQXNlcV9Ob3JtYWwpCgojIEN1cnJlbnQgdGVzdApjYW5jZXJUeXBlIDwtICJMR0ciCmxheWVycyA8LSBjKCJSTkFzZXEiKQptb2RlbE91dHB1dCA8LSBzdGFuZGFyZGl6ZWRNb2RlbEJ1aWxkaW5nKGxheWVycywgY2FuY2VyTmFtZT1jYW5jZXJUeXBlLCBtZXRob2ROYW1lcz1jKCJyaWRnZSIpLCBzcGxpdFNpemU9MSwgc2VlZD00MywgZXhpc3RpbmdFeHBlcmltZW50c0xpc3Q9ZXhpc3RpbmdFeHBlcmltZW50TGlzdCwgaXRlcmF0aW9uQ291bnQ9MSwgYXBwbHlCaWFzQ29ycmVjdGlvbj1GQUxTRSwgY29tYmluaW5nTm9ybWFsPUZBTFNFKQpleGlzdGluZ0V4cGVyaW1lbnRMaXN0IDwtIG1vZGVsT3V0cHV0JGV4cGVyaW1lbnRMaXN0CmBgYAoKIyBTdXJ2aXZhbCBhbmFseXNpcyBnaXZlbiBtb2RlbCBqdXN0IHJhbgpgYGB7cn0Kc3RhdHMgPC0gZ2V0U3Vydml2YWxTdGF0cyhtb2RlbE91dHB1dCRleHBlcmltZW50TGlzdFtbMV1dLCBtb2RlbE91dHB1dCRNb2RlbEJ1aWxkaW5nJHByZWRpY3RlZCwgYXBwbHlCaWFzQ29ycmVjdGlvbj1GQUxTRSwgY292YXJpYXRlc190b19pbmNsdWRlPWMoInJhY2UiKSkKIyBzdGF0cyA8LSBnZXRTdXJ2aXZhbFN0YXRzKG1vZGVsT3V0cHV0JGV4cGVyaW1lbnRMaXN0W1sxXV0sIG1vZGVsT3V0cHV0JE1vZGVsQnVpbGRpbmckcHJlZGljdGVkLCBhcHBseUJpYXNDb3JyZWN0aW9uPVRSVUUpCgpwcmludChzdGF0cyRpbnRlcmFjdGlvbl9zdW1tYXJ5KQpwcmludChzdGF0cyRub25faW50ZXJhY3Rpb25fc3VtbWFyeSkKcHJpbnQoc3RhdHMkYmFzZWxpbmVfc3VtbWFyeSkKCmNvZWZmaWNpZW50RnJhbWUgPC0gZ2V0Q29lZmZpY2llbnRERihtb2RlbE91dHB1dCkKIyBjb2VmZmljaWVudEZyYW1lIDwtIG1vZGVsT3V0cHV0JE1vZGVsQnVpbGRpbmckY29tYmluZWRXZWlnaHRzCmZpbGVQYXRoIDwtIHBhc3RlKCIvcmVzdHJpY3RlZC9wcm9qZWN0bmIvYWdlZGlzZWFzZS9wcm9qZWN0cy9wYW5jYW5jZXJfYWdpbmdfY2xvY2tzL3Jlc3VsdHMvQ29lZmZpY2llbnRGcmFtZXMvIiwgY2FuY2VyVHlwZSwgIi9STkFzZXEiLCBjYW5jZXJUeXBlLCBzZXA9IiIpCnNhdmVSRFMoY29lZmZpY2llbnRGcmFtZSwgZmlsZSA9IHBhc3RlKGZpbGVQYXRoLCAiX2NvZWYucmRzIiwgc2VwPSIiKSkKc3RhdHNUYWJsZSA8LSBnZXRGb3JtYXR0ZWRTdGF0c1RhYmxlKHN0YXRzKQpzdW1tYXJ5VGFibGUgPC0gZ2V0U3VtbWFyeVRhYmxlKGNhbmNlclR5cGUsIGxheWVycywgbW9kZWxPdXRwdXQsIHN0YXRzKQphZGRpdGlvbmFsRGVzY3JpcHRvciA8LSAiIgp3cml0ZS5jc3Yoc3VtbWFyeVRhYmxlLCBwYXN0ZShmaWxlUGF0aCwgIl9zdW1tYXJ5IiwgYWRkaXRpb25hbERlc2NyaXB0b3IsICIuY3N2Iiwgc2VwPSIiKSwgcm93Lm5hbWVzID0gRkFMU0UpCndyaXRlLmNzdihzdGF0c1RhYmxlLCBwYXN0ZShmaWxlUGF0aCwgIl9zdGF0cyIsIGFkZGl0aW9uYWxEZXNjcmlwdG9yLCAiLmNzdiIsIHNlcD0iIiksIHJvdy5uYW1lcyA9IEZBTFNFKQpgYGAKCiMgU3Vydml2YWwgYW5hbHlzaXMgZ2l2ZW4gcHJldmlvdXMgZGF0YQpgYGB7cn0KcmVzdWx0cyA8LSByZWFkLmNzdigiL3Jlc3RyaWN0ZWQvcHJvamVjdG5iL2FnZWRpc2Vhc2UvcHJvamVjdHMvcGFuY2FuY2VyX2FnaW5nX2Nsb2Nrcy9yZXN1bHRzL0VsYXN0aWNOZXRfSE5TQ19IUFZfTmVnYXRpdmUvRWxhc3RpY05ldFJOQXNlcUNvbXBsZXRlU2V0LmNzdiIpCmV4cGVyaW1lbnQgPC0gZ2V0RXhwZXJpbWVudEJ5TGF5ZXJBbmRDYW5jZXIoIm1pUk5BIiwgIkhOU0MiKQpzdGF0cyA8LSBnZXRTdXJ2aXZhbFN0YXRzKGV4cGVyaW1lbnRbWzFdXSwgcmVzdWx0cykKc3VtbWFyeShzdGF0cyRpbnRlcmFjdGlvbl9tb2RlbCkKYGBgCg==</div>
 
 
 

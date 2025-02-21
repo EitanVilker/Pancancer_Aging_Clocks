@@ -48,10 +48,11 @@ coefficientFrame <- getCoefficientDF(modelOutput)
 # coefficientFrame <- modelOutput$ModelBuilding$combinedWeights
 filePath <- paste("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/CoefficientFrames/", cancerType, "/RNAseq", cancerType, sep="")
 saveRDS(coefficientFrame, file = paste(filePath, "_coef.rds", sep=""))
-
+statsTable <- getFormattedStatsTable(stats)
 summaryTable <- getSummaryTable(cancerType, layers, modelOutput, stats)
 additionalDescriptor <- ""
-write.csv(summaryTable, paste(filePath, "_summary", additionalDescriptor, ".rds", sep=""), row.names = FALSE)
+write.csv(summaryTable, paste(filePath, "_summary", additionalDescriptor, ".csv", sep=""), row.names = FALSE)
+write.csv(statsTable, paste(filePath, "_stats", additionalDescriptor, ".csv", sep=""), row.names = FALSE)
 ```
 
 # Survival analysis given previous data
