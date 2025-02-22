@@ -17,13 +17,12 @@ getSurvivalStats <- function(fullExperiment, predictionObject, applyBiasCorrecti
 
 ### Get coefficient df
 ```{r}
-getCoefficientDF <- function(modelOutput){
-  coef_list <- list()
+getCoefficientDF <- function(finalModel){
 
   # Extract lambda values and coefficients
-  lambda_values <- modelOutput$ModelBuilding$model$finalModel$lambda
-  closest_lambda_index <- which.min(abs(lambda_values - modelOutput$ModelBuilding$model$finalModel$lambdaOpt))
-  beta_matrix <- modelOutput$ModelBuilding$model$finalModel$beta
+  lambda_values <- finalModel$lambda
+  closest_lambda_index <- which.min(abs(lambda_values - finalModel$lambdaOpt))
+  beta_matrix <- finalModel$beta
   coef_names <- rownames(beta_matrix)
   beta_column <- beta_matrix[, closest_lambda_index]
 
@@ -36,6 +35,28 @@ getCoefficientDF <- function(modelOutput){
 }
 ```
 
+### Map RNAseq gene IDs to names
+```{r}
+getGeneMap <- function(modelOutput){
+  features <- modelOutput$ModelBuilding$model$coefnames
+  geneIDs <- c()
+  geneNames <- c()
+  RNAseqExperiment <- modelOutput$experimentList$RNAseq
+  for (name in features){
+    if (substr(name, 1, 4) == "ENSG"){
+      geneIDs <- c(geneIDs, name)
+      geneIndex <- which(rowRanges(RNAseqExperiment)$gene_id %in% name)
+      geneName <- rowRanges(RNAseqExperiment)$gene_name[geneIndex]
+      geneNames <- c(geneNames, geneName)
+    }
+  }
+  
+  geneMap <- data.frame(Ensembl_ID=geneIDs, Gene_Name=geneNames)
+  return(geneMap)
+}
+
+```
+
 ### Find coefficients of individual features used in final model
 ```{r}
 ## For RNAseq data
@@ -46,20 +67,20 @@ getCoefficientDF <- function(modelOutput){
 # To find the gene name: featureName <- rowRanges(experimentsList[[1]])$gene_name[fullIndex]
 # RNASeqElNet <- read.csv("./ModelBuildingOutput/RNAseqElNet.csv")
 
-organizeOutputFeatures <- function(modelPredictionsPair, RNAExperiment=NULL){
+organizeOutputFeatures <- function(modelOutput, RNAExperiment=NULL){
 
-  coefficients <- coef(modelPredictionsPair$model$finalModel, modelPredictionsPair$model$bestTune$lambda)
-  # coefficients2 <- coef(modelPredictionsPair$model$finalModel, unlist(modelPredictionsPair$model$bestTune))
+  coefficients <- coef(modelOutput$model$finalModel, modelOutput$model$bestTune$lambda)
+  # coefficients2 <- coef(modelOutput$model$finalModel, unlist(modelOutput$model$bestTune))
   featureFrame <- data.frame(features=coefficients@Dimnames[[1]][coefficients@i + 1], coefficients=coefficients@x)
   featureNames <- c()
   origin <- c()
   for (name in featureFrame$features){
-    featureIdx <- which(colnames(modelPredictionsPair$predicted) %in% name)
+    featureIdx <- which(colnames(modelOutput$predicted) %in% name)
     if (!is.null(RNAExperiment) && substr(name, 1, 4) == "ENSG"){
       origin <- c(origin, "RNAseq")
       geneIndex <- which(rowRanges(experimentsList[[1]])$gene_id %in% name)
       geneName <- rowRanges(RNAExperiment)$gene_name[geneIndex]
-      featureNames <- append(featureNames, rowRanges(experimentsList[[1]])$gene_name[geneIndex])
+      featureNames <- append(featureNames, rowRanges(modelOutput$experimentsList$RNAseq)$gene_name[geneIndex])
     }
     else{
       featureNames <- append(featureNames, name)
