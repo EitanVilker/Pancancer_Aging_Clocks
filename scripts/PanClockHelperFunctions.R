@@ -67,7 +67,9 @@ getExperimentByLayerAndCancer <- function(layerName, cancerName){
   else { revisedLayerName = layerName }
   paths <- getPathsByLayerAndCancer()
   cancerPaths <- getLayerPathsForSpecificCancer(paths, cancerName)
-  experiment <- getExperimentsList(list(layer=cancerPaths[[revisedLayerName]]))
+  layerPathsList <- list()
+  layerPathsList[[layerName]] <- cancerPaths[[revisedLayerName]]
+  experiment <- getExperimentsList(layerPathsList)
   return(experiment)
 }
 
@@ -136,8 +138,17 @@ graphAgeModel <- function(tests, title, caption, biasCorrection=FALSE) {
   print(g1)
 }
 
-reduceExperiment <- function(exp1, exp2){
+reduceExperimentBySubjects <- function(exp1, exp2){
   return(exp1[, exp1$submitter_id %in% exp2$submitter_id])
+}
+
+reduceExperimentByFeatures <- function(exp1, exp2, assayName1, assayName2=NULL){
+  if (is.null(assayName2)) { assayName2 <- assayName1 }
+  assay1 <- getTransposedFrame(SummarizedExperiment::assay(exp1, assayName1))
+  assay2 <- getTransposedFrame(SummarizedExperiment::assay(exp2, assayName2))
+  assay1Filtered <- assay1[, names(assay1) %in% names(assay2)]
+  commonFeatures <- names(assay1)[names(assay1) %in% names(assay2)]
+  return(exp1[commonFeatures, ])
 }
 
 getFold <- function(data, fold){
@@ -149,9 +160,17 @@ getFold <- function(data, fold){
 getNormalSize <- function(cancerName){
   normExp <- getExperimentByLayerAndCancer("RNAseq_Normal", cancerName)
   tumorExp <- getExperimentByLayerAndCancer("RNAseq", cancerName)
-  experimentsList <- list(RNAseq = reduceExperiment(tumorExp[[1]], normExp[[1]]))
-  needsImputation <- list(RNAseq = TRUE)
-  assayNames <- list(RNAseq = "DESeq2_log")
-  imputedExperiments <- imputeMissingValues(experimentsList, assayNames, needsImputation)
+  experimentsList <- list(RNAseq = reduceExperimentBySubjects(tumorExp[[1]], normExp[[1]]))
+  needsImputation <- list(RNAseq = TRUE, RNAseq_Normal = FALSE)
+  assayNames <- list(RNAseq = "DESeq2_log", RNAseq_Normal = "DESeq2_log")
+  imputedExperiments <- imputeMissingValues(experimentsList, assayNames, needsImputation, cancerName)
   return(imputedExperiments)
+}
+
+getTransposedFrame <- function(matrix){
+  return(as.data.frame(t(matrix)))
+}
+
+getCancerLayersPrefix <- function(cancerType, layers){
+  return(paste0(cancerType, "_", paste(layers, collapse = "_")))
 }

@@ -26,7 +26,7 @@ source("run_analysis_pipeline.R")
 ```{r}
 # KNN imputation
 # Uses five closest neighbors
-imputeMissingValues <- function(experimentsList, assayNames, needsImputation, cancerName, imputationDir="dataset/imputations") {
+imputeMissingValues <- function(experimentsList, assayNames, needsImputation, cancerName, imputationDir="/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/dataset/imputations") {
   print("Checking for existing imputed datasets...")
 
   for (i in seq_along(experimentsList)) {
@@ -161,7 +161,7 @@ getCleanedAssayData <- function(experimentsList, assayNames, useImputed, simplif
     # Return the assay data for the experiment, using the imputed values if available
     if (useImputed[[layerName]]){ assayType <- paste(assayNames[[layerName]],"-imputed",sep="")}
     else { assayType <- assayNames[[layerName]]}
-    assayData <- as.data.frame(t(assay(experiment, assayType)))
+    assayData <- getTransposedFrame(assay(experiment, assayType))
     assayData <- cbind(assayData, submitter_id=row.names(assayData))
     assayList[[layerName]] <- assayData
   }
@@ -241,4 +241,40 @@ encode_covariates <- function(covariates, assayData, featuresToEncode=NULL, enco
   assayDataWithCovariates$Row.names <- NULL
   return(assayDataWithCovariates)
 }
+```
+
+# Adjust tumor assay by sd and mean of each feature in its non-tumor assay. Currently only set up for one layer at a time
+```{r}
+scaleAssayByNormal <- function(experimentsList, assayNames, needsImputation, cancerName){
+  
+  print("Scaling assay...")
+  
+  # Initialize parameters and nor
+  tumorExperiment <- experimentsList[[1]]
+  assayName <- assayNames[[1]]
+  layerName <- names(experimentsList)[1]
+  if (needsImputation[[1]]){ tumorAssayName <- paste(assayName, "-imputed", sep="") }
+
+  # Set normal experiment
+  normalLayerName <- paste(layerName, "_Normal", sep="")
+  normalExperiment <- getExperimentByLayerAndCancer(normalLayerName, cancerName)[[normalLayerName]]
+  
+  # Set experiments to have same features
+  tumorExperiment <- reduceExperimentByFeatures(tumorExperiment, normalExperiment, tumorAssayName, assayName2=assayName)
+  normalExperiment <- reduceExperimentByFeatures(normalExperiment, tumorExperiment, assayName, assayName2=tumorAssayName)
+  
+  # Scale tumor assay
+  normAssay <- getTransposedFrame(assay(normalExperiment, assayName))
+  tumorAssay <- getTransposedFrame(assay(tumorExperiment, tumorAssayName))
+  means <- colMeans(normAssay)
+  sds <- sapply(normAssay, sd)
+  tumorAssay <- scale(tumorAssay, center = means, scale = sds)
+
+  # Set assay in tumor experiment
+  SummarizedExperiment::assay(tumorExperiment, tumorAssayName) <- getTransposedFrame(tumorAssay)
+  experimentsList[[1]] <- tumorExperiment
+  return(experimentsList)
+}
+
+
 ```

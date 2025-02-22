@@ -25,11 +25,6 @@ if (!requireNamespace("data.table", quietly = TRUE)) {
   install.packages("data.table")
 }
 
-if (!requireNamespace("data.table", quietly = TRUE)) {
-  install.packages("data.table")
-}
-
-
 # Load libraries
 library(data.table)
 library(clusterProfiler)
@@ -37,6 +32,7 @@ library(org.Hs.eg.db)
 library(ReactomePA)
 library(fgsea)
 library(msigdbr)
+knitr::knit("../Analysis.Rmd", output = tempfile())
 ```
 
 ## Define function to process GTF annotations file
@@ -83,16 +79,19 @@ process_gtf_annotations <- function(gtf_file, annotation_output) {
 ## Define function for cancer-type specific RNA-seq models Gene_name vs weights csv
 
 ```{r}
-process_gene_weights <- function(cancer_type, annotation_file) {
+process_gene_weights <- function(cancer_type, weights_file=NULL, modelOutput=NULL, annotation_file="/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/features/gene_annotation.csv", output_dir="/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/features") {
+  
   print(paste0("🔍 Processing gene weights for ", cancer_type))
 
   # Define dynamic file paths based on cancer type
-  weights_file <- paste0("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/", cancer_type, "_elastic_net_omics_combinations_model_weights.rds")
-  output_dir <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/features"
+  if (is.null(weights_file)){
+    weights_file <- paste0("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/", cancer_type, "_elastic_net_omics_combinations_model_weights.rds")
+  }
   output_path <- file.path(output_dir, paste0(cancer_type, "_RNAseq_weights_named.csv"))
 
   # Load the gene annotation file
-  gene_map <- fread(annotation_file)
+  if (is.null(modelOutput)){ gene_map <- fread(annotation_file)}
+  else{ geneMap <- getGeneMap(modelOutput) }
 
   # Check if weights file exists
   if (!file.exists(weights_file)) {
@@ -145,10 +144,11 @@ process_gene_weights <- function(cancer_type, annotation_file) {
 ## Define Pathway Enrichment Analysis Function
 
 ```{r}
-run_pathway_analysis <- function(cancer_type) {
+run_pathway_analysis <- function(cancer_type, input_file=NULL, output_dir=NULL) {
   print(paste0("🔍 Running pathway enrichment for ", cancer_type))
-  
-  input_file <- paste0("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/features/", cancer_type, "_RNAseq_weights_named.csv")
+  if (is.null(input_file)){
+    input_file <- paste0("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/features/", cancer_type, "_RNAseq_weights_named.csv")
+  }
   
   if (!file.exists(input_file)) {
     print(paste0("❌ Error: File not found for ", cancer_type))
@@ -171,7 +171,9 @@ run_pathway_analysis <- function(cancer_type) {
   cat("✅ Successfully mapped", nrow(genes_mapped), "out of", nrow(genes), "genes for", cancer_type, "\n")
 
   # Define Output Directory
-  output_dir <- paste0("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/pathways/", cancer_type)
+  if (is.null(output_dir)){
+    output_dir <- paste0("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/pathways/", cancer_type)
+  }
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
   # Function to Save ORA Results
