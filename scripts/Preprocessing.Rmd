@@ -275,6 +275,4 @@ scaleAssayByNormal <- function(experimentsList, assayNames, needsImputation, can
   experimentsList[[1]] <- tumorExperiment
   return(experimentsList)
 }
-
-
 ```

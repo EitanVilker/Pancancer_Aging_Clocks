@@ -226,7 +226,7 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
   transformedData <- filterFeatures(assayList, experimentsAndCovariatesList[["experiments"]], highCorrelationToEachOther=FALSE, relativeVariance=FALSE)
   transformedData <- combineAssays(transformedData, combiningNormal=combiningNormal)
   assayDataWithCovariates <- encode_covariates(experimentsAndCovariatesList[["covariates"]][[1]], transformedData)
-
+  
   ## Running model
   train_testList <- splitTrainTest(assayDataWithCovariates, trainSetSize=splitSize, seed=seed)
 

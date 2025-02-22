@@ -29,10 +29,10 @@ existingExperimentList <- NULL
 # reducedRNAseq <- reduceExperimentBySubjects(expRNAseq$layer, existingExperimentList$RNAseq_Normal)
 
 # Current test
-cancerType <- "BRCA"
+cancerType <- "OV"
 layers <- c("RNAseq")
 iterationCount <- 1
-modelOutput <- standardizedModelBuilding(layers, cancerName=cancerType, methodNames=c("glmnet"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=iterationCount, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE)
+modelOutput <- standardizedModelBuilding(layers, cancerName=cancerType, methodNames=c("ridge"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=iterationCount, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE)
 existingExperimentList <- modelOutput$experimentList
 ```
 
@@ -54,7 +54,7 @@ print(stats$baseline_summary)
 cancerLayersPrefix <- getCancerLayersPrefix(cancerType, layers)
 primaryDir <- paste0("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/CoefficientFrames/", cancerType)
 filePath <- paste0(primaryDir, "/", cancerLayersPrefix)
-additionalDescriptor <- "Ridge_Scaled_10CV"
+additionalDescriptor <- "Ridge"
 
 # Get coefficients
 coefficientFrame <- list()
@@ -74,7 +74,7 @@ write.csv(statsTable, paste0(filePath, "_stats", additionalDescriptor, ".csv"), 
 ### Feature analysis given model just run
 ```{r}
 output_dir=paste0(primaryDir,"/Enrichment/", additionalDescriptor)
-process_gene_weights(cancer_type, weights_file=coefficientPath, output_dir=output_dir)
+process_gene_weights(cancerType, weights_file=coefficientPath, output_dir=output_dir)
 formattedWeightFileName <- paste0(output_dir, "/", cancerLayersPrefix, "_weights_named.csv") 
 run_pathway_analysis(cancerType, input_file=formattedWeightFileName, output_dir=output_dir)
 ```
