@@ -85,6 +85,7 @@ setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/
 
 
 models <- c("miRNA","RPPA","RNAseq", "methylation")
+models <- c("RNAseq")
 layer_combinations <- unlist(lapply(1:length(models), function(x) {
   combn(models, x, simplify = FALSE)
 }), recursive = FALSE)
@@ -122,7 +123,9 @@ for (comb in layer_combinations) {
                                            methodNames = c("glmnet"),
                                            splitSize = 1,
                                            seed = 43)
-  
+  if (is.null(modelOutput)) {
+  next}
+
   coef_df <- getCoefficientDF(modelOutput)
 
   # Print summary statistics for non-zero coefficients
