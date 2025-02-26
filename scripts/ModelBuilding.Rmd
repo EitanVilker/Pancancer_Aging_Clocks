@@ -405,28 +405,29 @@ setup1 <- function(layersVector, cancerName="HNSC"){
   needsImputation <- list()
   cancerSpecificLayerPaths <- getLayerPathsForSpecificCancer(paths, cancerName)
   
+  # Don't run model if missing a layer
+  for (layer in layersVector){
+    if (length(cancerSpecificLayerPaths[[nameMapping(layer)]]) == 0){ return(NULL) }
+    layerPaths[[layer]] <- cancerSpecificLayerPaths[[nameMapping(layer)]]
+  }
+  
   if ("methylation" %in% layersVector) { 
-    layerPaths$methylation <- cancerSpecificLayerPaths$methylation
     assayNames$methylation <- "M-values"
     needsImputation$methylation <- TRUE
   }
   if ("RNAseq" %in% layersVector) { 
-    layerPaths$RNAseq <- cancerSpecificLayerPaths$RNAseq_filtered
     assayNames$RNAseq <- "DESeq2_log"
     needsImputation$RNAseq <- TRUE
   }
   if ("miRNA" %in% layersVector) {
-    layerPaths$miRNA <- cancerSpecificLayerPaths$miRNA
     assayNames$miRNA <- "DESeq2_log"
     needsImputation$miRNA <- FALSE
   }
   if ("RPPA" %in% layersVector) { 
-    layerPaths$RPPA <- cancerSpecificLayerPaths$RPPA
     assayNames$RPPA <- "counts"
     needsImputation$RPPA <- TRUE
   }
   if ("RNAseq_Normal" %in% layersVector) { 
-    layerPaths$RNAseq_Normal <- cancerSpecificLayerPaths$RNAseq_NORMAL_filtered
     assayNames$RNAseq_Normal <- "DESeq2_log"
     needsImputation$RNAseq_Normal <- FALSE
   }
@@ -439,6 +440,8 @@ setup1 <- function(layersVector, cancerName="HNSC"){
 
 ```{r}
 setup2 <- function(setup1List, featuresToEnsure=c("Age"), existingExperimentsList=NULL){
+  if (is.null(setup1List)) { return(NULL) }
+  
   PATH <- file.path( Sys.getenv("PCANAGE","/restricted/projectnb/agedisease/projects/pancancer_aging_pbock")) 
   layerPaths <- setup1List$layerPaths
   assayNames <- setup1List$assayNames
@@ -472,9 +475,6 @@ setup2 <- function(setup1List, featuresToEnsure=c("Age"), existingExperimentsLis
     experimentsList <- getExperimentsList(layerPaths, featuresToEnsure=featuresToEnsure, removeHPVPositive=removeHPVPositive)
   }
   
-  if (is.null(experimentsList)){
-    return(NULL)
-  }
   # Perform imputation (only if an imputed version is not found)
   if (is.null(existingExperimentsList)) { 
     experimentsList <- imputeMissingValues(experimentsList, assayNames, needsImputation, cancerName) 

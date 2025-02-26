@@ -7,8 +7,8 @@ getExperimentsList <- function(paths, featuresToEnsure=c("Age"), removeHPVPositi
   # Add each experiment
   for (i in 1:length(paths)){
     name <- names(paths)[i]
-    if (!file.exists(paths[[i]])) { return NULL }
-    experiment <- readRDS(paths[[i]])
+    # if (!file.exists(paths[[name]])) { return(NULL)}
+    experiment <- readRDS(paths[[name]])
     
     # Remove subjects with certain missing metadata
     for (feature in featuresToEnsure){
@@ -176,3 +176,10 @@ getTransposedFrame <- function(matrix){
 getCancerLayersPrefix <- function(cancerType, layers){
   return(paste0(cancerType, "_", paste(layers, collapse = "_")))
 }
+
+nameMapping <- function(layerName){
+  if (layerName == "RNAseq"){ return("RNAseq_filtered") }
+  if (layerName == "RNAseq_Normal"){ return("RNAseq_NORMAL_filtered") }
+  return(layerName)
+}
+

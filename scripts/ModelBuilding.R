@@ -399,6 +399,11 @@ setup1 <- function(layersVector, cancerName="HNSC"){
   needsImputation <- list()
   cancerSpecificLayerPaths <- getLayerPathsForSpecificCancer(paths, cancerName)
   
+  # Don't run model if missing a layer
+  for (layer in layersVector){
+    if (length(cancerSpecificLayerPaths[[layer]]) == 0){ return(NULL) }
+  }
+  
   if ("methylation" %in% layersVector) { 
     layerPaths$methylation <- cancerSpecificLayerPaths$methylation
     assayNames$methylation <- "M-values"
@@ -434,6 +439,8 @@ setup1 <- function(layersVector, cancerName="HNSC"){
 
 ``` r
 setup2 <- function(setup1List, featuresToEnsure=c("Age"), existingExperimentsList=NULL){
+  if (is.null(setup1List)) { return(NULL) }
+  
   PATH <- file.path( Sys.getenv("PCANAGE","/restricted/projectnb/agedisease/projects/pancancer_aging_pbock")) 
   layerPaths <- setup1List$layerPaths
   assayNames <- setup1List$assayNames
@@ -494,6 +501,7 @@ performSetup <- function(layersVector, cancerName="HNSC", featuresToEnsure=c("Ag
 standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize=0.999, testOnCompleteData=FALSE, graphTitle="", methodNames=c("glmnet"), seed=43, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, existingExperimentsList=NULL, iterationCount=NULL, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE){
   if (splitSize > 0.98){ testOnCompleteData=TRUE}
   modelBuildingInput <- performSetup(layersVector, cancerName=cancerName, existingExperimentsList=existingExperimentsList)
+  if (is.null(modelBuildingInput)) { return(NULL) }
   
   # Set up title
   if (nchar(graphTitle) == 0){
