@@ -16,23 +16,24 @@ library(survminer)
 library(vip)
 library(tidyverse)
 
-knitr::knit("ModelBuilding.Rmd", output = tempfile())
-knitr::knit("Analysis.Rmd", output = tempfile())
+knitr::knit("ModelBuilding.Rmd", output = "ModelBuilding.R")
+knitr::knit("Analysis.Rmd", output = "Analysis.R")
+knitr::knit("pathways_enrichment/pathways_enrichment.Rmd", output = "pathways_enrichment/pathways_enrichment.R")
 source("PanClockHelperFunctions.R")
 ```
 
 # Get the output of the ML model
 ```{r}
 # existingExperimentList <- getNormalSize("KIRC")
-existingExperimentList <- NULL
+# existingExperimentList <- NULL
 # expRNAseq <- getExperimentByLayerAndCancer("RNAseq", "BRCA")
 # reducedRNAseq <- reduceExperimentBySubjects(expRNAseq$layer, existingExperimentList$RNAseq_Normal)
 
 # Current test
-cancerType <- "OV"
-layers <- c("RNAseq")
+cancerType <- "HNSC"
+layers <- c("methylation")
 iterationCount <- 1
-modelOutput <- standardizedModelBuilding(layers, cancerName=cancerType, methodNames=c("ridge"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=iterationCount, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE)
+modelOutput <- standardizedModelBuilding(layers, cancerName=cancerType, methodNames=c("glmnwt"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=iterationCount, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE)
 existingExperimentList <- modelOutput$experimentList
 ```
 
@@ -41,8 +42,8 @@ existingExperimentList <- modelOutput$experimentList
 ### Collect survival analysis data
 stats <- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted, applyBiasCorrection=FALSE, covariates_to_include=c("race"))
 statsTable <- getFormattedStatsTable(stats)
-summaryTable <- getSummaryTable(cancerType, layers, modelOutput, stats)
-
+# summaryTable <- getSummaryTable(cancerType, layers, modelOutput, stats)
+# 
 print(stats$interaction_summary)
 print(stats$non_interaction_summary)
 print(stats$baseline_summary)
@@ -50,33 +51,14 @@ print(stats$baseline_summary)
 
 ### Save outputs of survival and age model
 ```{r}
-# Modify output path
-cancerLayersPrefix <- getCancerLayersPrefix(cancerType, layers)
-primaryDir <- paste0("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/CoefficientFrames/", cancerType)
-filePath <- paste0(primaryDir, "/", cancerLayersPrefix)
-additionalDescriptor <- "Ridge"
-
-# Get coefficients
-coefficientFrame <- list()
-if (iterationCount == 1){
-  coefficientFrame[[cancerLayersPrefix]] <- getCoefficientDF(modelOutput$ModelBuilding$model$finalModel)
-} else{
-   coefficientFrame[[cancerLayersPrefix]] <- modelOutput$ModelBuilding$combinedWeights
-}
-
-# Save outputs
-coefficientPath <- paste0(filePath, "_coef", additionalDescriptor, ".rds")
-saveRDS(coefficientFrame, file = coefficientPath)
-write.csv(summaryTable, paste0(filePath, "_summary", additionalDescriptor, ".csv"), row.names = FALSE)
-write.csv(statsTable, paste0(filePath, "_stats", additionalDescriptor, ".csv"), row.names = TRUE)
+dir = "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/CoefficientFrames/"
+additionalDescriptor <- "ElNet"
+clockOutput <- saveClockOutput(cancerType, layers, modelOutput, dir, additionalDescriptor, crossValidating=(iterationCount > 1))
 ```
 
 ### Feature analysis given model just run
 ```{r}
-output_dir=paste0(primaryDir,"/Enrichment/", additionalDescriptor)
-process_gene_weights(cancerType, weights_file=coefficientPath, output_dir=output_dir)
-formattedWeightFileName <- paste0(output_dir, "/", cancerLayersPrefix, "_weights_named.csv") 
-run_pathway_analysis(cancerType, input_file=formattedWeightFileName, output_dir=output_dir)
+performEnrichment(cancerType, layers, additionalDescriptor, clockOutput)
 ```
 
 # Survival analysis given previous data

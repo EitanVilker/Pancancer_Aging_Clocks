@@ -3,22 +3,12 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-```{r message=FALSE, warning=FALSE, include=FALSE}
-library(e1071) 
-library(randomForest) 
-library(SummarizedExperiment)
-library(Biobase)
-library(ggplot2)
-library(caret)
-library ("dplyr")
-knitr::knit("Preprocessing.Rmd", output = tempfile())
-source("PanClockHelperFunctions.R")
-source("run_analysis_pipeline.R")
-```
+
 
 ### Function to apply systematic bias correction
 
-```{r}
+
+``` r
 bias_correction <- function(predicted_age, true_age) {
   print("Applying bias correction...")
   
@@ -40,7 +30,8 @@ bias_correction <- function(predicted_age, true_age) {
 
 ### Split data into training and testing sets
 
-```{r}
+
+``` r
 splitTrainTest <- function(assayData, trainSetSize=0.8, seed=42){
   print("Train test splitting...")
   set.seed(seed)
@@ -53,7 +44,8 @@ splitTrainTest <- function(assayData, trainSetSize=0.8, seed=42){
 
 ### Build ML model; default is ElasticNet
 
-```{r}
+
+``` r
 train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=TRUE, seed=42, graphTitle="", stratifying=FALSE, applyBiasCorrection=FALSE) {
   print("Training model...")
   print(methodName)
@@ -205,7 +197,8 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=
 <!--   stratifying: set to TRUE to stratify subjects by age -->
 ---
 
-```{r}
+
+``` r
 ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCompleteData=FALSE, methodNames=c("glmnet"), graphTitle="", seed=42, pca=FALSE, columnsToKeep=c("Age", "gender", "race", "HPV.status"), stratifying=FALSE, iterationCount=NULL, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE){
 
   experimentsList <- inputList$experimentsList
@@ -396,7 +389,8 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
 
 # Function to get lists containing paths for each omics layer, names for the best assay type respective to each layer, and whether or not imputation is required for each layer
 
-```{r}
+
+``` r
 setup1 <- function(layersVector, cancerName="HNSC"){
   paths <- getPathsByLayerAndCancer()
   layerPaths <- list()
@@ -437,7 +431,8 @@ setup1 <- function(layersVector, cancerName="HNSC"){
 
 # Perform second part of setup, including imputing, getting significant features
 
-```{r}
+
+``` r
 setup2 <- function(setup1List, featuresToEnsure=c("Age"), existingExperimentsList=NULL){
   PATH <- file.path( Sys.getenv("PCANAGE","/restricted/projectnb/agedisease/projects/pancancer_aging_pbock")) 
   layerPaths <- setup1List$layerPaths
@@ -472,9 +467,6 @@ setup2 <- function(setup1List, featuresToEnsure=c("Age"), existingExperimentsLis
     experimentsList <- getExperimentsList(layerPaths, featuresToEnsure=featuresToEnsure, removeHPVPositive=removeHPVPositive)
   }
   
-  if (is.null(experimentsList)){
-    return(NULL)
-  }
   # Perform imputation (only if an imputed version is not found)
   if (is.null(existingExperimentsList)) { 
     experimentsList <- imputeMissingValues(experimentsList, assayNames, needsImputation, cancerName) 
@@ -488,7 +480,8 @@ setup2 <- function(setup1List, featuresToEnsure=c("Age"), existingExperimentsLis
 
 # Wrapper for the two setup functions
 
-```{r}
+
+``` r
 performSetup <- function(layersVector, cancerName="HNSC", featuresToEnsure=c("Age"), removeHPVPositive=FALSE, existingExperimentsList=NULL){
   return(setup2(setup1(layersVector, cancerName=cancerName), featuresToEnsure=featuresToEnsure, existingExperimentsList=existingExperimentsList))
 }
@@ -496,11 +489,11 @@ performSetup <- function(layersVector, cancerName="HNSC", featuresToEnsure=c("Ag
 
 # Wrapper for ModelBuilding with default params to make life easier. Just need to pass in vector of omics layer names and the cancer name abbreviation, but can adjust other parameters as desired like setting splitSize to 0.8 for a holdouts test
 
-```{r}
+
+``` r
 standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize=0.999, testOnCompleteData=FALSE, graphTitle="", methodNames=c("glmnet"), seed=43, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, existingExperimentsList=NULL, iterationCount=NULL, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE){
   if (splitSize > 0.98){ testOnCompleteData=TRUE}
   modelBuildingInput <- performSetup(layersVector, cancerName=cancerName, existingExperimentsList=existingExperimentsList)
-  if (is.null(modelBuildingInput)) { return(NULL) }
   
   # Set up title
   if (nchar(graphTitle) == 0){

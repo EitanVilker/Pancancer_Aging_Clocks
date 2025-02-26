@@ -55,8 +55,8 @@ library(class)
 #library(ggplot2)
 #library(caret)
 # source("InitialSteps.Rmd")
-knitr::knit("ModelBuilding.Rmd", output = tempfile())
-knitr::knit("Analysis.Rmd", output = tempfile())
+knitr::knit("ModelBuilding.Rmd", output = "ModelBuilding.R")
+knitr::knit("Analysis.Rmd", output = "Analysis.R")
 source("PanClockHelperFunctions.R")
 setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/scripts")
 
@@ -126,6 +126,8 @@ for (comb in layer_combinations) {
   coef_df <- getCoefficientDF(modelOutput)
 
   # Print summary statistics for non-zero coefficients
+  non_zero_coef_df <- coef_df[coef_df$Weight != 0, ]
+  zero_coef_df <- coef_df[coef_df$Weight == 0, ]
   cat(paste("\n\n There are", nrow(non_zero_coef_df), "features with non-zero weights in this model.\n\n"))
   cat(paste("There are", nrow(zero_coef_df), "features with zero weight in this model.\n\n"))
   # Ensure `comb` is always converted into a single string
