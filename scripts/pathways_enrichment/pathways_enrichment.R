@@ -1,20 +1,19 @@
 ---
 title: "Gene Pathway Enrichment Analysis"
 author: "Yousry"
-date: "`r Sys.Date()`"
+date: "2025-02-26"
 output: html_document
 params:
   cancer_types: ["ACC", "BLCA", "BRCA", "CESC", "CHOL", "COAD", "DLBC", "ESCA", "GBM", "HNSC", "KICH", "KIRC", "KIRP", "LAML", "LGG", "LIHC", "LUAD", "LUSC", "MESO", "OV", "PAAD", "PCPG", "PRAD", "READ", "SARC", "SKCM", "STAD", "TGCT", "THCA", "THYM", "UCEC", "UCS", "UVM"]
   # Modify this list as needed
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
-```
+
 
 ## Load Required Libraries
 
-```{R load libraries}
+
+``` r
 # if (!requireNamespace("BiocManager", quietly = TRUE)) {
 #   install.packages("BiocManager")
 # }
@@ -35,9 +34,18 @@ library(msigdbr)
 knitr::knit("../Analysis.Rmd", output = "Analysis.R")
 ```
 
+```
+##   |                                                                                                                    |                                                                                                            |   0%  |                                                                                                                    |.....                                                                                                       |   5% [unnamed-chunk-9]   |                                                                                                                    |..........                                                                                                  |  10%                     |                                                                                                                    |...............                                                                                             |  14% [unnamed-chunk-10]  |                                                                                                                    |.....................                                                                                       |  19%                     |                                                                                                                    |..........................                                                                                  |  24% [unnamed-chunk-11]  |                                                                                                                    |...............................                                                                             |  29%                     |                                                                                                                    |....................................                                                                        |  33% [unnamed-chunk-12]  |                                                                                                                    |.........................................                                                                   |  38%                     |                                                                                                                    |..............................................                                                              |  43% [unnamed-chunk-13]  |                                                                                                                    |...................................................                                                         |  48%                     |                                                                                                                    |.........................................................                                                   |  52% [unnamed-chunk-14]  |                                                                                                                    |..............................................................                                              |  57%                     |                                                                                                                    |...................................................................                                         |  62% [unnamed-chunk-15]  |                                                                                                                    |........................................................................                                    |  67%                     |                                                                                                                    |.............................................................................                               |  71% [unnamed-chunk-16]  |                                                                                                                    |..................................................................................                          |  76%                     |                                                                                                                    |.......................................................................................                     |  81% [unnamed-chunk-17]  |                                                                                                                    |.............................................................................................               |  86%                     |                                                                                                                    |..................................................................................................          |  90% [unnamed-chunk-18]  |                                                                                                                    |.......................................................................................................     |  95%                     |                                                                                                                    |............................................................................................................| 100% [unnamed-chunk-19]
+```
+
+```
+## [1] "Analysis.R"
+```
+
 ## Define function to process GTF annotations file
 
-```{r}
+
+``` r
 process_gtf_annotations <- function(gtf_file, annotation_output) {
   print("🔍 Processing GTF annotation file...")
 
@@ -73,12 +81,12 @@ process_gtf_annotations <- function(gtf_file, annotation_output) {
 # gtf_file <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/scripts/dataset/gene_annotations/gencode.v47.chr_patch_hapl_scaff.annotation.gtf"
 # annotation_output <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/features/gene_annotation.csv"
 # process_gtf_annotations(gtf_file, annotation_output)
-
 ```
 
 ## Define function for cancer-type specific RNA-seq models Gene_name vs weights csv
 
-```{r}
+
+``` r
 process_gene_weights <- function(cancer_type, weights_file=NULL, modelOutput=NULL, annotation_file="/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/features/gene_annotation.csv", output_dir="/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/features") {
   
   print(paste0("🔍 Processing gene weights for ", cancer_type))
@@ -138,12 +146,12 @@ process_gene_weights <- function(cancer_type, weights_file=NULL, modelOutput=NUL
 
   print(paste("Final gene-mapped file saved at:", output_path))
 }
-
 ```
 
 ## Define Pathway Enrichment Analysis Function
 
-```{r}
+
+``` r
 run_pathway_analysis <- function(cancer_type, input_file=NULL, output_dir=NULL) {
   print(paste0("🔍 Running pathway enrichment for ", cancer_type))
   if (is.null(input_file)){
@@ -347,7 +355,8 @@ run_pathway_analysis <- function(cancer_type, input_file=NULL, output_dir=NULL) 
 
 ## Run Pathways Enrichment Analysis Function
 
-```{r}
+
+``` r
 if (FALSE){
   cancer_types <- params$cancer_types  # List of cancer types
   
@@ -367,7 +376,8 @@ if (FALSE){
 
 ## Summary
 
-```{r}
+
+``` r
 if (FALSE){
   # Initialize a list to store significant pathways for each cancer type
   significant_pathways_list <- list()
@@ -442,10 +452,9 @@ if (FALSE){
     }
   }
 }
-
 ```
 
-```{r}
-# print("Pathway enrichment analysis completed for all specified cancer types!")
 
+``` r
+# print("Pathway enrichment analysis completed for all specified cancer types!")
 ```

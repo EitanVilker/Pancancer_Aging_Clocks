@@ -7,7 +7,9 @@ getExperimentsList <- function(paths, featuresToEnsure=c("Age"), removeHPVPositi
   # Add each experiment
   for (i in 1:length(paths)){
     name <- names(paths)[i]
+    if (!file.exists(paths[[i]])) { return NULL }
     experiment <- readRDS(paths[[i]])
+    
     # Remove subjects with certain missing metadata
     for (feature in featuresToEnsure){
       experiment <- experiment[, !is.na(experiment[[feature]])]
