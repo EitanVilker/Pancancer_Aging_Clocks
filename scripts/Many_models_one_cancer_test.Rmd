@@ -3,7 +3,7 @@ title: "Many Elastic Net Models for `r params$cancer_type` across layers"
 author: "Monti Lab"
 date:   "`r format(Sys.Date(), '%B %d, %Y')`"
 params: 
-  cancer_type: "LAML"
+  cancer_type: "BRCA"
 output:
   html_document:
     theme: united
