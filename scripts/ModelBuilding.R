@@ -5,20 +5,391 @@ output: html_notebook
 
 
 
+### Function to apply systematic bias correction
 
 
+``` r
+bias_correction <- function(predicted_age, true_age) {
+  print("Applying bias correction...")
+  
+  # Create a data frame for calculations
+  DF <- data.frame(predicted_age = predicted_age, true_age = true_age)
+  
+  # Fit a linear model: predicted_age ~ true_age
+  age_fit <- lm(predicted_age ~ true_age, data = DF)
+  
+  # Apply the bias correction formula
+  DF <- DF |>
+    dplyr::rename(chronological = true_age) |>
+    dplyr::mutate(delta_age_corrected = predicted_age - age_fit$fitted.values) |>
+    dplyr::mutate(predicted_corrected = delta_age_corrected + chronological)
+  
+  return(DF$predicted_corrected)
+}
+```
+
+### Split data into training and testing sets
 
 
+``` r
+splitTrainTest <- function(assayData, trainSetSize=0.8, seed=42){
+  print("Train test splitting...")
+  set.seed(seed)
+  train_index <- caret::createDataPartition(assayData$Age, p = trainSetSize, list = FALSE)
+  meta_trn <- assayData[train_index, ] 
+  meta_tst <- assayData[-train_index, ]
+  return(list(train = meta_trn, test = meta_tst))
+}
+```
+
+### Build ML model; default is ElasticNet
 
 
+``` r
+train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=TRUE, seed=42, graphTitle="", stratifying=FALSE, applyBiasCorrection=FALSE) {
+  print("Training model...")
+  print(methodName)
+  
+  # Model selection using 10-fold CV
+  if (!is.null(seed)) { set.seed(seed) }
+  cv10 <- trainControl(method = "cv", number = 10)
+  complexControl <- trainControl(method="boot")
+  cv3 <- trainControl(method = "cv", number = 3)
+  meta_trn <- subset(meta_trn, select=-submitter_id)
+  
+  # Random Forest
+  if (methodName == "ranger"){
+    meta_model <- caret::train(
+      Age ~ .,
+      data = meta_trn,
+      method = methodName,
+      trControl = cv10,
+    )
+  }
+  
+  # Neural Network
+  else if (methodName == "nnet"){
+    meta_trn$Age_bin <- cut(meta_trn$Age, breaks=5, labels=FALSE) # 5 bins
+    # cv3 <- trainControl(method = "cv", number = 3, sampling = "up", index = createResample(meta_trn$Age_bin, times = 5))
+    meta_trn$Age_bin <- as.factor(meta_trn$Age_bin)
+    upSampled <- caret::upSample(x=as.data.frame(meta_trn[, -ncol(meta_trn)]), y=meta_trn$Age_bin)
+    upSampled$Age_bin <- NULL
+    # weights <- 1 / table(cut(meta_trn$Age, breaks = 5))[cut(meta_trn$Age, breaks=5)]
+    meta_model <- caret::train(
+      Age ~ .,
+      # data = meta_trn,
+      data = upSampled,
+      method = methodName,
+      trControl = cv3,
+      # tuneLength = 5,
+      linout = TRUE,
+      MaxNWts = 10000,
+      # trace = FALSE,
+      maxit = 100,
+      tuneGrid = expand.grid(
+    size = c(5, 10, 20),    # Number of neurons in the hidden layer
+    decay = c(0.001, 0.01, 0.1) # Regularization parameters
+      ),
+      preProcess = c('scale','pca'),
+      metric = "RMSE",
+      # weights = weights
+    )
+  }
+
+  else if (methodName == "ridge"){
+    meta_model <- caret::train(
+      Age ~ .,
+      data = meta_trn,
+      method = "glmnet",
+      trControl = cv10,
+      # metric = "RMSE",
+      # tuneLength = 5,
+      tuneGrid = expand.grid(alpha = 0,  # alpha = 0 for Ridge Regression
+                             lambda = seq(0.001, 1, length = 10))  # Grid search for lambda
+    )
+  }
+  
+  # Anything else
+  else{
+    if (stratifying){
+      print("Stratifying...")
+      meta_trn$Age_bin <- cut(meta_trn$Age, breaks=5, labels=FALSE)
+      # cv3 <- trainControl(method = "cv", number = 3, sampling = "up", index = createResample(meta_trn$Age_bin, times = 5))
+      meta_trn$Age_bin <- as.factor(meta_trn$Age_bin)
+      sampled <- upSample(x=meta_trn[, -ncol(meta_trn)], y=meta_trn$Age_bin)
+      sampled$Age_bin <- NULL
+      sampled$Class <- NULL
+      trainData <- sampled
+    }
+    else{
+      trainData <- meta_trn
+    }
+    
+    meta_model <- caret::train(
+      Age ~ .,
+      data = trainData,
+      method = methodName,
+      trControl = cv10,
+      # metric = "RMSE",
+      tuneLength = 5
+    )
+  }
+  
+  print("Predicting...")
+
+  # Prediction
+  meta_age_estimate <- predict(meta_model, subset(meta_tst, select=-submitter_id))
+
+  # Augment metadata with predicted age
+  meta_tst$predicted_age <- meta_age_estimate
+  R2 <- cor(meta_tst$Age, meta_tst$predicted_age)^2
+  RMSE <- sqrt(mean((meta_tst$Age - meta_tst$predicted_age)^2))
+  meta_model$R2 <- R2
+  meta_model$RMSE <- RMSE
+
+  # Plot results using graphAgeModel
+  if (do_plot && nchar(graphTitle) > 0) {
+    graphAgeModel(meta_tst, graphTitle, paste("R^2:", toString(R2), "- RMSE:", toString(RMSE)))
+  }
+
+  # Apply bias correction if enabled
+  if (applyBiasCorrection) {
+    corrected_predicted_age <- bias_correction(meta_tst$predicted_age, meta_tst$Age)
+    meta_tst$predicted_corrected_age <- corrected_predicted_age
+    R2_after <- cor(meta_tst$Age, meta_tst$predicted_corrected_age)^2
+    RMSE_after <- sqrt(mean((meta_tst$Age - meta_tst$predicted_corrected_age)^2))
+    
+    if (do_plot && nchar(graphTitle) > 0) {
+      graphAgeModel(
+        meta_tst,
+        paste("After Bias Correction: ", graphTitle, sep = ""),
+        paste("R^2:", toString(round(R2_after, 3)), "- RMSE:", toString(round(RMSE_after, 3))),
+        biasCorrection = TRUE)
+    }
+  }
+  
+
+  # Return model and augmented data
+  return(list(model = meta_model, predicted = meta_tst))
+}
+```
+
+### Primary wrapper function to be run by other files - make sure to impute beforehand!
+
+# Returns: list object with indices "model" and "predictions"
+
+# Access coefficients through listName[["model"]]$finalModel, true age with listName[["predicted"]]$age, predicted age with listName[["predicted"]]\$predicted_age
+
+---
+<!-- params: -->
+<!--   inputList$experimentsList: list object of SummarizedExperiments-->
+<!--   inputList$assayNames: list object of the preferred assay names -->
+<!--   inputList$needsImputation: list object of booleans determining whether or not imputation is performed for each layer -->
+<!--   inputList$simplifiedData: list object with "data" as index to DataFrame of file containing HNSC summary data and "metric" as index to column name corresponding to summary statistic of feature significance -->
+<!--   cancerName: the abbreviation for the tumor type in question -->
+<!--   splitSize: proportion of subjects to go into training set -->
+<!--   testOnCompleteData: whether to use the training set also as the test set -->
+<!--   methodNames: vector of ML methods to use. If more than one will perform mixture model -->
+<!--   usingImputed: set to TRUE if creating new assay based on previously imputed values of old assay -->
+<!--   seed: set to any integer to control randomness -->
+<!--   pca: set to TRUE to perform PCA. Not currently used except for nnet -->
+<!--   columnsToKeep: vector of metadata column names to keep in experiments as covariates or predictors -->
+<!--   stratifying: set to TRUE to stratify subjects by age -->
+---
 
 
+``` r
+ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCompleteData=FALSE, methodNames=c("glmnet"), graphTitle="", seed=42, pca=FALSE, columnsToKeep=c("Age", "gender", "race", "HPV.status"), stratifying=FALSE, iterationCount=NULL, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE){
+
+  experimentsList <- inputList$experimentsList
+  assayNamesList <- inputList$assayNames
+  needsImputation <- inputList$needsImputation
+  simplifiedDataPairs <- inputList$simplifiedData
+
+  if (splitSize > 0.98){ testOnCompleteData <- TRUE }
+  if (cancerName != "HNSC"){ columnsToKeep <- columnsToKeep[! columnsToKeep %in% "HPV.status"]}
+  encodingHPV <- "HPV.status" %in% columnsToKeep
+
+  ## Pre-processing
+  if (scaleByNormal && length(experimentsList) == 1){ 
+    experimentsList <- scaleAssayByNormal(experimentsList, assayNamesList, needsImputation, cancerName=cancerName) 
+  }
+  experimentsAndCovariatesList <- filterForCovariates(experimentsList, columns_to_keep=columnsToKeep)
+  assayList <- getCleanedAssayData(experimentsAndCovariatesList[["experiments"]], assayNamesList, needsImputation, simplifiedDataPairs=simplifiedDataPairs)
+  transformedData <- filterFeatures(assayList, experimentsAndCovariatesList[["experiments"]], highCorrelationToEachOther=FALSE, relativeVariance=FALSE)
+  transformedData <- combineAssays(transformedData, combiningNormal=combiningNormal)
+  assayDataWithCovariates <- encode_covariates(experimentsAndCovariatesList[["covariates"]][[1]], transformedData)
+  
+  ## Running model
+  train_testList <- splitTrainTest(assayDataWithCovariates, trainSetSize=splitSize, seed=seed)
+
+    # preProcess <- preProcess(train_testList[["train"]], method = "pca", pcaComp = 100) # Reduce to 100 components
+  if (testOnCompleteData){ testSet <- train_testList[["train"]] }
+  else { testSet <- train_testList[["test"]] }
+  
+  if (length(methodNames) == 1 && (is.null(iterationCount) || iterationCount < 2)){
+    print("Testing only one model!")
+    # Pass `applyBiasCorrection` directly to `train_test_wrapper`
+    return(train_test_wrapper(train_testList[["train"]], testSet, seed=seed, methodName=methodNames[1], graphTitle=graphTitle, stratifying=stratifying, applyBiasCorrection=applyBiasCorrection))
+  }
+  
+  ## Mixture model
+  if (length(methodNames) > 1){
+
+    modelsList <- list()
+    weightsSurvival <- c()
+  
+    # Creating model for each inputted method name
+    startingWeight <- 1 / length(methodNames)
+    for (j in 1:length(methodNames)){
+      weightsSurvival <- c(weightsSurvival, startingWeight)
+      modelsList[[methodNames[j]]] <- list()
+    }
+  
+    # For each iteration get a new train test split of the 80% available
+    for (j in 1:iterationCount){
+      seed <- seed + 1
+      train_testInitial <- splitTrainTest(train_testList$train, trainSetSize=0.8, seed=seed)
+      # For each ML model
+      for (k in 1:length(methodNames)){
+        correlations <- c()
+        methodName <- methodNames[k]
+        modelPredictionPair <- train_test_wrapper(train_testInitial$train, train_testInitial$test, seed=seed, methodName=methodName, do_plot=FALSE, stratifying=stratifying, applyBiasCorrection=FALSE)
+        modelsList[[methodName]][[j]] <- modelPredictionPair$model
+        predictions <- modelPredictionPair$predicted
+        df <- data.frame(predicted_age=predictions$predicted_age, submitter_id=predictions$submitter_id)
+        # stats <- run_analysis_pipeline(experimentsList[[1]], df)
+        # Weights = priors * new weights
+        # weightsSurvival[k] <- weightsSurvival[k] * stats$interaction_summary$logtest[1]
+        # weightsSurvival[k] <- weightsSurvival[k] * stats$interaction_summary$concordance[1]
+        correlations <- cor(predictions$Age, predictions$predicted_age)
+        weightsSurvival[k] <- weightsSurvival[k] * correlations^2
+      }
+      
+      # Establishing weights for each model
+      # weights <- correlations^2
+      # weights <- weights / sum(weights) # Normalize to add to 1
+      weightsSurvival <- weightsSurvival / sum(weightsSurvival) # Normalize to add to 1
+      print(weightsSurvival)
+      remainingTests <- train_testList$test
+    }
+  
+    # Combining models based on weights to output one set of predictions
+    print("Combining ensemble predictions...")
+    combinedPredictions <- numeric(length(remainingTests$Age))
+    modelWeightString <- ""
+    for (i in 1:length(modelsList)){
+      model <- modelsList[[i]]
+      modelWeight <- weightsSurvival[[i]]
+      currentModelPredictions <- numeric(length(remainingTests$Age))
+      for (j in 1:iterationCount){
+        currentModelPredictions <- currentModelPredictions + modelWeight * predict(model[[j]], subset(remainingTests, select=-submitter_id))
+      }
+      combinedPredictions <- combinedPredictions + currentModelPredictions
+      modelWeightString <- paste(modelWeightString, ", ", names(modelsList)[i], "- Weight: ", toString(round(modelWeight, digits=3)), sep="")
+    }
+
+    R2 <- round(cor(remainingTests$Age, combinedPredictions)^2, digits=3)
+    RMSE <- round(sqrt(mean((remainingTests$Age - combinedPredictions)^2)), digits=3)
+    remainingTests$predicted_age <- combinedPredictions
+    
+    # Plot results
+    caption <- paste("R^2: ",toString(R2),", RMSE: ",toString(RMSE), modelWeightString, sep="")
+    graphAgeModel(remainingTests, graphTitle, caption)
+  }
+  
+  ## Cross validation
+  else if (iterationCount > 1){
+
+    print("Cross validating...")
+    seed <- seed^3 # So that if we increment the seed by 1 to test we aren't overlapping with the previous seed
+    fullData <- train_testList$train
+    folds <- caret::createFolds(fullData |> pull(submitter_id), k=iterationCount)
+    modelsList <- list()
+    
+    # For each iteration get a new train test split of the 80% available
+    R2Total <- 0
+    RMSETotal <- 0
+    submitter_ids <- c()
+    chronologicalAges <- c()
+    predictedAges <- c()
+    
+    for (fold in names(folds)){
+      seed <- seed + 1
+      train_testInitial <- getFold(fullData, folds[[fold]])
+      submitter_ids <- c(submitter_ids, fullData$submitter_id[folds[[fold]]])
+      modelsList[[fold]] <- train_test_wrapper(train_testInitial$train, train_testInitial$test, seed=seed, methodName=methodNames[1], do_plot=FALSE, stratifying=stratifying)
+      chronologicalAges <- c(chronologicalAges, train_testInitial$test$Age)
+      predictedAges <- c(predictedAges, modelsList[[fold]]$predicted$predicted_age)
+      R2 <- round(cor(train_testInitial$test$Age, modelsList[[fold]]$predicted$predicted_age)^2, digits=4)
+      modelsList[[fold]]$R2 <- R2
+      R2Total <- R2Total + R2
+      RMSE <- round(sqrt(mean((train_testInitial$test$Age - modelsList[[fold]]$predicted$predicted_age)^2)), digits=4)
+      modelsList[[fold]]$RMSE <- RMSE
+      RMSETotal <- RMSETotal + RMSE
+    }
+    
+    combinedPredictions <- data.frame(submitter_id = submitter_ids, predicted_age = predictedAges, Age = chronologicalAges)
+    
+    # Set age model summary values and graph predictions
+    meanR2 <- round(R2Total / iterationCount, digits=3)
+    meanRMSE <- round(RMSETotal / iterationCount, digits=3)
+    modelsList$R2 <- meanR2
+    modelsList$RMSE <- meanRMSE
+    caption <- paste("R^2: ", toString(meanR2), ", RMSE: ", toString(meanRMSE), sep="")
+    graphAgeModel(combinedPredictions, title=graphTitle, caption=caption)
+    
+    # Output weights for each model and mean weights in final column
+    combinedWeights <- fullData
+    cols <- colnames(fullData)
+    combinedWeights <- data.frame(Feature = cols[which(!cols %in% c("submitter_id", "Age"))])
+    nFeatures <- length(combinedWeights$Feature)
+    zeroVec <- numeric(nFeatures)
+    
+    for (i in 1:iterationCount){
+      model <- modelsList[[i]]
+      weights <- zeroVec
+      # modelWeight <- 1 / iterationCount
+      # coefficients <- coef(model$model$finalModel, model$model$bestTune$lambda)
+      # featureFrame <- data.frame(features=coefficients@Dimnames[[1]][coefficients@i + 1], coefficients=coefficients@x)
+      featureFrame <- getCoefficientDF(model$model$finalModel)
+      
+      for (j in 1:length(featureFrame$Feature)){
+        feature <- featureFrame$Feature[j]
+        coef <- featureFrame$Weight[j]
+        idx <- which(combinedWeights$Feature == feature)
+        weights[idx] <- coef
+      }
+      combinedWeights[toString(i)] <- weights
+    }
+    
+    combinedWeights$Weight <- rowMeans(combinedWeights[, -1])
+    
+    return(list(model=modelsList, predicted=combinedPredictions, experimentsList=experimentsList, combinedWeights=combinedWeights))
+  }
+  else{ return(NULL) }
+
+  # Apply bias correction to ensemble predictions if enabled
+  if (applyBiasCorrection) {
+    correctedPredictions <- bias_correction(combinedPredictions, remainingTests$Age)
+    remainingTests$predicted_corrected_age <- correctedPredictions
+
+    # Plot corrected results
+    R2_corrected <- cor(remainingTests$Age, correctedPredictions)^2
+    RMSE_corrected <- sqrt(mean((remainingTests$Age - correctedPredictions)^2))
+
+    title <- paste("Corrected Ensemble Predictions -", graphTitle)
+    caption <- paste("R^2: ", toString(round(R2_corrected, 3)), "- RMSE: ", toString(round(RMSE_corrected, 3)))
+    graphAgeModel(remainingTests, title, caption, biasCorrection=TRUE)
+  }
+  
+  return(list(model=modelsList, predicted=remainingTests, weights=weightsSurvival, experimentsList=experimentsList))
+}
+```
+
+# Function to get lists containing paths for each omics layer, names for the best assay type respective to each layer, and whether or not imputation is required for each layer
 
 
-<<<<<<< HEAD
-
-
-=======
 ``` r
 setup1 <- function(layersVector, cancerName="HNSC"){
   paths <- getPathsByLayerAndCancer()
@@ -30,31 +401,27 @@ setup1 <- function(layersVector, cancerName="HNSC"){
   
   # Don't run model if missing a layer
   for (layer in layersVector){
-    if (length(cancerSpecificLayerPaths[[layer]]) == 0){ return(NULL) }
+    if (length(cancerSpecificLayerPaths[[nameMapping(layer)]]) == 0){ return(NULL) }
+    layerPaths[[layer]] <- cancerSpecificLayerPaths[[nameMapping(layer)]]
   }
   
   if ("methylation" %in% layersVector) { 
-    layerPaths$methylation <- cancerSpecificLayerPaths$methylation
     assayNames$methylation <- "M-values"
     needsImputation$methylation <- TRUE
   }
   if ("RNAseq" %in% layersVector) { 
-    layerPaths$RNAseq <- cancerSpecificLayerPaths$RNAseq_filtered
     assayNames$RNAseq <- "DESeq2_log"
     needsImputation$RNAseq <- TRUE
   }
   if ("miRNA" %in% layersVector) {
-    layerPaths$miRNA <- cancerSpecificLayerPaths$miRNA
     assayNames$miRNA <- "DESeq2_log"
     needsImputation$miRNA <- FALSE
   }
   if ("RPPA" %in% layersVector) { 
-    layerPaths$RPPA <- cancerSpecificLayerPaths$RPPA
     assayNames$RPPA <- "counts"
     needsImputation$RPPA <- TRUE
   }
   if ("RNAseq_Normal" %in% layersVector) { 
-    layerPaths$RNAseq_Normal <- cancerSpecificLayerPaths$RNAseq_NORMAL_filtered
     assayNames$RNAseq_Normal <- "DESeq2_log"
     needsImputation$RNAseq_Normal <- FALSE
   }
@@ -115,12 +482,14 @@ setup2 <- function(setup1List, featuresToEnsure=c("Age"), existingExperimentsLis
 ```
 
 # Wrapper for the two setup functions
->>>>>>> 55f5cc066a29b6b3b73b83b46c1eec722fb59001
 
 
+``` r
+performSetup <- function(layersVector, cancerName="HNSC", featuresToEnsure=c("Age"), removeHPVPositive=FALSE, existingExperimentsList=NULL){
+  return(setup2(setup1(layersVector, cancerName=cancerName), featuresToEnsure=featuresToEnsure, existingExperimentsList=existingExperimentsList))
+}
+```
 
-<<<<<<< HEAD
-=======
 # Wrapper for ModelBuilding with default params to make life easier. Just need to pass in vector of omics layer names and the cancer name abbreviation, but can adjust other parameters as desired like setting splitSize to 0.8 for a holdouts test
 
 
@@ -142,4 +511,3 @@ standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize
   return(list(ModelBuilding=ModelBuilding(modelBuildingInput, cancerName=cancerName, splitSize=splitSize, testOnCompleteData=testOnCompleteData, graphTitle=graphTitle, methodNames=methodNames, seed=seed, columnsToKeep=columnsToKeep, stratifying=stratifying, iterationCount=iterationCount, applyBiasCorrection=applyBiasCorrection, combiningNormal=combiningNormal, scaleByNormal=scaleByNormal), experimentList=modelBuildingInput$experimentsList))
 }
 ```
->>>>>>> 55f5cc066a29b6b3b73b83b46c1eec722fb59001

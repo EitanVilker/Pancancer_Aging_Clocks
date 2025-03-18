@@ -84,8 +84,8 @@ setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/
 #testing w/o RNAseq RPPA miRNA
 
 
-# models <- c("miRNA","RPPA","RNAseq", "methylation")
-models <- c("RNAseq")
+models <- c("miRNA","RPPA","RNAseq", "methylation")
+#models <- c("RNAseq")
 layer_combinations <- unlist(lapply(1:length(models), function(x) {
   combn(models, x, simplify = FALSE)
 }), recursive = FALSE)
