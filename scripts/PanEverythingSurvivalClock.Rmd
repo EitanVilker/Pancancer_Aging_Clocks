@@ -3,7 +3,7 @@ title: "PanEverythingSurvivalClock"
 output: html_notebook
 ---
 
-```{r message=FALSE, warning=FALSE, include=FALSE}
+```{r, Load, message=FALSE, warning=FALSE, include=FALSE}
 library(e1071) 
 library(SummarizedExperiment)
 library(Biobase)
@@ -15,30 +15,52 @@ library(reactable)
 library(survminer)
 library(vip)
 library(tidyverse)
+setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/Eitan/Pancancer_Aging_Clocks/scripts")
 
+# Comment in if running from shell script
+# system("Rscript -e 'knitr::purl(\"ModelBuilding.Rmd\", output = \"ModelBuilding.R\")'")
+# source("ModelBuilding.R")
+# system("Rscript -e 'knitr::purl(\"Analysis.Rmd\", output = \"Analysis.R\")'")
+# source("Analysis.R")
+
+# Comment in if running here
+knitr::knit("Analysis.Rmd", output = tempfile())
 knitr::knit("ModelBuilding.Rmd", output = "ModelBuilding.R")
-knitr::knit("Analysis.Rmd", output = "Analysis.R")
 knitr::knit("pathways_enrichment/pathways_enrichment.Rmd", output = "pathways_enrichment/pathways_enrichment.R")
 source("PanClockHelperFunctions.R")
+library(doParallel)
+registerDoParallel(cores = 4)  # Reduce parallel threads
 ```
 
+# ```{r, ExecuteModel}
+# paths <- getPathsByLayerAndCancer()
+# cancers <- getAllCancers(paths)
+# cancerNames <- names(cancers$cancerPaths$RNAseq)
+# n_vec <- c()
+# for (name in cancerNames){
+#   experiment <- getExperimentByLayerAndCancer("RNAseq", name)[[1]]
+#   n_vec <- c(n_vec, length(experiment@colData@rownames))
+# }
+# nFrame <- data.frame(cancer=cancerNames, n=n_vec)
+# ```
+
 # Get the output of the ML model
-```{r}
+```{r, Model}
+Sys.setenv(R_MAX_STACK_SIZE = "50000000000")  # Increase to 50000MB
 # existingExperimentList <- getNormalSize("KIRC")
-# existingExperimentList <- NULL
+existingExperimentList <- NULL
 # expRNAseq <- getExperimentByLayerAndCancer("RNAseq", "BRCA")
 # reducedRNAseq <- reduceExperimentBySubjects(expRNAseq$layer, existingExperimentList$RNAseq_Normal)
 
-# Current test
-cancerType <- "HNSC"
+cancerType <- "UCEC"
 layers <- c("methylation")
 iterationCount <- 1
-modelOutput <- standardizedModelBuilding(layers, cancerName=cancerType, methodNames=c("glmnwt"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=iterationCount, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE)
+modelOutput <- standardizedModelBuilding(layers, cancerName=cancerType, methodNames=c("ridge"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=iterationCount, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE, significanceCutoff=0.05)
 existingExperimentList <- modelOutput$experimentList
 ```
 
 # Survival analysis given model just ran
-```{r}
+```{r, Survival}
 ### Collect survival analysis data
 stats <- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted, applyBiasCorrection=FALSE, covariates_to_include=c("race"))
 statsTable <- getFormattedStatsTable(stats)
@@ -50,16 +72,16 @@ print(stats$baseline_summary)
 ```
 
 ### Save outputs of survival and age model
-```{r}
+```{r, SaveClock}
 dir = "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/CoefficientFrames/"
-additionalDescriptor <- "ElNet"
+additionalDescriptor <- "Ridge"
 clockOutput <- saveClockOutput(cancerType, layers, modelOutput, dir, additionalDescriptor, crossValidating=(iterationCount > 1))
 ```
 
-### Feature analysis given model just run
-```{r}
-performEnrichment(cancerType, layers, additionalDescriptor, clockOutput)
-```
+# ### Feature analysis given model just run
+# ```{r}
+# performEnrichment(cancerType, layers, additionalDescriptor, clockOutput)
+# ```
 
 # Survival analysis given previous data
 ```{r}

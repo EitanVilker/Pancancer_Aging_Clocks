@@ -1,0 +1,22 @@
+
+
+processing file: PanEverythingSurvivalClock.Rmd
+Error:
+! protect(): protection stack overflow
+Backtrace:
+     x
+  1. \-global standardizedModelBuilding(...)
+  2.   \-global ModelBuilding(...)
+  3.     \-global train_test_wrapper(...)
+  4.       +-caret::train(...)
+  5.       +-caret:::train.formula(...)
+  6.       | \-base::eval.parent(m)
+  7.       |   \-base::eval(expr, p)
+  8.       |     \-base::eval(expr, p)
+  9.       +-stats::model.frame(form = Age ~ ., data = meta_trn, na.action = na.fail)
+ 10.       \-stats::model.frame.default(form = Age ~ ., data = meta_trn, na.action = na.fail)
+ 11.         +-stats::terms(formula, data = data)
+ 12.         \-stats::terms.formula(formula, data = data)
+
+Quitting from PanEverythingSurvivalClock.Rmd:46-61 [Model]
+Execution halted

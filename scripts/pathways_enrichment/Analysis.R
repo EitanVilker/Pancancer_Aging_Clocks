@@ -347,7 +347,7 @@ getFormattedStatsTable <- function(stats){
 
 ``` r
 library(vip)
-featureImportance <- function(){
+featureImportance <- function(result){
   # Calculate permutation feature importance
   vip_data <- vi(result$elnet, method = "permute", target = "Age", train = meta_age_associated, metric = "MAE",
                  pred_wrapper = function(object, newdata) predict(object, newdata))
