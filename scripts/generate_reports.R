@@ -1,8 +1,8 @@
 # Load required library
 library(rmarkdown)
 library(glue)
-setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/scripts")
-
+#setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/scripts")
+setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/apazhern/Pan_Cancer_Aging_Clocks/Pancancer_Aging_Clocks/scripts")
 # Define the Rmd file and the output directory
 rmd_file <- "Many_models_one_cancer_test.Rmd"
 output_dir <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results"
@@ -14,21 +14,21 @@ files <- list.files(folder_path)
 #OGGGG Extract the variable part (e.g., "HNSC") from the filenames
 
 
-
-
-
 cancer_types <- unique(sub(".*TCGA-(.*)_RNAseq_filtered\\.rds", "\\1", files))
 
+
 #Temporary One by One:
-cancer_types1 <- c("BRCA", "CHOL", "DLBC", "GBM", "LAML", "LGG", 
+cancer_types <- c("BRCA", "CHOL", "DLBC", "GBM", "LAML", "LGG", 
                   "LIHC", "OV", "PRAD", "SARC", "THCA", "UCEC")
 #cancer_types1 <- c("LGG", "LIHC", "OV", "PRAD", "SARC", "THCA", "UCEC")
+
+cancer_types <- c("GBM") #Methylation still fails to run, will wait till I can run with everything
 
 cancer_list_filtered <- setdiff(cancer_types, cancer_types1)
 
 cancer_types <- cancer_list_filtered
 
-#Problems:
+#Problems: LAML is the only cancer missing in RPPA, all cancers and omics exist
 #GBM: Problems with miRNA (Report generated w/o miRNA)
 #"LGG", "LIHC", "OV", "PRAD", "SARC", "THCA", "UCEC"(Reports generated w/o methylation) 
 #"BRCA", "CHOL", "DLBC" (Reports generated w/o (methylation AND RNAseq alone))

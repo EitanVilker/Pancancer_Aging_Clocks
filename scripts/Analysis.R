@@ -1,39 +1,7 @@
 
 ``` r
 library(survival)
-```
-
-```
-## 
-## Attaching package: 'survival'
-```
-
-```
-## The following object is masked from 'package:caret':
-## 
-##     cluster
-```
-
-``` r
 library(survminer)
-```
-
-```
-## Loading required package: ggpubr
-```
-
-```
-## 
-## Attaching package: 'survminer'
-```
-
-```
-## The following object is masked from 'package:survival':
-## 
-##     myeloma
-```
-
-``` r
 source("run_analysis_pipeline.R")
 ```
 
@@ -379,20 +347,6 @@ getFormattedStatsTable <- function(stats){
 
 ``` r
 library(vip)
-```
-
-```
-## 
-## Attaching package: 'vip'
-```
-
-```
-## The following object is masked from 'package:utils':
-## 
-##     vi
-```
-
-``` r
 featureImportance <- function(){
   # Calculate permutation feature importance
   vip_data <- vi(result$elnet, method = "permute", target = "Age", train = meta_age_associated, metric = "MAE",

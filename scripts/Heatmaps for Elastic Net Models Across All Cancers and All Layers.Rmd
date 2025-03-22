@@ -1,0 +1,254 @@
+---
+title: "Heatmaps for Elastic Net Models Across All Cancers and All Layers"
+author: "Monti Lab"
+date:   "`r format(Sys.Date(), '%B %d, %Y')`"
+params: 
+  cancer_type: "BRCA"
+output:
+  html_document:
+    theme: united
+    code_folding: hide
+    css: style.css
+    toc: true
+    toc_float: true
+---
+
+```{r opts, echo=FALSE}
+#theme: united
+## to prevent excessively verbose output
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+```
+
+```{r render_report, echo=FALSE}
+## this is needed only if you want to generate different versions of the output html
+#render_report <- function(
+#    rmd = rstudioapi::getSourceEditorContext()$path, # the current source file
+#    cancer_type ) {
+  #cancer_type <- match.arg(cancer_type)
+#  rmarkdown::render(
+#    rmd,
+#    params = list(cancer_type = cancer_type),
+#    output_file = paste(tools::file_path_sans_ext(rmd), cancer_type, "html", sep = ".")
+#  )
+#}
+# E.g.,
+#
+#render_report(cancer_type = "HNSC") 
+#   --> "/path/<rmarkdown_stub>.hnsc.html"
+# render_report(cancer_type = "brca") 
+#   --> "/path/<rmarkdown_stub>.brca.html"
+```
+
+```{r loading libraries, include=FALSE}
+library(knitr)
+library(glue)
+library(reactable)
+library(htmltools) 
+library(e1071) 
+library(caTools) 
+library(class)
+library(ggplot2)
+knitr::knit("ModelBuilding.Rmd", output = "ModelBuilding.R")
+knitr::knit("Analysis.Rmd", output = "Analysis.R")
+source("PanClockHelperFunctions.R")
+setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/scripts")
+library(ComplexHeatmap)
+library(dplyr)
+library(readxl)
+library(circlize)
+library("stats")
+library(tibble)
+library(tidyr)
+
+```
+
+```{r loading data}
+ultimate_summary_table <- read.csv("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/Ultimate_summary_table.csv", row.names = NULL)
+
+unique_summary_table <- ultimate_summary_table %>%
+  distinct(test_name, cancer_type, layer_combination, .keep_all = TRUE)
+
+```
+
+## Interactive Table
+```{r Printing Model Weights, results='asis'}
+reactable(
+  ultimate_summary_table %>% 
+    mutate(across(where(~is.numeric(.) && any(. %% 1 != 0, na.rm = TRUE)), 
+                  ~signif(., digits = 3))),
+  searchable = TRUE
+)
+```
+
+## Model Exploration
+```{r feature exploration}
+ultimate_summary_table$Rsquared <- as.numeric(ultimate_summary_table$Rsquared)
+ultimate_summary_table$features <- as.numeric(ultimate_summary_table$features)
+ultimate_summary_table$zero_weight_features <- as.numeric(ultimate_summary_table$zero_weight_features)
+ultimate_summary_table$non_zero_weight_features <- as.numeric(ultimate_summary_table$non_zero_weight_features)
+
+# Remove NA values
+plot_data <- na.omit(ultimate_summary_table)
+
+plot_data <- plot_data[order(plot_data$features), ]
+barplot(
+  height = plot_data$Rsquared,  # Y-axis (R-squared values)
+  names.arg = plot_data$features,
+  col = "steelblue",  # Bar color
+  border = NA,
+  xlab = "Number of Features",
+  ylab = "R-Squared",
+  main = "R-Squared vs Number of Features",
+  ylim = c(0, 1),  # Set correct y-axis range
+  las = 1  # Make y-axis labels horizontal for readability
+  )
+axis(2, at = seq(0, 1, by = 0.1), las = 1)
+
+plot_data <- plot_data[order(plot_data$zero_weight_features), ]
+barplot(
+  height = plot_data$Rsquared,  # Y-axis (R-squared values)
+  names.arg = plot_data$zero_weight_features,
+  col = "firebrick",  # Bar color
+  border = NA,
+  xlab = "Number of Features",
+  ylab = "R-Squared",
+  main = "R-Squared vs Number of Zero_weight_Features",
+  ylim = c(0, 1),  # Set correct y-axis range
+  las = 1  # Make y-axis labels horizontal for readability
+  )
+axis(2, at = seq(0, 1, by = 0.1), las = 1)
+
+plot_data <- plot_data[order(plot_data$non_zero_weight_features), ]
+barplot(
+  height = plot_data$Rsquared,  # Y-axis (R-squared values)
+  names.arg = plot_data$non_zero_weight_features,
+  col = "forestgreen",  # Bar color
+  border = NA,
+  xlab = "Number of Features",
+  ylab = "R-Squared",
+  main = "R-Squared vs Number of Non_zero_weight_Features",
+  ylim = c(0, 1),  # Set correct y-axis range
+  las = 1 # Make y-axis labels horizontal for readability
+  )
+axis(2, at = seq(0, 1, by = 0.1), las = 1)
+
+```
+## Baseline Models per Cancer
+```{r Baseline models per cancer}
+# Get unique cancer types
+cancer_types <- unique(ultimate_summary_table$cancer_type)
+
+# Define the threshold line
+threshold <- -log10(0.05)
+
+# Loop through each cancer type and create a bar plot
+for (cancer in cancer_types) {
+  subset <- subset(ultimate_summary_table, cancer_type == cancer)
+  
+  # Transform p-values
+  subset$log_pval <- -log10(subset$chronological_pval_baseline)
+  
+  p <- ggplot(subset, aes(x = layer_combination, y = log_pval)) +
+    geom_bar(stat = "identity", fill = "steelblue") +
+    geom_hline(yintercept = threshold, linetype = "dotted", color = "red", size = 1) +
+    labs(title = paste("Chronological P-Value Baseline (-log10) for", cancer),
+         x = "Layer Combination",
+         y = "-log10(Chronological P-Value Baseline)") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  print(p)
+}
+```
+## Heatmaps 
+
+REMOVED BRCA BECAUSE IT HAS NO DATA YET ---->>> ...
+Heatmap ordered from lowest to highest baseline chronological pval on survival, anything to the left of KICH, including KICH is has chronological age as a significant contributor of survival
+```{r heatmaps}
+##########Defining column and row orders####################
+#row order as complexity increases & column order as least to most age related at the baseline survival model
+r_order <- c("miRNA","RPPA","RNAseq","methylation","RNAseq_RPPA","methylation_RNAseq","methylation_miRNA", "methylation_RPPA","miRNA_RNAseq","miRNA_RPPA", "miRNA_RNAseq_RPPA", "methylation_RNAseq_RPPA","methylation_miRNA_RNAseq","methylation_miRNA_RPPA", "methylation_miRNA_RNAseq_RPPA")
+
+# Compute median chronological_pval_baseline for each cancer type and order it
+median_pvals <- aggregate(chronological_pval_baseline ~ cancer_type, 
+                          data = ultimate_summary_table, 
+                          FUN = median)
+
+# Order from lowest to highest
+median_pvals <- median_pvals[order(median_pvals$chronological_pval_baseline), ]
+
+c_order <- median_pvals$cancer_type
+##############################################################
+
+# Ensure the columns are numeric and remove NA values
+ultimate_summary_table <- ultimate_summary_table %>%
+  mutate(delta_age_pval_non_interaction = as.numeric(delta_age_pval_non_interaction)) %>%
+  replace_na(list(delta_age_pval_non_interaction = 1))
+
+# Standardize layer_combinations by sorting and collapsing duplicate pairs
+ultimate_summary_table <- ultimate_summary_table %>%
+  mutate(layer_combination = sapply(strsplit(layer_combination, "_"), function(x) paste(sort(x), collapse = "_"))) %>%
+  group_by(cancer_type, layer_combination) %>%
+  summarise(delta_age_pval_non_interaction = mean(delta_age_pval_non_interaction, na.rm = TRUE), .groups = "drop")
+
+# Convert the data to a matrix for the heatmap
+heatmap_data <- ultimate_summary_table %>%
+  select(cancer_type, layer_combination, delta_age_pval_non_interaction) %>%
+  pivot_wider(names_from = cancer_type, values_from = delta_age_pval_non_interaction, values_fn = mean, values_fill = 1) %>%
+  column_to_rownames(var = "layer_combination")
+
+min(heatmap_data) #8.232179e-11
+max(heatmap_data) #1
+
+heatmap_data <- data.frame(lapply(heatmap_data, as.numeric), row.names = rownames(heatmap_data))
+heatmap_data <- as.matrix(heatmap_data)
+
+# Apply row and column ordering
+heatmap_data <- heatmap_data[r_order,]
+
+c_order <- setdiff(c_order, "BRCA") #################TAKE OUT WHEN BRCA DONE :) ###########################
+
+heatmap_data <- heatmap_data[,c_order]
+
+# Define color scale
+col_fun <- colorRamp2(c(min(heatmap_data, na.rm = TRUE), 
+                        0.05, 
+                        max(heatmap_data, na.rm = TRUE)),
+                      c("red", "#f16913","white"))
+#c("white","#fee6ce","#fdae6b", "#f16913", "#d94801", "#7f2704")
+
+#Generate a Heatmap
+Heatmap(heatmap_data, col = col_fun,
+        layer_fun = function(j, i, x, y, width, height, fill) {
+          grid.rect(x, y, width, height, gp = gpar(col = NA, fill = fill))
+          if("KICH" %in% colnames(heatmap_data)) {
+            kich_index <- which(colnames(heatmap_data) == "KICH") / ncol(heatmap_data)
+            grid.lines(x = unit(rep(kich_index, 2), "npc"), 
+                       y = unit(c(0, 1), "npc"), 
+                       gp = gpar(lty = "dotted", col = "black", lwd = 2))
+          }
+        },
+        top_annotation = HeatmapAnnotation(
+          annotation_custom = function(index) {
+            grid::grid.lines(x = unit(which(colnames(heatmap_data) == "KICH") / ncol(heatmap_data), "npc"),
+                             y = unit(c(0, 1), "npc"),
+                             gp = grid::gpar(lty = "dotted", col = "black"))
+          }
+        ), 
+        name = "Delta Age P-Value",
+        cluster_rows = FALSE, 
+        cluster_columns = FALSE,
+        row_names_gp = gpar(fontsize = 8),
+        column_names_gp = gpar(fontsize = 8),
+        heatmap_legend_param = list(
+          title = "P-Value", 
+          legend_height = unit(3, "cm"),
+          direction = "horizontal"
+        ))
+
+```
+
+## Dot Plots
+```{r dot plots}
+#Number of features and model performance (r^2) ===> Visualize the impact of number of features with model performance
+#-log(Pval) and model performance (r^2) ===> Visualize the impact of fit of age with survival model performance
+```
