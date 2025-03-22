@@ -1,9 +1,9 @@
----
-title: "R Notebook"
-output: html_notebook
----
+# ---
+# title: "ModelBuilding"
+# output: html_notebook
+# ---
 
-```{r message=FALSE, warning=FALSE, include=FALSE}
+```{r, Load, message=FALSE, warning=FALSE}
 library(e1071) 
 library(randomForest) 
 library(SummarizedExperiment)
@@ -11,14 +11,18 @@ library(Biobase)
 library(ggplot2)
 library(caret)
 library ("dplyr")
+library(bigstatsr)
 knitr::knit("Preprocessing.Rmd", output = tempfile())
 source("PanClockHelperFunctions.R")
 source("run_analysis_pipeline.R")
+
+modelBuildingFunctions <- c()
 ```
+
 
 ### Function to apply systematic bias correction
 
-```{r}
+```{r, Bias_Correction}
 bias_correction <- function(predicted_age, true_age) {
   print("Applying bias correction...")
   
@@ -40,7 +44,7 @@ bias_correction <- function(predicted_age, true_age) {
 
 ### Split data into training and testing sets
 
-```{r}
+```{r SplitTrainTest}
 splitTrainTest <- function(assayData, trainSetSize=0.8, seed=42){
   print("Train test splitting...")
   set.seed(seed)
@@ -53,17 +57,19 @@ splitTrainTest <- function(assayData, trainSetSize=0.8, seed=42){
 
 ### Build ML model; default is ElasticNet
 
-```{r}
+```{r TrainTestWrapper}
 train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=TRUE, seed=42, graphTitle="", stratifying=FALSE, applyBiasCorrection=FALSE) {
   print("Training model...")
   print(methodName)
-  
+  meta_trn <- subset(meta_trn, select=-submitter_id)
+  # return(meta_trn)
+  onDiskTrain <- as_FBM(as.matrix(meta_trn))
+
   # Model selection using 10-fold CV
   if (!is.null(seed)) { set.seed(seed) }
   cv10 <- trainControl(method = "cv", number = 10)
   complexControl <- trainControl(method="boot")
   cv3 <- trainControl(method = "cv", number = 3)
-  meta_trn <- subset(meta_trn, select=-submitter_id)
   
   # Random Forest
   if (methodName == "ranger"){
@@ -105,9 +111,13 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=
   }
 
   else if (methodName == "ridge"){
+    trainMtx <- onDiskTrain[]
+    colnames(trainMtx) <- colnames(meta_trn)
     meta_model <- caret::train(
-      Age ~ .,
-      data = meta_trn,
+      # meta_trn$Age,
+      # data = meta_trn,
+      trainMtx,
+      meta_trn$Age,
       method = "glmnet",
       trControl = cv10,
       # metric = "RMSE",
@@ -205,8 +215,8 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=
 <!--   stratifying: set to TRUE to stratify subjects by age -->
 ---
 
-```{r}
-ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCompleteData=FALSE, methodNames=c("glmnet"), graphTitle="", seed=42, pca=FALSE, columnsToKeep=c("Age", "gender", "race", "HPV.status"), stratifying=FALSE, iterationCount=NULL, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE){
+```{r ModelBuilding}
+ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCompleteData=FALSE, methodNames=c("glmnet"), graphTitle="", seed=42, pca=FALSE, columnsToKeep=c("Age", "gender", "race", "HPV.status"), stratifying=FALSE, iterationCount=NULL, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE, significanceCutoff=0.025){
 
   experimentsList <- inputList$experimentsList
   assayNamesList <- inputList$assayNames
@@ -222,7 +232,8 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
     experimentsList <- scaleAssayByNormal(experimentsList, assayNamesList, needsImputation, cancerName=cancerName) 
   }
   experimentsAndCovariatesList <- filterForCovariates(experimentsList, columns_to_keep=columnsToKeep)
-  assayList <- getCleanedAssayData(experimentsAndCovariatesList[["experiments"]], assayNamesList, needsImputation, simplifiedDataPairs=simplifiedDataPairs)
+  # return(experimentsAndCovariatesList)
+  assayList <- getCleanedAssayData(experimentsAndCovariatesList[["experiments"]], assayNamesList, needsImputation, simplifiedDataPairs=simplifiedDataPairs, significanceCutoff=significanceCutoff)
   transformedData <- filterFeatures(assayList, experimentsAndCovariatesList[["experiments"]], highCorrelationToEachOther=FALSE, relativeVariance=FALSE)
   transformedData <- combineAssays(transformedData, combiningNormal=combiningNormal)
   assayDataWithCovariates <- encode_covariates(experimentsAndCovariatesList[["covariates"]][[1]], transformedData)
@@ -396,7 +407,7 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
 
 # Function to get lists containing paths for each omics layer, names for the best assay type respective to each layer, and whether or not imputation is required for each layer
 
-```{r}
+```{r Setup1}
 setup1 <- function(layersVector, cancerName="HNSC"){
   paths <- getPathsByLayerAndCancer()
   layerPaths <- list()
@@ -438,7 +449,7 @@ setup1 <- function(layersVector, cancerName="HNSC"){
 
 # Perform second part of setup, including imputing, getting significant features
 
-```{r}
+```{r, Setup2}
 setup2 <- function(setup1List, featuresToEnsure=c("Age"), existingExperimentsList=NULL){
   if (is.null(setup1List)) { return(NULL) }
   
@@ -488,7 +499,7 @@ setup2 <- function(setup1List, featuresToEnsure=c("Age"), existingExperimentsLis
 
 # Wrapper for the two setup functions
 
-```{r}
+```{r, PerformSetup}
 performSetup <- function(layersVector, cancerName="HNSC", featuresToEnsure=c("Age"), removeHPVPositive=FALSE, existingExperimentsList=NULL){
   return(setup2(setup1(layersVector, cancerName=cancerName), featuresToEnsure=featuresToEnsure, existingExperimentsList=existingExperimentsList))
 }
@@ -496,8 +507,8 @@ performSetup <- function(layersVector, cancerName="HNSC", featuresToEnsure=c("Ag
 
 # Wrapper for ModelBuilding with default params to make life easier. Just need to pass in vector of omics layer names and the cancer name abbreviation, but can adjust other parameters as desired like setting splitSize to 0.8 for a holdouts test
 
-```{r}
-standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize=0.999, testOnCompleteData=FALSE, graphTitle="", methodNames=c("glmnet"), seed=43, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, existingExperimentsList=NULL, iterationCount=NULL, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE){
+```{r, StandardizedModelBuilding}
+standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize=0.999, testOnCompleteData=FALSE, graphTitle="", methodNames=c("glmnet"), seed=43, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, existingExperimentsList=NULL, iterationCount=NULL, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE, significanceCutoff=0.025){
   if (splitSize > 0.98){ testOnCompleteData=TRUE}
   modelBuildingInput <- performSetup(layersVector, cancerName=cancerName, existingExperimentsList=existingExperimentsList)
   if (is.null(modelBuildingInput)) { return(NULL) }
@@ -506,11 +517,13 @@ standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize
   if (nchar(graphTitle) == 0){
     string1 <- paste(layersVector, collapse=", ")
     string2 <- paste(methodNames, collapse=", ")
-    if (testOnCompleteData){ string3 <- "Complete Set"}
-    else{ string3 <- "Holdouts"}
+    string3 <- cancerName
     graphTitle <- paste(string1, "; ", string2, "; ", string3, sep="")
   }
   
-  return(list(ModelBuilding=ModelBuilding(modelBuildingInput, cancerName=cancerName, splitSize=splitSize, testOnCompleteData=testOnCompleteData, graphTitle=graphTitle, methodNames=methodNames, seed=seed, columnsToKeep=columnsToKeep, stratifying=stratifying, iterationCount=iterationCount, applyBiasCorrection=applyBiasCorrection, combiningNormal=combiningNormal, scaleByNormal=scaleByNormal), experimentList=modelBuildingInput$experimentsList))
+  return(list(
+      ModelBuilding=ModelBuilding(modelBuildingInput, cancerName=cancerName, splitSize=splitSize, testOnCompleteData=testOnCompleteData, graphTitle=graphTitle, methodNames=methodNames, seed=seed, columnsToKeep=columnsToKeep, stratifying=stratifying, iterationCount=iterationCount, applyBiasCorrection=applyBiasCorrection, combiningNormal=combiningNormal, scaleByNormal=scaleByNormal, significanceCutoff=significanceCutoff),
+      experimentList=modelBuildingInput$experimentsList)
+  )
 }
 ```

@@ -28,6 +28,7 @@ source("run_analysis_pipeline.R")
 # Uses five closest neighbors
 imputeMissingValues <- function(experimentsList, assayNames, needsImputation, cancerName, imputationDir="/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/dataset/imputations") {
   print("Checking for existing imputed datasets...")
+  imputationDir <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/imputations_0.05"
 
   for (i in seq_along(experimentsList)) {
     layerName <- names(experimentsList)[i]
@@ -129,8 +130,9 @@ filterForCovariates <- function(experimentsList, columns_to_keep=c("Age", "gende
     layerName <- names(experimentsList)[i]
     experiment <- experimentsList[[layerName]]
     covariates <- SummarizedExperiment::colData(experiment)[, columns_to_keep, drop = FALSE]
+    # return(covariates)
     # Check for and remove rows with missing values
-    covariates <- covariates[complete.cases(covariates), ]
+    covariates <- covariates[complete.cases(as.data.frame(covariates)), ]
     # Filter layer data to match samples
     layer_processed <- experiment[, rownames(covariates)]
     experimentsList[[layerName]] <- layer_processed
@@ -142,7 +144,7 @@ filterForCovariates <- function(experimentsList, columns_to_keep=c("Age", "gende
 
 ### Gets assay data using pre-filtered data if available as well as imputed vals.
 ```{r}
-getCleanedAssayData <- function(experimentsList, assayNames, useImputed, simplifiedDataPairs=list()){
+getCleanedAssayData <- function(experimentsList, assayNames, useImputed, simplifiedDataPairs=list(), significanceCutoff=0.025){
   print("Getting cleaned assay data...")
 
   # Only keep rows that are significantly age associated based on prior calculations
@@ -152,7 +154,7 @@ getCleanedAssayData <- function(experimentsList, assayNames, useImputed, simplif
     experiment <- experimentsList[[layerName]]
     if (length(simplifiedDataPairs) > 0 && length(simplifiedDataPairs[[layerName]]) > 1){
       simplifiedData <- simplifiedDataPairs[[layerName]]$data
-      significantFeatures <- simplifiedData[simplifiedData[[simplifiedDataPairs[[layerName]]$metric]] <= 0.025, ]
+      significantFeatures <- simplifiedData[simplifiedData[[simplifiedDataPairs[[layerName]]$metric]] <= significanceCutoff, ]
       if (assayNames[[layerName]] == "M-values"){ 
         experiment <- experiment[rownames(significantFeatures), ] }
       else{ experiment <- experiment[rowRanges(experiment)$gene_name %in% rownames(significantFeatures), ] }
