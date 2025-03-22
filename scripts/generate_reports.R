@@ -1,6 +1,11 @@
 # Load required library
 library(rmarkdown)
 library(glue)
+library(doParallel)
+registerDoParallel(cores = 4)
+Sys.setenv(R_MAX_STACK_SIZE = "50000000000")  # Increase to 50000MB
+options(expressions = 500000)
+
 #setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/scripts")
 setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/apazhern/Pan_Cancer_Aging_Clocks/Pancancer_Aging_Clocks/scripts")
 # Define the Rmd file and the output directory
@@ -18,15 +23,15 @@ cancer_types <- unique(sub(".*TCGA-(.*)_RNAseq_filtered\\.rds", "\\1", files))
 
 
 #Temporary One by One:
-cancer_types <- c("BRCA", "CHOL", "DLBC", "GBM", "LAML", "LGG", 
-                  "LIHC", "OV", "PRAD", "SARC", "THCA", "UCEC")
+#cancer_types <- c("BRCA", "CHOL", "DLBC", "GBM", "LAML", "LGG", 
+#                  "LIHC", "OV", "PRAD", "SARC", "THCA", "UCEC")
 #cancer_types1 <- c("LGG", "LIHC", "OV", "PRAD", "SARC", "THCA", "UCEC")
 
-cancer_types <- c("GBM") #Methylation still fails to run, will wait till I can run with everything
+cancer_types <- c("BRCA") #Methylation still fails to run, will wait till I can run with everything
 
-cancer_list_filtered <- setdiff(cancer_types, cancer_types1)
+#cancer_list_filtered <- setdiff(cancer_types, cancer_types1)
 
-cancer_types <- cancer_list_filtered
+#cancer_types <- cancer_list_filtered
 
 #Problems: LAML is the only cancer missing in RPPA, all cancers and omics exist
 #GBM: Problems with miRNA (Report generated w/o miRNA)

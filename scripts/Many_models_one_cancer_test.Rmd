@@ -84,8 +84,8 @@ setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/
 #testing w/o RNAseq RPPA miRNA
 
 
-models <- c("miRNA","RPPA","RNAseq", "methylation")
-#models <- c("methylation")
+#models <- c("miRNA","RPPA","RNAseq", "methylation")
+models <- c("methylation")
 layer_combinations <- unlist(lapply(1:length(models), function(x) {
   combn(models, x, simplify = FALSE)
 }), recursive = FALSE)
@@ -122,7 +122,7 @@ for (comb in layer_combinations) {
                                            cancerName = cancer_type,
                                            methodNames = c("glmnet"),
                                            splitSize = 1,
-                                           seed = 43)
+                                           seed = 43,                                      significanceCutoff=0.025)
   if (is.null(modelOutput)) { 
     print(paste0("Could not load experiment for: ", getCancerLayersPrefix(cancer_type, comb)))
     next

@@ -1,19 +1,30 @@
-## ----Load---------------------------------------------------------------------
+---
+title: "Analysis"
+output: html_notebook
+---
+
+
+
+``` r
 library(survival)
 library(survminer)
 source("run_analysis_pipeline.R")
+```
 
+# Runs CoxPH given experiment and predictions and output object containing each CoxPH run
 
-## ----GetSurvivalStats---------------------------------------------------------
+``` r
 getSurvivalStats <- function(fullExperiment, predictionObject, applyBiasCorrection=FALSE, covariates_to_include=c("gender", "race")){
   if (applyBiasCorrection) { predictedAges <- predictionObject$predicted_corrected_age }
   else { predictedAges <- predictionObject$predicted_age }
   df <- data.frame(predicted_age=predictedAges, submitter_id=predictionObject$submitter_id)
   return(run_analysis_pipeline(fullExperiment, df, prediction_object=predictionObject, covariates_to_include=covariates_to_include))
 }
+```
 
+### Save age model features and summary stats as well as survival analysis. Important to set additionalDescriptor to unique name if you don't want to overwrite previous outputs
 
-## ----SaveClockOutput----------------------------------------------------------
+``` r
 saveClockOutput <- function(cancerType, layers, modelOutput, dir, additionalDescriptor, crossValidating=FALSE, applyBiasCorrection=FALSE){
   
   # Modify output path
@@ -43,9 +54,11 @@ saveClockOutput <- function(cancerType, layers, modelOutput, dir, additionalDesc
   write.csv(statsTable, paste0(filePath, "_stats", additionalDescriptor, ".csv"), row.names = TRUE)
   return(list(primaryDir=primaryDir, coefficientPath=coefficientPath))
 }
+```
 
+### Perform pathway analysis
 
-## ----PerformEnrichment--------------------------------------------------------
+``` r
 performEnrichment <- function(cancerType, layers, additionalDescriptor, clockOutput){
   
   # Initialize files and folders
@@ -58,9 +71,11 @@ performEnrichment <- function(cancerType, layers, additionalDescriptor, clockOut
   process_gene_weights(cancerType, weights_file=clockOutput$coefficientPath, output_dir=outputDir)
   run_pathway_analysis(cancerType, input_file=formattedWeightFileName, output_dir=outputDir)
 }
+```
 
+### Get coefficient df
 
-## ----GetCoefficientDF---------------------------------------------------------
+``` r
 getCoefficientDF <- function(finalModel){
 
   # Extract lambda values and coefficients
@@ -77,9 +92,11 @@ getCoefficientDF <- function(finalModel){
   rownames(coef_df) <- coef_df$Feature
   return(coef_df)
 }
+```
 
+### Map RNAseq gene IDs to names
 
-## ----GetGeneMap---------------------------------------------------------------
+``` r
 getGeneMap <- function(modelOutput){
   features <- modelOutput$ModelBuilding$model$coefnames
   geneIDs <- c()
@@ -97,10 +114,11 @@ getGeneMap <- function(modelOutput){
   geneMap <- data.frame(Ensembl_ID=geneIDs, Gene_Name=geneNames)
   return(geneMap)
 }
+```
 
+### Find coefficients of individual features used in final model
 
-
-## ----OrganizeOutputFeatures---------------------------------------------------
+``` r
 ## For RNAseq data
 # To find coefficients: coefficients <- coef(modelPredictionsPair$model$finalModel, modelPredictionsPair$model$bestTune$lambda)
 # To find the index of a coefficient: index <- which(coefficients@x %in% COEFFICIENT_OF_CHOICE)
@@ -144,9 +162,10 @@ organizeOutputFeatures <- function(modelOutput, RNAExperiment=NULL){
 # 
 # outFile <- "./ModelBuildingOutput/ElasticNetRNAseqHoldoutsFeatures.csv"
 # write.csv(featureFrame, outFile, row.names = FALSE)
+```
 
 
-## ----IntializeSummaryTable----------------------------------------------------
+``` r
 intializeSummaryTable <- function(){
   cancer_summary_table <- data.frame(
     test_name = character(),
@@ -215,9 +234,10 @@ intializeSummaryTable <- function(){
   )
   return(cancer_summary_table)
 }
+```
 
 
-## ----GetSummaryTable----------------------------------------------------------
+``` r
 getSummaryTable <- function(cancer_type, comb, modelOutput, stats, test_name="elastic_net"){
  return(data.frame(
                     layer_combination = paste(comb, collapse = "_"),
@@ -279,10 +299,10 @@ getSummaryTable <- function(cancer_type, comb, modelOutput, stats, test_name="el
                     logrank_score_test_pval_baseline = stats$baseline_summary$sctest["pvalue"]
   ))
 }
-  
+```
 
 
-## ----GetFormattedStatsTable---------------------------------------------------
+``` r
 getFormattedStatsTable <- function(stats){
   
   cols <- c("interaction_term_pval", "delta_age_pval", "chronological_age_pval", "concordance", "logtest", "logtest pvalue", "waldtest", "waldtest pvalue", "sctest", "sctest pvalue")
@@ -328,15 +348,12 @@ getFormattedStatsTable <- function(stats){
   colnames(statsFrame) <- cols
   return(statsFrame)
 }
+```
 
 
-## ----FeatureImportance--------------------------------------------------------
+``` r
 library(vip)
-<<<<<<< HEAD
-featureImportance <- function(){
-=======
 featureImportance <- function(result){
->>>>>>> cc9b28edb70adf38dc754be5bce629a63d53c700
   # Calculate permutation feature importance
   vip_data <- vi(result$elnet, method = "permute", target = "Age", train = meta_age_associated, metric = "MAE",
                  pred_wrapper = function(object, newdata) predict(object, newdata))
@@ -345,5 +362,4 @@ featureImportance <- function(result){
   vip(vip_data, geom = "point", num_features = 20, horiz = TRUE) +
     labs(title = "Permutation Feature Importance for Elastic Net Model (Full DataSet)")
 }
-
-
+```
