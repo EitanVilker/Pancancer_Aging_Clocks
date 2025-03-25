@@ -193,7 +193,7 @@ getSampleCounts <- function(layers){
   for (layer in layers){
     n_vec <- c()
     for (name in cancerNames){
-      experiment <- getExperimentByLayerAndCancer("RNAseq", name)[[1]]
+      experiment <- getExperimentByLayerAndCancer(layer, name)[[1]]
       if (is.null(experiment)){ n_vec <- c(n_vec, 0) }
       else{ n_vec <- c(n_vec, length(experiment@colData@rownames)) }
     }
