@@ -1,3 +1,9 @@
+---
+title: "Analysis"
+output: html_notebook
+---
+
+
 
 ``` r
 library(survival)
@@ -13,6 +19,20 @@ getSurvivalStats <- function(fullExperiment, predictionObject, applyBiasCorrecti
   else { predictedAges <- predictionObject$predicted_age }
   df <- data.frame(predicted_age=predictedAges, submitter_id=predictionObject$submitter_id)
   return(run_analysis_pipeline(fullExperiment, df, prediction_object=predictionObject, covariates_to_include=covariates_to_include))
+}
+```
+
+# Gets likelihood ratio between two models
+
+``` r
+getTrueLikelihoodRatio <- function(baselineModel, modifiedModel){
+  
+  baselineLikelihood <- logLik(baselineModel)
+  modifiedLikelihood <- logLik(modifiedModel)
+  newLogRatio <- -2 * (baselineLikelihood - modifiedLikelihood)
+  degreesOfFreedom <- length(coef(modifiedModel)) - length(coef(baselineModel))
+  pValue <- 1 - pchisq(newLogRatio, degreesOfFreedom)
+  return(list(logratio=newLogRatio, pval=pValue))
 }
 ```
 
@@ -168,33 +188,20 @@ intializeSummaryTable <- function(){
     
     Rsquared = numeric(),
     RMSE = numeric(),
+    alpha = numeric(),
+    lambda = numeric(),
     
-    delta_age_coeff_non_interaction	= numeric(),
-    delta_age_exp_coeff_non_interaction = numeric(),
-    delta_age_pval_non_interaction = numeric(),
-    chronological_coef_non_interaction = numeric(),
-    chronological_exp_coef_non_interaction = numeric(),
-    chronological_pval_non_interaction = numeric(),
-  
-    Concordance_non_interaction = numeric(),
-    se_concordance_non_interaction = numeric(),
-    lik_ratio_test_non_interaction = numeric(),
-    lik_ratio_test_df_non_interaction = numeric(),
-    lik_ratio_test_pval_non_interaction = numeric(),
-    Wald_test_non_interaction = numeric(),
-    Wald_test_df_non_interaction = numeric(),
-    Wald_test_pval_non_interaction = numeric(),
-    logrank_score_test_non_interaction = numeric(),
-    logrank_score_test_df_non_interaction = numeric(),
-    logrank_score_test_pval_non_interaction = numeric(),
-    
+    interaction_against_baseline_likelihood_ratio = numeric(),
+    interaction_against_baseline_pval = numeric(),
+    interaction_term_coeff_interaction = numeric(),
+    interaction_term_exp_coeff_interaction = numeric(),
+    interaction_term_pval_interaction = numeric(),
     delta_age_coeff_interaction	= numeric(),
     delta_age_exp_coeff_interaction = numeric(),
     delta_age_pval_interaction = numeric(),
     chronological_coef_interaction = numeric(),
     chronological_exp_coef_interaction = numeric(),
     chronological_pval_interaction = numeric(),
-  
     Concordance_interaction = numeric(),
     se_concordance_interaction = numeric(),
     lik_ratio_test_interaction = numeric(),
@@ -207,13 +214,29 @@ intializeSummaryTable <- function(){
     logrank_score_test_df_interaction = numeric(),
     logrank_score_test_pval_interaction = numeric(),
     
-    delta_age_coeff_baseline	= numeric(),
-    delta_age_exp_coeff_baseline = numeric(),
-    delta_age_pval_baseline = numeric(),
+    non_interaction_against_baseline_likelihood_ratio = numeric(),
+    non_interaction_against_baseline_pval = numeric(),
+    delta_age_coeff_non_interaction	= numeric(),
+    delta_age_exp_coeff_non_interaction = numeric(),
+    delta_age_pval_non_interaction = numeric(),
+    chronological_coef_non_interaction = numeric(),
+    chronological_exp_coef_non_interaction = numeric(),
+    chronological_pval_non_interaction = numeric(),
+    Concordance_non_interaction = numeric(),
+    se_concordance_non_interaction = numeric(),
+    lik_ratio_test_non_interaction = numeric(),
+    lik_ratio_test_df_non_interaction = numeric(),
+    lik_ratio_test_pval_non_interaction = numeric(),
+    Wald_test_non_interaction = numeric(),
+    Wald_test_df_non_interaction = numeric(),
+    Wald_test_pval_non_interaction = numeric(),
+    logrank_score_test_non_interaction = numeric(),
+    logrank_score_test_df_non_interaction = numeric(),
+    logrank_score_test_pval_non_interaction = numeric(),
+    
     chronological_coef_baseline = numeric(),
     chronological_exp_coef_baseline = numeric(),
     chronological_pval_baseline = numeric(),
-  
     Concordance_baseline = numeric(),
     se_concordance_baseline = numeric(),
     lik_ratio_test_baseline = numeric(),
@@ -232,38 +255,28 @@ intializeSummaryTable <- function(){
 
 
 ``` r
-getSummaryTable <- function(cancer_type, comb, modelOutput, stats, test_name="elastic_net"){
- return(data.frame(
+getSummaryTable <- function(cancer_type, comb, modelOutput, stats, params=NULL, test_name="elastic_net"){
+  interactionLikelihood <- getTrueLikelihoodRatio(stats$baseline_model, stats$interaction_model)
+  nonInteractionLikelihood <- getTrueLikelihoodRatio(stats$baseline_model, stats$non_interaction_model)
+
+  summaryTable <- data.frame(
                     layer_combination = paste(comb, collapse = "_"),
                     Rsquared = modelOutput$ModelBuilding$model$R2,
                     RMSE = modelOutput$ModelBuilding$model$RMSE,
+                    alpha = modelOutput$ModelBuilding$model$bestTune$alpha,
+                    lambda = modelOutput$ModelBuilding$model$bestTune$lambda,
                     
-                    delta_age_coeff_non_interaction	= stats$non_interaction_summary$coefficients["delta_age", "coef"],
-                    delta_age_exp_coeff_non_interaction = stats$non_interaction_summary$coefficients["delta_age", "exp(coef)"],
-                    delta_age_pval_non_interaction = stats$non_interaction_summary$coefficients["delta_age", "Pr(>|z|)"],
-                    chronological_coef_non_interaction = stats$non_interaction_summary$coefficients["chronological", "coef"],
-                    chronological_exp_coef_non_interaction = stats$non_interaction_summary$coefficients["chronological", "exp(coef)"],
-                    chronological_pval_non_interaction =  stats$non_interaction_summary$coefficients["chronological", "Pr(>|z|)"],
-                    
-                    Concordance_non_interaction = stats$non_interaction_summary$concordance[1],
-                    se_concordance_non_interaction = stats$non_interaction_summary$concordance[2],
-                    lik_ratio_test_non_interaction = stats$non_interaction_summary$logtest["test"],
-                    lik_ratio_test_df_non_interaction = stats$non_interaction_summary$logtest["df"],
-                    lik_ratio_test_pval_non_interaction = stats$non_interaction_summary$logtest["pvalue"],
-                    Wald_test_non_interaction = stats$non_interaction_summary$waldtest["test"],
-                    Wald_test_df_non_interaction = stats$non_interaction_summary$waldtest["df"],
-                    Wald_test_pval_non_interaction = stats$non_interaction_summary$waldtest["pvalue"],
-                    logrank_score_test_non_interaction = stats$non_interaction_summary$sctest["test"],
-                    logrank_score_test_df_non_interaction = stats$non_interaction_summary$sctest["df"],
-                    logrank_score_test_pval_non_interaction = stats$non_interaction_summary$sctest["pvalue"],
-                    
+                    interaction_against_baseline_likelihood_ratio = interactionLikelihood$logratio,
+                    interaction_against_baseline_pval = interactionLikelihood$pval,
+                    interaction_term_coeff_interaction = stats$interaction_summary$coefficients["chronological:delta_age", "coef"],
+                    interaction_term_exp_coeff_interaction = stats$interaction_summary$coefficients["chronological:delta_age", "exp(coef)"],
+                    interaction_term_pval_interaction = stats$interaction_summary$coefficients["chronological:delta_age", "Pr(>|z|)"],
                     delta_age_coeff_interaction = stats$interaction_summary$coefficients["delta_age", "coef"],
                     delta_age_exp_coeff_interaction = stats$interaction_summary$coefficients["delta_age", "exp(coef)"],
                     delta_age_pval_interaction = stats$interaction_summary$coefficients["delta_age", "Pr(>|z|)"],
                     chronological_coef_interaction = stats$interaction_summary$coefficients["chronological", "coef"],
                     chronological_exp_coef_interaction = stats$interaction_summary$coefficients["chronological", "exp(coef)"],
                     chronological_pval_interaction = stats$interaction_summary$coefficients["chronological", "Pr(>|z|)"],
-                    
                     Concordance_interaction = stats$interaction_summary$concordance[1],
                     se_concordance_interaction = stats$interaction_summary$concordance[2],
                     lik_ratio_test_interaction = stats$interaction_summary$logtest["test"],
@@ -276,10 +289,29 @@ getSummaryTable <- function(cancer_type, comb, modelOutput, stats, test_name="el
                     logrank_score_test_df_interaction = stats$interaction_summary$sctest["df"],
                     logrank_score_test_pval_interaction = stats$interaction_summary$sctest["pvalue"],
                     
+                    non_interaction_against_baseline_likelihood_ratio = nonInteractionLikelihood$logratio,
+                    non_interaction_against_baseline_pval = nonInteractionLikelihood$pval,
+                    delta_age_coeff_non_interaction	= stats$non_interaction_summary$coefficients["delta_age", "coef"],
+                    delta_age_exp_coeff_non_interaction = stats$non_interaction_summary$coefficients["delta_age", "exp(coef)"],
+                    delta_age_pval_non_interaction = stats$non_interaction_summary$coefficients["delta_age", "Pr(>|z|)"],
+                    chronological_coef_non_interaction = stats$non_interaction_summary$coefficients["chronological", "coef"],
+                    chronological_exp_coef_non_interaction = stats$non_interaction_summary$coefficients["chronological", "exp(coef)"],
+                    chronological_pval_non_interaction =  stats$non_interaction_summary$coefficients["chronological", "Pr(>|z|)"],
+                    Concordance_non_interaction = stats$non_interaction_summary$concordance[1],
+                    se_concordance_non_interaction = stats$non_interaction_summary$concordance[2],
+                    lik_ratio_test_non_interaction = stats$non_interaction_summary$logtest["test"],
+                    lik_ratio_test_df_non_interaction = stats$non_interaction_summary$logtest["df"],
+                    lik_ratio_test_pval_non_interaction = stats$non_interaction_summary$logtest["pvalue"],
+                    Wald_test_non_interaction = stats$non_interaction_summary$waldtest["test"],
+                    Wald_test_df_non_interaction = stats$non_interaction_summary$waldtest["df"],
+                    Wald_test_pval_non_interaction = stats$non_interaction_summary$waldtest["pvalue"],
+                    logrank_score_test_non_interaction = stats$non_interaction_summary$sctest["test"],
+                    logrank_score_test_df_non_interaction = stats$non_interaction_summary$sctest["df"],
+                    logrank_score_test_pval_non_interaction = stats$non_interaction_summary$sctest["pvalue"],
+                    
                     chronological_coef_baseline = stats$baseline_summary$coefficients["chronological", "coef"],
                     chronological_exp_coef_baseline = stats$baseline_summary$coefficients["chronological", "exp(coef)"],
                     chronological_pval_baseline = stats$baseline_summary$coefficients["chronological", "Pr(>|z|)"],
-                    
                     Concordance_baseline = stats$baseline_summary$concordance[1],
                     se_concordance_baseline = stats$baseline_summary$concordance[2],
                     lik_ratio_test_baseline = stats$baseline_summary$logtest["test"],
@@ -291,7 +323,12 @@ getSummaryTable <- function(cancer_type, comb, modelOutput, stats, test_name="el
                     logrank_score_test_baseline = stats$baseline_summary$sctest["test"],
                     logrank_score_test_df_baseline = stats$baseline_summary$sctest["df"],
                     logrank_score_test_pval_baseline = stats$baseline_summary$sctest["pvalue"]
-  ))
+  )
+  if(!is.null(params)){
+    summaryTable$age_association_adjusted_p_cutoff <- params$significance_cutoff
+    summaryTable$model <- params$model_type
+  }
+  return(summaryTable)
 }
 ```
 

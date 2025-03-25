@@ -7,10 +7,12 @@ Sys.setenv(R_MAX_STACK_SIZE = "50000000000")  # Increase to 50000MB
 options(expressions = 500000)
 
 #setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/scripts")
-setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/apazhern/Pan_Cancer_Aging_Clocks/Pancancer_Aging_Clocks/scripts")
+
 # Define the Rmd file and the output directory
 rmd_file <- "Many_models_one_cancer_test.Rmd"
-output_dir <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results"
+# output_dir <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results"
+# output_dir <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNet"
+output_dir <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV"
 
 # Fetch cancer types dynamically from file names
 folder_path <- "/restricted/projectnb/agedisease/CBMrepositoryData/TCGA-GDC/RNAseq/processed_data/filtered"
@@ -27,7 +29,7 @@ cancer_types <- unique(sub(".*TCGA-(.*)_RNAseq_filtered\\.rds", "\\1", files))
 #                  "LIHC", "OV", "PRAD", "SARC", "THCA", "UCEC")
 #cancer_types1 <- c("LGG", "LIHC", "OV", "PRAD", "SARC", "THCA", "UCEC")
 
-cancer_types <- c("BRCA") #Methylation still fails to run, will wait till I can run with everything
+# cancer_types <- c("HNSC") #Methylation still fails to run, will wait till I can run with everything
 
 #cancer_list_filtered <- setdiff(cancer_types, cancer_types1)
 
@@ -65,18 +67,24 @@ print(cancer_types)
 #    output_file = output_file
 #  )
 #}
+model_type <- "ridge"
 for (cancer_type in cancer_types) {
   # Construct the output file path
   output_file <- file.path(
     output_dir,
-    paste0(tools::file_path_sans_ext(rmd_file), "_", cancer_type, ".html")
+    paste0(tools::file_path_sans_ext(rmd_file), "_", cancer_type, "_", model_type, ".html")
   )
   
   # Render the R Markdown file with error handling
   tryCatch({
     rmarkdown::render(
       input = rmd_file,
-      params = list(cancer_type = cancer_type),
+      params = list(
+        cancer_type=cancer_type, 
+        model_type=model_type,
+        significance_cutoff=0.025,
+        getting_combinations=FALSE,
+        output_dir=output_dir),
       output_file = output_file
     )
     message(paste("Successfully processed:", cancer_type))

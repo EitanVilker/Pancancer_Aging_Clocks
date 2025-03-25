@@ -58,12 +58,13 @@ splitTrainTest <- function(assayData, trainSetSize=0.8, seed=42){
 ### Build ML model; default is ElasticNet
 
 ```{r TrainTestWrapper}
-train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=TRUE, seed=42, graphTitle="", stratifying=FALSE, applyBiasCorrection=FALSE) {
+train_test_wrapper <- function(meta_trn, meta_tst, methodName="ElasticNet", do_plot=TRUE, seed=42, graphTitle="", stratifying=FALSE, applyBiasCorrection=FALSE) {
   print("Training model...")
   print(methodName)
   meta_trn <- subset(meta_trn, select=-submitter_id)
-  # return(meta_trn)
-  onDiskTrain <- as_FBM(as.matrix(meta_trn))
+  trainMtx <- as_FBM(as.matrix(meta_trn))[]
+  colnames(trainMtx) <- colnames(meta_trn)
+  trainMtx <- subset(trainMtx, select=-Age)
 
   # Model selection using 10-fold CV
   if (!is.null(seed)) { set.seed(seed) }
@@ -111,17 +112,12 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=
   }
 
   else if (methodName == "ridge"){
-    trainMtx <- onDiskTrain[]
-    colnames(trainMtx) <- colnames(meta_trn)
     meta_model <- caret::train(
-      # meta_trn$Age,
-      # data = meta_trn,
       trainMtx,
       meta_trn$Age,
       method = "glmnet",
       trControl = cv10,
       # metric = "RMSE",
-      # tuneLength = 5,
       tuneGrid = expand.grid(alpha = 0,  # alpha = 0 for Ridge Regression
                              lambda = seq(0.001, 1, length = 10))  # Grid search for lambda
     )
@@ -139,13 +135,13 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=
       sampled$Class <- NULL
       trainData <- sampled
     }
-    else{
-      trainData <- meta_trn
-    }
-    
+    else{ trainData <- meta_trn }
+
+    if (methodName == "ElasticNet"){ methodName <- "glmnet" }
+  
     meta_model <- caret::train(
-      Age ~ .,
-      data = trainData,
+      trainMtx,
+      meta_trn$Age,
       method = methodName,
       trControl = cv10,
       # metric = "RMSE",
@@ -216,7 +212,7 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="glmnet", do_plot=
 ---
 
 ```{r ModelBuilding}
-ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCompleteData=FALSE, methodNames=c("glmnet"), graphTitle="", seed=42, pca=FALSE, columnsToKeep=c("Age", "gender", "race", "HPV.status"), stratifying=FALSE, iterationCount=NULL, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE, significanceCutoff=0.025){
+ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCompleteData=FALSE, methodNames=c("ElasticNet"), graphTitle="", seed=42, pca=FALSE, columnsToKeep=c("Age", "gender", "race", "HPV.status"), stratifying=FALSE, iterationCount=NULL, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE, significanceCutoff=0.025){
 
   experimentsList <- inputList$experimentsList
   assayNamesList <- inputList$assayNames
@@ -382,8 +378,9 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
     }
     
     combinedWeights$Weight <- rowMeans(combinedWeights[, -1])
+    reducedCombinedWeights <- data.frame(Feature=combinedWeights$Feature, Weight=combinedWeights$Weight)
     
-    return(list(model=modelsList, predicted=combinedPredictions, experimentsList=experimentsList, combinedWeights=combinedWeights))
+    return(list(model=modelsList, predicted=combinedPredictions, experimentsList=experimentsList, combinedWeights=reducedCombinedWeights))
   }
   else{ return(NULL) }
 
@@ -508,7 +505,7 @@ performSetup <- function(layersVector, cancerName="HNSC", featuresToEnsure=c("Ag
 # Wrapper for ModelBuilding with default params to make life easier. Just need to pass in vector of omics layer names and the cancer name abbreviation, but can adjust other parameters as desired like setting splitSize to 0.8 for a holdouts test
 
 ```{r, StandardizedModelBuilding}
-standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize=0.999, testOnCompleteData=FALSE, graphTitle="", methodNames=c("glmnet"), seed=43, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, existingExperimentsList=NULL, iterationCount=NULL, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE, significanceCutoff=0.025){
+standardizedModelBuilding <- function(layersVector, cancerName="HNSC", splitSize=0.999, testOnCompleteData=FALSE, graphTitle="", methodNames=c("ElasticNet"), seed=43, columnsToKeep=c("Age", "gender", "race", "HPV.status", "submitter_id"), stratifying=FALSE, existingExperimentsList=NULL, iterationCount=NULL, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE, significanceCutoff=0.025){
   if (splitSize > 0.98){ testOnCompleteData=TRUE}
   modelBuildingInput <- performSetup(layersVector, cancerName=cancerName, existingExperimentsList=existingExperimentsList)
   if (is.null(modelBuildingInput)) { return(NULL) }

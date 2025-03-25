@@ -7,7 +7,7 @@ getExperimentsList <- function(paths, featuresToEnsure=c("Age"), removeHPVPositi
   # Add each experiment
   for (i in 1:length(paths)){
     name <- names(paths)[i]
-    # if (!file.exists(paths[[name]])) { return(NULL)}
+    if (!file.exists(paths[[name]])) { return(NULL)}
     experiment <- readRDS(paths[[name]])
     
     # Remove subjects with certain missing metadata
@@ -183,3 +183,21 @@ nameMapping <- function(layerName){
   return(layerName)
 }
 
+getSampleCounts <- function(layers){
+  
+  paths <- getPathsByLayerAndCancer()
+  cancers <- getAllCancers(paths)
+  cancerNames <- names(cancers$cancerPaths$RNAseq)
+  nFrame <- data.frame(cancer=cancerNames)
+  
+  for (layer in layers){
+    n_vec <- c()
+    for (name in cancerNames){
+      experiment <- getExperimentByLayerAndCancer("RNAseq", name)[[1]]
+      if (is.null(experiment)){ n_vec <- c(n_vec, 0) }
+      else{ n_vec <- c(n_vec, length(experiment@colData@rownames)) }
+    }
+    nFrame[[layer]] <- n_vec
+  }
+  return(nFrame)
+}

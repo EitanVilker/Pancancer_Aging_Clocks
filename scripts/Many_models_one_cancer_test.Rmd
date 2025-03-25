@@ -1,9 +1,13 @@
 ---
-title: "Many Elastic Net Models for `r params$cancer_type` across layers"
+title: "Many `r params$model_type ` Models for `r params$cancer_type` across layers"
 author: "Monti Lab"
 date:   "`r format(Sys.Date(), '%B %d, %Y')`"
 params: 
-  cancer_type: "BRCA"
+  cancer_type: "HNSC"
+  model_type: "ridge"
+  significance_cutoff: 0.05
+  getting_combinations: FALSE
+  output_dir: "ev"
 output:
   html_document:
     theme: united
@@ -43,8 +47,13 @@ knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
 library(knitr)
 library(glue)
 library(reactable)
-
+print(params)
 cancer_type <- params$cancer_type
+model_type <- params$model_type
+significance_cutoff <- params$significance_cutoff
+getting_combinations <- params$getting_combinations
+output_dir <- params$output_dir
+
 library(htmltools) 
 library(e1071) 
 library(caTools) 
@@ -58,7 +67,8 @@ library(class)
 knitr::knit("ModelBuilding.Rmd", output = "ModelBuilding.R")
 knitr::knit("Analysis.Rmd", output = "Analysis.R")
 source("PanClockHelperFunctions.R")
-setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/scripts")
+# setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/scripts")
+# setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results")
 
 ```
 
@@ -84,19 +94,21 @@ setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/
 #testing w/o RNAseq RPPA miRNA
 
 
-#models <- c("miRNA","RPPA","RNAseq", "methylation")
-models <- c("methylation")
-layer_combinations <- unlist(lapply(1:length(models), function(x) {
-  combn(models, x, simplify = FALSE)
-}), recursive = FALSE)
+models <- c("miRNA","RPPA","RNAseq", "methylation")
+# models <- c("RNAseq")
+if (getting_combinations){
+  layer_combinations <- unlist(lapply(1:length(models), function(x) {
+    combn(models, x, simplify = FALSE)
+  }), recursive = FALSE)
+} else{ layer_combinations <- models }
 
 for (comb in layer_combinations){
   print(comb)
 }
 ```
-# Running Elastic Net Models for: {.tabset}
+# Running Models for: {.tabset}
 ```{r, Running Models, results = 'asis'}
-#Initcializing a coefficient empty list so to append after every run
+#Initializing a coefficient empty list so to append after every run
 coef_list <- list()
 cancer_summary_table <- intializeSummaryTable()
 
@@ -112,23 +124,27 @@ cancer_summary_table <- intializeSummaryTable()
 # Iterate through all values in layer_combinations
 for (comb in layer_combinations) {
   # Generate tab heading based on the combination
-  #cat(paste("Elastic Net model for", comb, "\n\n"))
+  #cat(paste("Model for", comb, "\n\n"))
   #combination <- comb
   cat("\n\n##", comb, "\n\n")
 
   # Run standardized model building
   existingExperimentList <- NULL
+  iterationCount <- 10
   modelOutput <- standardizedModelBuilding(comb,
                                            cancerName = cancer_type,
-                                           methodNames = c("glmnet"),
+                                           methodNames = c(model_type),
                                            splitSize = 1,
-                                           seed = 43,                                      significanceCutoff=0.025)
+                                           seed = 43,
+                                           significanceCutoff=significance_cutoff,
+                                           iterationCount=iterationCount)
   if (is.null(modelOutput)) { 
     print(paste0("Could not load experiment for: ", getCancerLayersPrefix(cancer_type, comb)))
     next
   }
 
-  coef_df <- getCoefficientDF(modelOutput$ModelBuilding$model$finalModel)
+  if (iterationCount == 1){ coef_df <- getCoefficientDF(modelOutput$ModelBuilding$model$finalModel) } else{
+    coef_df <- modelOutput$ModelBuilding$combinedWeights }
 
   # Print summary statistics for non-zero coefficients
   non_zero_coef_df <- coef_df[coef_df$Weight != 0, ]
@@ -157,7 +173,7 @@ for (comb in layer_combinations) {
   cat("```\n", paste(cox_summary_b, collapse = "\n"), "\n```\n")
   
   #Making summary tables df1 <- (model performance & coxph) & df2 <- (coefficients and model weight)
-  cancer_summary_table <- rbind(cancer_summary_table, getSummaryTable(cancer_type, comb, modelOutput, stats))
+  cancer_summary_table <- rbind(cancer_summary_table, getSummaryTable(cancer_type, comb, modelOutput, stats, params=params))
 }
 #modelOutput$ModelBuilding$model$bestTune
 
@@ -203,20 +219,21 @@ tagList(all_tables)
 ```
 
 ```{r making result files, echo=FALSE}
-#Making the datatable csv's and rds
+# Making the datatable csv's and rds
+
+# Setting base file path
+# dir <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/"
+if (nchar(output_dir) < 3){ dir <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/" } else{
+  dir <- output_dir
+}
+baseName <- paste0(dir, "/", cancer_type, "_", model_type, stringr::str_split_i(toString(significance_cutoff), ".", 2), "_omics")
 
 ######### For model weights: #########
-file_path <- paste0("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/", cancer_type, "_elastic_net_omics_combinations_model_weights.rds")
-
+file_path <- paste0(baseName, "_model_weights.rds")
 saveRDS(coef_list, file = file_path)
 
-
-
 ######### For summary table #########
-file_path <- paste0("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/", 
-                    cancer_type, 
-                    "_elastic_net_omics_combinations.csv")
-
+file_path <- paste0(baseName, "_summary.csv")
 write.csv(cancer_summary_table, file_path, row.names = FALSE)
 
 ```

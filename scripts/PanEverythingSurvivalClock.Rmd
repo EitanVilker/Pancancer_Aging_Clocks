@@ -32,18 +32,6 @@ library(doParallel)
 registerDoParallel(cores = 4)  # Reduce parallel threads
 ```
 
-# ```{r, ExecuteModel}
-# paths <- getPathsByLayerAndCancer()
-# cancers <- getAllCancers(paths)
-# cancerNames <- names(cancers$cancerPaths$RNAseq)
-# n_vec <- c()
-# for (name in cancerNames){
-#   experiment <- getExperimentByLayerAndCancer("RNAseq", name)[[1]]
-#   n_vec <- c(n_vec, length(experiment@colData@rownames))
-# }
-# nFrame <- data.frame(cancer=cancerNames, n=n_vec)
-# ```
-
 # Get the output of the ML model
 ```{r, Model}
 Sys.setenv(R_MAX_STACK_SIZE = "50000000000")  # Increase to 50000MB
@@ -52,7 +40,7 @@ existingExperimentList <- NULL
 # expRNAseq <- getExperimentByLayerAndCancer("RNAseq", "BRCA")
 # reducedRNAseq <- reduceExperimentBySubjects(expRNAseq$layer, existingExperimentList$RNAseq_Normal)
 
-cancerType <- "UCEC"
+cancerType <- "OV"
 layers <- c("methylation")
 iterationCount <- 1
 modelOutput <- standardizedModelBuilding(layers, cancerName=cancerType, methodNames=c("ridge"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=iterationCount, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE, significanceCutoff=0.05)
@@ -65,7 +53,7 @@ existingExperimentList <- modelOutput$experimentList
 stats <- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted, applyBiasCorrection=FALSE, covariates_to_include=c("race"))
 statsTable <- getFormattedStatsTable(stats)
 # summaryTable <- getSummaryTable(cancerType, layers, modelOutput, stats)
-# 
+
 print(stats$interaction_summary)
 print(stats$non_interaction_summary)
 print(stats$baseline_summary)
