@@ -184,7 +184,7 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="ElasticNet", do_p
   
 
   # Return model and augmented data
-  return(list(model = meta_model, predicted = meta_tst))
+  return(list(model = meta_model, predicted = meta_tst, weights = getCoefficientDF(meta_model$finalModel)))
 }
 ```
 
@@ -380,7 +380,7 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
     combinedWeights$Weight <- rowMeans(combinedWeights[, -1])
     reducedCombinedWeights <- data.frame(Feature=combinedWeights$Feature, Weight=combinedWeights$Weight)
     
-    return(list(model=modelsList, predicted=combinedPredictions, experimentsList=experimentsList, combinedWeights=reducedCombinedWeights))
+    return(list(model=modelsList, predicted=combinedPredictions, experimentsList=experimentsList, weights=reducedCombinedWeights))
   }
   else{ return(NULL) }
 

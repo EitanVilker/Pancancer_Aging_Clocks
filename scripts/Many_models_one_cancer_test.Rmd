@@ -7,7 +7,8 @@ params:
   model_type: "ridge"
   significance_cutoff: 0.05
   getting_combinations: FALSE
-  output_dir: "ev"
+  output_dir: "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/debug"
+  test_name: "ridge"
 output:
   html_document:
     theme: united
@@ -53,6 +54,7 @@ model_type <- params$model_type
 significance_cutoff <- params$significance_cutoff
 getting_combinations <- params$getting_combinations
 output_dir <- params$output_dir
+test_name <- params$test_name
 
 library(htmltools) 
 library(e1071) 
@@ -95,7 +97,7 @@ source("PanClockHelperFunctions.R")
 
 
 models <- c("miRNA","RPPA","RNAseq", "methylation")
-# models <- c("RNAseq")
+models <- c("miRNA")
 if (getting_combinations){
   layer_combinations <- unlist(lapply(1:length(models), function(x) {
     combn(models, x, simplify = FALSE)
@@ -130,7 +132,7 @@ for (comb in layer_combinations) {
 
   # Run standardized model building
   existingExperimentList <- NULL
-  iterationCount <- 10
+  iterationCount <- 3
   modelOutput <- standardizedModelBuilding(comb,
                                            cancerName = cancer_type,
                                            methodNames = c(model_type),
@@ -143,8 +145,7 @@ for (comb in layer_combinations) {
     next
   }
 
-  if (iterationCount == 1){ coef_df <- getCoefficientDF(modelOutput$ModelBuilding$model$finalModel) } else{
-    coef_df <- modelOutput$ModelBuilding$combinedWeights }
+  coef_df <- modelOutput$ModelBuilding$weights
 
   # Print summary statistics for non-zero coefficients
   non_zero_coef_df <- coef_df[coef_df$Weight != 0, ]
@@ -173,7 +174,7 @@ for (comb in layer_combinations) {
   cat("```\n", paste(cox_summary_b, collapse = "\n"), "\n```\n")
   
   #Making summary tables df1 <- (model performance & coxph) & df2 <- (coefficients and model weight)
-  cancer_summary_table <- rbind(cancer_summary_table, getSummaryTable(cancer_type, comb, modelOutput, stats, params=params))
+  cancer_summary_table <- rbind(cancer_summary_table, getSummaryTable(comb, modelOutput, stats, params=params))
 }
 #modelOutput$ModelBuilding$model$bestTune
 

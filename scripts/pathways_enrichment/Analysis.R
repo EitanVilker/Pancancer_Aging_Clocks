@@ -258,13 +258,21 @@ intializeSummaryTable <- function(){
 getSummaryTable <- function(cancer_type, comb, modelOutput, stats, params=NULL, test_name="elastic_net"){
   interactionLikelihood <- getTrueLikelihoodRatio(stats$baseline_model, stats$interaction_model)
   nonInteractionLikelihood <- getTrueLikelihoodRatio(stats$baseline_model, stats$non_interaction_model)
+  if ("combinedWeights" %in% names(modelOutput$ModelBuilding)){
+    alpha <- modelOutput$ModelBuilding$model$Fold1$model$bestTune$alpha
+    lambda <- modelOutput$ModelBuilding$model$Fold1$model$bestTune$lambda
+  }
+  else{
+    alpha = modelOutput$ModelBuilding$model$bestTune$alpha
+    lambda = modelOutput$ModelBuilding$model$bestTune$lambda
+  }
 
   summaryTable <- data.frame(
                     layer_combination = paste(comb, collapse = "_"),
                     Rsquared = modelOutput$ModelBuilding$model$R2,
                     RMSE = modelOutput$ModelBuilding$model$RMSE,
-                    alpha = modelOutput$ModelBuilding$model$bestTune$alpha,
-                    lambda = modelOutput$ModelBuilding$model$bestTune$lambda,
+                    alpha = alpha,
+                    lambda = lambda,
                     
                     interaction_against_baseline_likelihood_ratio = interactionLikelihood$logratio,
                     interaction_against_baseline_pval = interactionLikelihood$pval,

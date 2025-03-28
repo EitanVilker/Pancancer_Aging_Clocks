@@ -22,6 +22,7 @@ files <- list.files(folder_path)
 
 
 cancer_types <- unique(sub(".*TCGA-(.*)_RNAseq_filtered\\.rds", "\\1", files))
+# cancer_types <- getEligibleCancers("RNAseq")
 
 
 #Temporary One by One:

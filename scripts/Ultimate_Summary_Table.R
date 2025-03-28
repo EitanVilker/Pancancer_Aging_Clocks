@@ -74,6 +74,24 @@ RPPA_tables_list <- lapply(file_paths_RPPA, function(file) {
   }
 })
 ################### Combine all cancers in one omics ###########################
+############ Defining File Paths for csv files #######
+
+file_paths_RNAseq <- paste0("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/", 
+                            cancer_types_RNAseq, 
+                            "_elastic_net_omics_combinations.csv")
+
+# Read and combine all CSVs
+RNAseq_tables_list <- lapply(file_paths_RNAseq, function(file) {
+  if (file.exists(file)) {
+    read.csv(file, row.names = NULL)  # Adjust row.names if needed
+  } else {
+    warning(paste("File not found:", file))
+    return(NULL)
+  }
+})
+
+
+
 # Combine all dataframes into one
 RNAseq_tables_combined <- do.call(rbind, RNAseq_tables_list)
 
@@ -91,11 +109,17 @@ combined_tables <- rbind(RNAseq_tables_combined, miRNA_tables_combined,
                          methylation_tables_combined, RPPA_tables_combined)
 
 ################### Adding the number of features used #######################################
-cancer_types <- cancer_types_RNAseq
-
-file_paths <- paste0("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/", 
+# cancer_types <- cancer_types_RNAseq
+sampleCounts <- read.csv("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/Eitan/Pancancer_Aging_Clocks/scripts/dataset/RNAseqCounts.csv")
+sampleCounts <- sampleCounts[sampleCounts$cancer != "OV", ]
+cancer_types <- sampleCounts[sampleCounts$RNAseq >= 300, ]$cancer
+weight_file_paths <- paste0("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV/", 
                      cancer_types, 
-                     "_elastic_net_omics_combinations_model_weights.rds")
+                     "_ridge_omics_model_weights.rds")
+summary_file_paths <- paste0("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV/", 
+                      cancer_types, 
+                      "_ridge_omics_summary.csv")
+
 
 # Read all .rds files into a list
 RDS_of_all_cancers <- lapply(file_paths, function(file) {
@@ -106,8 +130,6 @@ RDS_of_all_cancers <- lapply(file_paths, function(file) {
     return(NULL)
   }
 })
-
-#BRCA missing RDS, might need to re-run
 
 #Naming the list elements based on cancer types
 names(RDS_of_all_cancers) <- cancer_types
@@ -128,10 +150,23 @@ for (cancer_type in names(RDS_of_all_cancers)) {
 
 RDS_of_all_cancers <- RDS_of_all_cancers_flat
 
-# Ensure the new columns exist in combined_tables
-combined_tables$features <- NA
-combined_tables$non_zero_weight_features <- NA
-combined_tables$zero_weight_features <- NA
+# Read and combine all CSVs
+summaries_list <- lapply(summary_file_paths, function(file) {
+  if (file.exists(file)) {
+    read.csv(file, row.names = NULL)  # Adjust row.names if needed
+  } else {
+    warning(paste("File not found:", file))
+    return(NULL)
+  }
+})
+
+combined_tables <- do.call(rbind, summaries_list)
+
+
+# # Ensure the new columns exist in combined_tables
+# combined_tables$features <- NA
+# combined_tables$non_zero_weight_features <- NA
+# combined_tables$zero_weight_features <- NA
 
 # Loop through each row of combined_tables
 for (i in seq_len(nrow(combined_tables))) {
@@ -146,16 +181,16 @@ for (i in seq_len(nrow(combined_tables))) {
     # Check if it's a dataframe
     if (is.data.frame(table)) {
       # Count total features
-      total_features <- nrow(table)
-      
-      # Count non-zero and zero-weight features
-      non_zero_features <- sum(table$Weight != 0, na.rm = TRUE)
-      zero_features <- sum(table$Weight == 0, na.rm = TRUE)
+      # total_features <- nrow(table)
+      # 
+      # # Count non-zero and zero-weight features
+      # non_zero_features <- sum(table$Weight != 0, na.rm = TRUE)
+      # zero_features <- sum(table$Weight == 0, na.rm = TRUE)
       
       # Assign values to combined_tables
-      combined_tables$features[i] <- total_features
-      combined_tables$non_zero_weight_features[i] <- non_zero_features
-      combined_tables$zero_weight_features[i] <- zero_features
+      # combined_tables$features[i] <- total_features
+      # combined_tables$non_zero_weight_features[i] <- non_zero_features
+      # combined_tables$zero_weight_features[i] <- zero_features
     } else {
       warning(paste("Expected a dataframe at:", table_name))
     }
@@ -164,10 +199,10 @@ for (i in seq_len(nrow(combined_tables))) {
   }
 }
 
-#Moving the feature columns to the begining instead of the end
-combined_tables <- combined_tables[, c(1:5, ncol(combined_tables), 6:(ncol(combined_tables) - 1))]
-combined_tables <- combined_tables[, c(1:5, ncol(combined_tables), 6:(ncol(combined_tables) - 1))]
-combined_tables <- combined_tables[, c(1:5, ncol(combined_tables), 6:(ncol(combined_tables) - 1))]
+#Moving the feature columns to the beginning instead of the end
+# combined_tables <- combined_tables[, c(1:5, ncol(combined_tables), 6:(ncol(combined_tables) - 1))]
+# combined_tables <- combined_tables[, c(1:5, ncol(combined_tables), 6:(ncol(combined_tables) - 1))]
+# combined_tables <- combined_tables[, c(1:5, ncol(combined_tables), 6:(ncol(combined_tables) - 1))]
 
 #Getting Rid of the duplicates and just keeping one copy of them
 unique_summary_table <- combined_tables %>%

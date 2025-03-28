@@ -184,12 +184,16 @@ intializeSummaryTable <- function(){
   cancer_summary_table <- data.frame(
     test_name = character(),
     cancer_type = character(),
+    model = character(),
+    age_association_adjusted_p_cutoff = numeric(),
     layer_combination = character(),
     
     Rsquared = numeric(),
     RMSE = numeric(),
     alpha = numeric(),
     lambda = numeric(),
+    non_zero_weight_feature_count = numeric(),
+    zero_weight_feature_count = numeric(),
     
     interaction_against_baseline_likelihood_ratio = numeric(),
     interaction_against_baseline_pval = numeric(),
@@ -255,10 +259,10 @@ intializeSummaryTable <- function(){
 
 
 ``` r
-getSummaryTable <- function(cancer_type, comb, modelOutput, stats, params=NULL, test_name="elastic_net"){
+getSummaryTable <- function(comb, modelOutput, stats, params=NULL){
   interactionLikelihood <- getTrueLikelihoodRatio(stats$baseline_model, stats$interaction_model)
   nonInteractionLikelihood <- getTrueLikelihoodRatio(stats$baseline_model, stats$non_interaction_model)
-  if ("combinedWeights" %in% names(modelOutput$ModelBuilding)){
+  if ("Fold1" %in% names(modelOutput$ModelBuilding$model)){
     alpha <- modelOutput$ModelBuilding$model$Fold1$model$bestTune$alpha
     lambda <- modelOutput$ModelBuilding$model$Fold1$model$bestTune$lambda
   }
@@ -266,13 +270,33 @@ getSummaryTable <- function(cancer_type, comb, modelOutput, stats, params=NULL, 
     alpha = modelOutput$ModelBuilding$model$bestTune$alpha
     lambda = modelOutput$ModelBuilding$model$bestTune$lambda
   }
+  non_zero_weights <- sum(modelOutput$ModelBuilding$weights$Weight != 0, na.rm = TRUE)
+  zero_weights <- sum(modelOutput$ModelBuilding$weights$Weight == 0, na.rm = TRUE)
+  if (!is.null(params)){
+    test_name <- params$test_name
+    model <- params$model_type
+    age_association_adjusted_p_cutoff <- params$significance_cutoff
+    cancer_type <- params$cancer_type
+  }
+  else{
+    test_name <- "None"
+    model <- "None"
+    age_association_adjusted_p_cutoff <- "None"
+    cancer_type <- "None"
+  }
 
   summaryTable <- data.frame(
+                    test_name = test_name,
+                    cancer_type = cancer_type,
+                    model = model,
+                    age_association_adjusted_p_cutoff = age_association_adjusted_p_cutoff,
                     layer_combination = paste(comb, collapse = "_"),
                     Rsquared = modelOutput$ModelBuilding$model$R2,
                     RMSE = modelOutput$ModelBuilding$model$RMSE,
                     alpha = alpha,
                     lambda = lambda,
+                    non_zero_weight_feature_count = non_zero_weights,
+                    zero_weight_feature_count = zero_weights,
                     
                     interaction_against_baseline_likelihood_ratio = interactionLikelihood$logratio,
                     interaction_against_baseline_pval = interactionLikelihood$pval,
@@ -332,10 +356,7 @@ getSummaryTable <- function(cancer_type, comb, modelOutput, stats, params=NULL, 
                     logrank_score_test_df_baseline = stats$baseline_summary$sctest["df"],
                     logrank_score_test_pval_baseline = stats$baseline_summary$sctest["pvalue"]
   )
-  if(!is.null(params)){
-    summaryTable$age_association_adjusted_p_cutoff <- params$significance_cutoff
-    summaryTable$model <- params$model_type
-  }
+
   return(summaryTable)
 }
 ```

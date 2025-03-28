@@ -1,14 +1,16 @@
 # Function to get a list of RangedSummarizedExperiment and SummarizedExperiment objects based on provided paths
 # Removes subjects with missing values for inputted list of features
 # Get experiment out of list using syntax: experimentList[[index]]
-getExperimentsList <- function(paths, featuresToEnsure=c("Age"), removeHPVPositive=FALSE, removeVitalStatusUnreported=TRUE) {
+getExperimentsList <- function(layerPaths, featuresToEnsure=c("Age"), removeHPVPositive=FALSE, removeVitalStatusUnreported=TRUE) {
   
   experimentList <- list()
+  if (length(layerPaths) == 0){ return(NULL) }
+  
   # Add each experiment
-  for (i in 1:length(paths)){
-    name <- names(paths)[i]
-    if (!file.exists(paths[[name]])) { return(NULL)}
-    experiment <- readRDS(paths[[name]])
+  for (i in 1:length(layerPaths)){
+    name <- names(layerPaths)[i]
+    if (!file.exists(layerPaths[[name]])) { return(NULL) }
+    experiment <- readRDS(layerPaths[[name]])
     
     # Remove subjects with certain missing metadata
     for (feature in featuresToEnsure){
@@ -62,16 +64,19 @@ getLayerPathsForSpecificCancer <- function(paths, cancerName){
   return(layerPaths)
 }
 
-getExperimentByLayerAndCancer <- function(layerName, cancerName){
+getExperimentByLayerAndCancer <- function(layerName, cancerName, paths=NULL){
+  if (is.null(paths)){ paths <- getPathsByLayerAndCancer() }
   revisedLayerName <- layerName
   if (layerName == "RNAseq"){ revisedLayerName <- "RNAseq_filtered" }
   else if (layerName == "RNAseq_Normal") (revisedLayerName <- "RNAseq_NORMAL_filtered")
-  else { revisedLayerName = layerName }
-  paths <- getPathsByLayerAndCancer()
-  cancerPaths <- getLayerPathsForSpecificCancer(paths, cancerName)
-  layerPathsList <- list()
-  layerPathsList[[layerName]] <- cancerPaths[[revisedLayerName]]
-  experiment <- getExperimentsList(layerPathsList)
+  else if (layerName == "BinaryMutation") (revisedLayerName <- "binary-mutation")
+  
+  layerPathList <- list() # Only contains one item but needs to be this format
+  if (revisedLayerName %in% names(paths)){ layerPathList[[layerName]] <- grep(cancerName, paths[[revisedLayerName]], value=TRUE) }
+  else{ return(NULL) }
+  if (length(layerPathList[[1]]) == 0){ return(NULL) }
+  
+  experiment <- getExperimentsList(layerPathList)
   return(experiment)
 }
 
@@ -183,7 +188,7 @@ nameMapping <- function(layerName){
   return(layerName)
 }
 
-getSampleCounts <- function(layers){
+makeSampleCountsTable <- function(layers){
   
   paths <- getPathsByLayerAndCancer()
   cancers <- getAllCancers(paths)
@@ -193,7 +198,7 @@ getSampleCounts <- function(layers){
   for (layer in layers){
     n_vec <- c()
     for (name in cancerNames){
-      experiment <- getExperimentByLayerAndCancer(layer, name)[[1]]
+      experiment <- getExperimentByLayerAndCancer(layer, name, paths=paths)[[1]]
       if (is.null(experiment)){ n_vec <- c(n_vec, 0) }
       else{ n_vec <- c(n_vec, length(experiment@colData@rownames)) }
     }
@@ -201,3 +206,24 @@ getSampleCounts <- function(layers){
   }
   return(nFrame)
 }
+
+getSampleCount <- function(cancerName, layerName, sampleCountsTable=NULL){
+  if (is.null(sampleCountsTable)){
+    sampleCountsTable <- read.csv("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/allLayersSampleCounts.csv")
+    rownames(sampleCountsTable) <- sampleCountsTable$cancer
+  }
+  return(sampleCountsTable[cancerName, layerName])
+}
+
+getEligibleCancers <- function(layerName, cutoff=350){
+  eligibleCancers <- c()
+  sampleCountsTable <- read.csv("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/allLayersSampleCounts.csv")
+  rownames(sampleCountsTable) <- sampleCountsTable$cancer
+  for (cancer in sampleCountsTable$cancer){
+    if (getSampleCount(cancer, layerName, sampleCountsTable=sampleCountsTable) > cutoff){
+      eligibleCancers <- c(eligibleCancers, cancer)
+    }
+  }
+  return(eligibleCancers)
+}
+

@@ -40,8 +40,8 @@ existingExperimentList <- NULL
 # expRNAseq <- getExperimentByLayerAndCancer("RNAseq", "BRCA")
 # reducedRNAseq <- reduceExperimentBySubjects(expRNAseq$layer, existingExperimentList$RNAseq_Normal)
 
-cancerType <- "OV"
-layers <- c("methylation")
+cancerType <- "HNSC"
+layers <- c("miRNA")
 iterationCount <- 1
 modelOutput <- standardizedModelBuilding(layers, cancerName=cancerType, methodNames=c("ridge"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=iterationCount, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE, significanceCutoff=0.05)
 existingExperimentList <- modelOutput$experimentList
@@ -52,6 +52,9 @@ existingExperimentList <- modelOutput$experimentList
 ### Collect survival analysis data
 stats <- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted, applyBiasCorrection=FALSE, covariates_to_include=c("race"))
 statsTable <- getFormattedStatsTable(stats)
+summaryTable <- intializeSummaryTable()
+summaryTable <- rbind(summaryTable, getSummaryTable(layers, modelOutput, stats))
+
 # summaryTable <- getSummaryTable(cancerType, layers, modelOutput, stats)
 
 print(stats$interaction_summary)

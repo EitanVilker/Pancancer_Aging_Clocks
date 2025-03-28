@@ -17,28 +17,11 @@ knitr::knit("Preprocessing.Rmd", output = tempfile())
 ```
 
 ```
-## 1/18                   
-## 2/18 [unnamed-chunk-5] 
-## 3/18                   
-## 4/18 [unnamed-chunk-6] 
-## 5/18                   
-## 6/18 [unnamed-chunk-7] 
-## 7/18                   
-## 8/18 [unnamed-chunk-8] 
-## 9/18                   
-## 10/18 [unnamed-chunk-9] 
-## 11/18                   
-## 12/18 [unnamed-chunk-10]
-## 13/18                   
-## 14/18 [unnamed-chunk-11]
-## 15/18                   
-## 16/18 [unnamed-chunk-12]
-## 17/18                   
-## 18/18 [unnamed-chunk-13]
+##   |                                                           |                                                   |   0%  |                                                           |...                                                |   6%                     |                                                           |......                                             |  11% [unnamed-chunk-5]   |                                                           |........                                           |  17%                     |                                                           |...........                                        |  22% [unnamed-chunk-6]   |                                                           |..............                                     |  28%                     |                                                           |.................                                  |  33% [unnamed-chunk-7]   |                                                           |....................                               |  39%                     |                                                           |.......................                            |  44% [unnamed-chunk-8]   |                                                           |..........................                         |  50%                     |                                                           |............................                       |  56% [unnamed-chunk-9]   |                                                           |...............................                    |  61%                     |                                                           |..................................                 |  67% [unnamed-chunk-10]  |                                                           |.....................................              |  72%                     |                                                           |........................................           |  78% [unnamed-chunk-11]  |                                                           |..........................................         |  83%                     |                                                           |.............................................      |  89% [unnamed-chunk-12]  |                                                           |................................................   |  94%                     |                                                           |...................................................| 100% [unnamed-chunk-13]
 ```
 
 ```
-## [1] "/scratch/3207951.1.mnemosyne-pub/RtmpbC8qw5/file44b267b6ad64c"
+## [1] "/scratch/330058.1.ood/RtmpU4I2wc/file1236fc203fa280"
 ```
 
 ``` r
@@ -216,7 +199,7 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="ElasticNet", do_p
   
 
   # Return model and augmented data
-  return(list(model = meta_model, predicted = meta_tst))
+  return(list(model = meta_model, predicted = meta_tst, weights = getCoefficientDF(meta_model$finalModel)))
 }
 ```
 
@@ -413,7 +396,7 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
     combinedWeights$Weight <- rowMeans(combinedWeights[, -1])
     reducedCombinedWeights <- data.frame(Feature=combinedWeights$Feature, Weight=combinedWeights$Weight)
     
-    return(list(model=modelsList, predicted=combinedPredictions, experimentsList=experimentsList, combinedWeights=reducedCombinedWeights))
+    return(list(model=modelsList, predicted=combinedPredictions, experimentsList=experimentsList, weights=reducedCombinedWeights))
   }
   else{ return(NULL) }
 
