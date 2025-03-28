@@ -401,6 +401,7 @@ getFormattedStatsTable <- function(stats){
 }
 ```
 
+# Function to produce a summary table of layers and cancers for their ML model info and survival stats. Excludes cancers with insufficient sample sizes.
 ```{r}
 writeUltimateSummaryTable <- function(outputDir="/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV/", suffix="_ridge_omics_summary.csv"){
   # outputDir <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/Eitan/Pancancer_Aging_Clocks/scripts/dataset/RNAseqCounts.csv"
