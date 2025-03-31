@@ -60,49 +60,33 @@ library(htmltools)
 library(e1071) 
 library(caTools) 
 library(class)
-#library(TimeSeriesExperiment)
-#library(SummarizedExperiment)
-#library(Biobase)
-#library(ggplot2)
-#library(caret)
-# source("InitialSteps.Rmd")
 knitr::knit("ModelBuilding.Rmd", output = "ModelBuilding.R")
 knitr::knit("Analysis.Rmd", output = "Analysis.R")
 source("PanClockHelperFunctions.R")
 # setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/scripts")
-# setwd("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results")
-
 ```
 
 # Get the output of the ML model (loop through all layer combinations)
 ```{r Setting Model Combinations}
 # Personalized Layer Combinations
 
-#layer_combinations <- list(c("miRNA"),c("RPPA"))
 #layer_combinations <- list(c("miRNA"))
 #layer_combinations <- list(c("miRNA"),c("miRNA","RPPA"))
 #layer_combinations <- list(c("miRNA"),c("RPPA"),c("RNASeq"),c("miRNA","RPPA"),c("miRNA","RNASeq"),c("RNASeq","RPPA"), c("miRNA","RPPA","RNAseq")) #w/o methylation
 #layer_combinations <- list(c("miRNA"),c("RPPA"))
-
 #layer_combinations <- list(c("methylation"),c("miRNA"),c("RPPA"),c("RNAseq"),c("miRNA","RPPA"),c("miRNA","RNAseq"),c("RNAseq","RPPA"), c("miRNA","RPPA","RNAseq"))
-
 #layer_combinations <- list(c("miRNA"), c("RNAseq"), c("methylation"), c("miRNA","RNAseq"), c("miRNA","methylation"))
 
-#layer_combinations <- list(c("methylation"))
 #The correct form of writing it is RNAseq, case sensitive
 
-#Given a series of models, perform all possible combinations
-
-#testing w/o RNAseq RPPA miRNA
-
-
-models <- c("miRNA","RPPA","RNAseq", "methylation")
-models <- c("miRNA")
+#Given a series of models, perform all possible combinations if enabled
+layers <- c("miRNA", "RPPA", "RNAseq", "methylation")
+# layers <- c("miRNA", "RNAseq")
 if (getting_combinations){
-  layer_combinations <- unlist(lapply(1:length(models), function(x) {
-    combn(models, x, simplify = FALSE)
+  layer_combinations <- unlist(lapply(1:length(layers), function(x) {
+    combn(layers, x, simplify = FALSE)
   }), recursive = FALSE)
-} else{ layer_combinations <- models }
+} else{ layer_combinations <- layers }
 
 for (comb in layer_combinations){
   print(comb)
@@ -114,15 +98,6 @@ for (comb in layer_combinations){
 coef_list <- list()
 cancer_summary_table <- intializeSummaryTable()
 
-# reactable_pretty <- function(results) {
-#   results <- results %>% 
-#     mutate(across(where(~is.numeric(.) && any(. %% 1 != 0, na.rm = TRUE)), 
-#                   ~signif(., digits = 3))) 
-#   
-#   reactable::reactable(results, searchable = TRUE, resizable = TRUE)
-# }
-
-
 # Iterate through all values in layer_combinations
 for (comb in layer_combinations) {
   # Generate tab heading based on the combination
@@ -132,7 +107,7 @@ for (comb in layer_combinations) {
 
   # Run standardized model building
   existingExperimentList <- NULL
-  iterationCount <- 3
+  iterationCount <- 10
   modelOutput <- standardizedModelBuilding(comb,
                                            cancerName = cancer_type,
                                            methodNames = c(model_type),
@@ -161,13 +136,13 @@ for (comb in layer_combinations) {
   stats <- getSurvivalStats(modelOutput$experimentList[[1]],
                             modelOutput$ModelBuilding$predicted)
   
-  cat("\n\n#### Non Interaction Coxph Model\n\n")
-  cox_summary_ni <- capture.output(stats$non_interaction_summary)
-  cat("```\n", paste(cox_summary_ni, collapse = "\n"), "\n```\n")
-  
   cat("\n\n#### Interaction Coxph Model\n\n")
   cox_summary_i <- capture.output(stats$interaction_summary)
   cat("```\n", paste(cox_summary_i, collapse = "\n"), "\n```\n")
+  
+  cat("\n\n#### Non Interaction Coxph Model\n\n")
+  cox_summary_ni <- capture.output(stats$non_interaction_summary)
+  cat("```\n", paste(cox_summary_ni, collapse = "\n"), "\n```\n")
   
   cat("\n\n#### Baseline Coxph Model\n\n")
   cox_summary_b <- capture.output(stats$baseline_summary)
@@ -176,20 +151,9 @@ for (comb in layer_combinations) {
   #Making summary tables df1 <- (model performance & coxph) & df2 <- (coefficients and model weight)
   cancer_summary_table <- rbind(cancer_summary_table, getSummaryTable(comb, modelOutput, stats, params=params))
 }
-#modelOutput$ModelBuilding$model$bestTune
-
-#	alpha = 0.325 , lambda = 2.622266	
-#R2 = 0.07792129 , RMSE = 12.09510
-
-#Actually Printed:
-#R^2: 0.450447682230494 - RMSE: 10.1432852941834 (miRNA, RPPA)
-#R^2: 0.302809578447203 - RMSE: 10.7884802061178 (miRNA)
-
 ```
 ## Model Weights
 ```{r Printing Model Weights, results='asis'}
-#names(coef_list)
-
 #searchable = true
 
 cat("\n\n# Model Weights\n\n")

@@ -262,9 +262,9 @@ intializeSummaryTable <- function(){
 getSummaryTable <- function(comb, modelOutput, stats, params=NULL){
   interactionLikelihood <- getTrueLikelihoodRatio(stats$baseline_model, stats$interaction_model)
   nonInteractionLikelihood <- getTrueLikelihoodRatio(stats$baseline_model, stats$non_interaction_model)
-  if ("Fold1" %in% names(modelOutput$ModelBuilding$model)){
-    alpha <- modelOutput$ModelBuilding$model$Fold1$model$bestTune$alpha
-    lambda <- modelOutput$ModelBuilding$model$Fold1$model$bestTune$lambda
+  if ("Fold1" %in% names(modelOutput$ModelBuilding$model) || "Fold01" %in% names(modelOutput$ModelBuilding$model)){
+    alpha <- modelOutput$ModelBuilding$model[[1]]$model$bestTune$alpha
+    lambda <- modelOutput$ModelBuilding$model[[1]]$model$bestTune$lambda
   }
   else{
     alpha = modelOutput$ModelBuilding$model$bestTune$alpha
@@ -291,6 +291,7 @@ getSummaryTable <- function(comb, modelOutput, stats, params=NULL){
                     model = model,
                     age_association_adjusted_p_cutoff = age_association_adjusted_p_cutoff,
                     layer_combination = paste(comb, collapse = "_"),
+                    
                     Rsquared = modelOutput$ModelBuilding$model$R2,
                     RMSE = modelOutput$ModelBuilding$model$RMSE,
                     alpha = alpha,
@@ -407,6 +408,36 @@ getFormattedStatsTable <- function(stats){
   statsFrame <- t(data.frame(interaction=interaction, non_interaction=non_interaction, baseline=baseline))
   colnames(statsFrame) <- cols
   return(statsFrame)
+}
+```
+
+# Function to produce a summary table of layers and cancers for their ML model info and survival stats. Excludes cancers with insufficient sample sizes.
+
+``` r
+writeUltimateSummaryTable <- function(outputDir="/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV/", suffix="_ridge_omics_summary.csv"){
+  cancer_types <- getEligibleCancers("RNAseq")
+  cancer_types <- cancer_types[!cancer_types == "OV"] # Too little in methylation
+  summary_file_paths <- paste0(outputDir, 
+                        cancer_types, 
+                        suffix)
+  
+
+  # Read and combine all CSVs
+  summaries_list <- lapply(summary_file_paths, function(file) {
+    if (file.exists(file)) {
+      read.csv(file, row.names = NULL)  # Adjust row.names if needed
+    } else {
+      warning(paste("File not found:", file))
+      return(NULL)
+    }
+  })
+  
+  combined_tables <- do.call(rbind, summaries_list)
+  if (!("cancer_type" %in% colnames(combined_tables))){
+    rep_cancers <- rep(cancer_types, each=4)
+    combined_tables <- cbind(cancer_type=rep_cancers, combined_tables)
+  }
+  write.csv(combined_tables, paste0(outputDir, "UltimateSummaryTable", suffix))
 }
 ```
 

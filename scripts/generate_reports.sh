@@ -14,7 +14,7 @@ SECONDS=0
 #$ -l h_rt=12:00:00
 #$ -l mem_per_core=64G 
 # Name job
-#$ -N Test_RidgeCV025_generate_reports_sh 
+#$ -N Test_ElasticNetCV005_generate_reports_sh 
 # Send an email on job completion or failure
 #$ -m ea
 #$ -M evilker@bu.edu 

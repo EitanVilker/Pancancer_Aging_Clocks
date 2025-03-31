@@ -42,7 +42,7 @@ existingExperimentList <- NULL
 
 cancerType <- "HNSC"
 layers <- c("miRNA")
-iterationCount <- 1
+iterationCount <- 10
 modelOutput <- standardizedModelBuilding(layers, cancerName=cancerType, methodNames=c("ridge"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=iterationCount, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE, significanceCutoff=0.05)
 existingExperimentList <- modelOutput$experimentList
 ```
