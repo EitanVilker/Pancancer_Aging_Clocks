@@ -12,11 +12,11 @@ source("run_analysis_pipeline.R")
 
 # Runs CoxPH given experiment and predictions and output object containing each CoxPH run
 ```{r, GetSurvivalStats}
-getSurvivalStats <- function(fullExperiment, predictionObject, applyBiasCorrection=FALSE, covariates_to_include=c("gender", "race")){
+getSurvivalStats <- function(fullExperiment, predictionObject, applyBiasCorrection=FALSE){
   if (applyBiasCorrection) { predictedAges <- predictionObject$predicted_corrected_age }
   else { predictedAges <- predictionObject$predicted_age }
   df <- data.frame(predicted_age=predictedAges, submitter_id=predictionObject$submitter_id)
-  return(run_analysis_pipeline(fullExperiment, df, prediction_object=predictionObject, covariates_to_include=covariates_to_include))
+  return(run_analysis_pipeline(fullExperiment, df, prediction_object=predictionObject))
 }
 ```
 
@@ -189,6 +189,10 @@ intializeSummaryTable <- function(){
     
     interaction_against_baseline_likelihood_ratio = numeric(),
     interaction_against_baseline_pval = numeric(),
+    interaction_against_baseline_adjusted_pval = numeric(),
+    interaction_against_non_interaction_likelihood_ratio = numeric(),
+    interaction_against_non_interaction_pval = numeric(),
+    interaction_against_non_interaction_adjusted_pval = numeric(),
     interaction_term_coeff_interaction = numeric(),
     interaction_term_exp_coeff_interaction = numeric(),
     interaction_term_pval_interaction = numeric(),
@@ -211,7 +215,7 @@ intializeSummaryTable <- function(){
     logrank_score_test_pval_interaction = numeric(),
     
     non_interaction_against_baseline_likelihood_ratio = numeric(),
-    non_interaction_against_baseline_pval = numeric(),
+    non_interaction_against_baseline_adjusted_pval = numeric(),
     delta_age_coeff_non_interaction	= numeric(),
     delta_age_exp_coeff_non_interaction = numeric(),
     delta_age_pval_non_interaction = numeric(),
@@ -253,6 +257,7 @@ intializeSummaryTable <- function(){
 getSummaryTable <- function(comb, modelOutput, stats, params=NULL){
   interactionLikelihood <- getTrueLikelihoodRatio(stats$baseline_model, stats$interaction_model)
   nonInteractionLikelihood <- getTrueLikelihoodRatio(stats$baseline_model, stats$non_interaction_model)
+  interactionNonInteractionLikelihood <- getTrueLikelihoodRatio(stats$non_interaction_model, stats$interaction_model)
   if ("Fold1" %in% names(modelOutput$ModelBuilding$model) || "Fold01" %in% names(modelOutput$ModelBuilding$model)){
     alpha <- modelOutput$ModelBuilding$model[[1]]$model$bestTune$alpha
     lambda <- modelOutput$ModelBuilding$model[[1]]$model$bestTune$lambda
@@ -292,6 +297,10 @@ getSummaryTable <- function(comb, modelOutput, stats, params=NULL){
                     
                     interaction_against_baseline_likelihood_ratio = interactionLikelihood$logratio,
                     interaction_against_baseline_pval = interactionLikelihood$pval,
+                    interaction_against_baseline_adjusted_pval = interactionLikelihood$pval,
+                    interaction_against_non_interaction_likelihood_ratio =interactionNonInteractionLikelihood$logratio,
+                    interaction_against_non_interaction_pval = interactionNonInteractionLikelihood$pval,
+                    interaction_against_non_interaction_adjusted_pval = interactionLikelihood$pval,
                     interaction_term_coeff_interaction = stats$interaction_summary$coefficients["chronological:delta_age", "coef"],
                     interaction_term_exp_coeff_interaction = stats$interaction_summary$coefficients["chronological:delta_age", "exp(coef)"],
                     interaction_term_pval_interaction = stats$interaction_summary$coefficients["chronological:delta_age", "Pr(>|z|)"],
@@ -315,6 +324,7 @@ getSummaryTable <- function(comb, modelOutput, stats, params=NULL){
                     
                     non_interaction_against_baseline_likelihood_ratio = nonInteractionLikelihood$logratio,
                     non_interaction_against_baseline_pval = nonInteractionLikelihood$pval,
+                    non_interaction_against_baseline_adjusted_pval = nonInteractionLikelihood$pval,
                     delta_age_coeff_non_interaction	= stats$non_interaction_summary$coefficients["delta_age", "coef"],
                     delta_age_exp_coeff_non_interaction = stats$non_interaction_summary$coefficients["delta_age", "exp(coef)"],
                     delta_age_pval_non_interaction = stats$non_interaction_summary$coefficients["delta_age", "Pr(>|z|)"],
@@ -349,6 +359,25 @@ getSummaryTable <- function(comb, modelOutput, stats, params=NULL){
                     logrank_score_test_pval_baseline = stats$baseline_summary$sctest["pvalue"]
   )
 
+  proportionalityAssumptionTestInteraction <- cox.zph(stats$interaction_model)
+  interactionRownames <- rownames(proportionalityAssumptionTestInteraction$table)
+  for (i in 1:length(interactionRownames)){
+    print(interactionRownames[i])
+    summaryTable[[paste0("prop_assump_interaction_", interactionRownames[i])]] <- proportionalityAssumptionTestInteraction$table[i, 3]
+  }
+  
+  proportionalityAssumptionTestNonInteraction <- cox.zph(stats$non_interaction_model)
+  nonInteractionRownames <- rownames(proportionalityAssumptionTestNonInteraction$table)
+  for (i in 1:length(nonInteractionRownames)){
+    summaryTable[[paste0("prop_assump_non_interaction_", nonInteractionRownames[i])]] <- proportionalityAssumptionTestNonInteraction$table[i, 3]
+  }
+  
+  proportionalityAssumptionTestBaseline <- cox.zph(stats$baseline_model)
+  baselineRownames <- rownames(proportionalityAssumptionTestBaseline$table)
+  for (i in 1:length(baselineRownames)){
+    summaryTable[[paste0("prop_assump_baseline_", baselineRownames[i])]] <- proportionalityAssumptionTestBaseline$table[i, 3]
+  }
+  
   return(summaryTable)
 }
   
@@ -404,7 +433,7 @@ getFormattedStatsTable <- function(stats){
 
 # Function to produce a summary table of layers and cancers for their ML model info and survival stats. Excludes cancers with insufficient sample sizes.
 ```{r}
-writeUltimateSummaryTable <- function(outputDir="/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV/", suffix="_ridge_omics_summary.csv"){
+writeUltimateSummaryTable <- function(outputDir="/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/", suffix="_ElasticNet_omics_summary.csv"){
   cancer_types <- getEligibleCancers("RNAseq")
   cancer_types <- cancer_types[!cancer_types == "OV"] # Too little in methylation
   summary_file_paths <- paste0(outputDir, 
@@ -427,9 +456,125 @@ writeUltimateSummaryTable <- function(outputDir="/restricted/projectnb/agediseas
     rep_cancers <- rep(cancer_types, each=4)
     combined_tables <- cbind(cancer_type=rep_cancers, combined_tables)
   }
+  combined_tables$interaction_against_baseline_adjusted_pval <- p.adjust(combined_tables$interaction_against_baseline_pval, method="fdr")
+  combined_tables$non_interaction_against_baseline_adjusted_pval <- p.adjust(combined_tables$non_interaction_against_baseline_pval, method="fdr")
+  combined_tables$interaction_against_non_interaction_adjusted_pval <- p.adjust(combined_tables$interaction_against_non_interaction_pval, method="fdr")
   write.csv(combined_tables, paste0(outputDir, "UltimateSummaryTable", suffix))
 }
 
+```
+
+# Function to plot how the hazard ratio (represenative of survival, potentially modulated by an interaction term) varies with age
+```{r, HazardRatioFigure}
+plotHazardRatio <- function(coxOutput, chronologicalAges, title, x="chronological", y="delta_age", usingInteractionTerm=TRUE){
+  # Extract coefficients and covariance matrix
+  coef_vec <- coxOutput$coef
+  cov_mat  <- coxOutput$var
+  
+  beta1_name <- y
+  beta1 <- coef_vec[beta1_name]
+
+  if (usingInteractionTerm){
+    beta3_name <- paste0(x, ":", y)
+    beta3 <- coef_vec[beta3_name]
+  }
+  else{
+    beta3_name <- NULL
+    beta3 <- 0
+  }
+  
+  # --------------------------------------------
+  # 2. Define the range of ages for the X-axis
+  #    We'll take the min to max from dfSurv's data
+  # --------------------------------------------
+  min_age <- floor(min(chronologicalAges, na.rm=TRUE))
+  max_age <- ceiling(max(chronologicalAges, na.rm=TRUE))
+  ages_seq <- seq(min_age, max_age, by=1)
+  
+  # --------------------------------------------
+  # 3. Compute log(HR) for a 1-unit increase
+  #    = beta1 + beta3 * Age
+  #    Then exponentiate to get HR
+  # --------------------------------------------
+  logHR <- beta1 + beta3 * ages_seq
+  HR    <- exp(logHR)
+  
+  # --------------------------------------------
+  # 4. Compute a pointwise 95% CI for HR(Age)
+  # --------------------------------------------
+  # 1) Extract coefficient names 
+  beta_names <- names(coxOutput$coef)
+  
+  # 2) Assign them as dimnames on the covariance matrix
+  dimnames(cov_mat) <- list(beta_names, beta_names)
+  
+  var_b1 <- cov_mat[beta1_name, beta1_name]
+  if (usingInteractionTerm){
+    var_b3 <- cov_mat[beta3_name, beta3_name]
+    cov_b1b3 <- cov_mat[beta1_name, beta3_name]
+  }
+  else{
+    var_b3 <- 0
+    cov_b1b3 <- 0
+  }
+  
+  # Calculate variance of beta and (standerd error)
+  # For a linear function of two random variables (in this case, β₁ and β₃), the variance is calculated as:
+  varBeta <- var_b1 + ages_seq^2 * var_b3 + 2 * ages_seq * cov_b1b3
+  seBeta  <- sqrt(varBeta)
+  
+  logHR_low  <- logHR - 1.96 * seBeta
+  logHR_high <- logHR + 1.96 * seBeta
+  
+  HR_low  <- exp(logHR_low)
+  HR_high <- exp(logHR_high)
+  
+  # P data frame for plotting
+  df_plot <- data.frame(
+    age    = ages_seq,
+    hr     = HR,
+    hr_low = HR_low,
+    hr_high= HR_high
+  )
+  
+  # --------------------------------------------
+  # 5. Create a data frame of per-sample points
+  #    So each sample is plotted on the same line
+  # --------------------------------------------
+  df_samples <- data.frame(
+    age = chronologicalAges,
+    # Each sample's HR = exp( beta1 + beta3 * that person's age )
+    hr  = exp( beta1 + beta3 * chronologicalAges )
+  )
+  
+  # --------------------------------------------
+  # 6. Plot: line for HR(Age), ribbon for 95% CI,
+  #    dashed horizontal at HR=1, plus points at sample ages.
+  # --------------------------------------------
+  
+  ggplot(df_plot, aes(x=age, y=hr)) +
+    # Shaded 95% confidence region
+    geom_ribbon(aes(ymin=hr_low, ymax=hr_high), alpha=0.2) +
+    
+    # The fitted HR(Age) curve
+    geom_line(size=1) +
+    
+    # Horizontal reference line at HR=1
+    geom_hline(yintercept=1, linetype="dashed", color="red") +
+    
+    # Per-sample points at their age, on the curve
+    # (They should land exactly on the line if your model is purely age-based.)
+    geom_point(data=df_samples, aes(x=age, y=hr), 
+               color="blue", alpha=0.6) +
+    
+    labs(
+      title = title,
+      subtitle = "HR(+1 in Delta Age) as a function of Chronological Age\n(95% pointwise CI)",
+      x = "Chronological Age",
+      y = "Hazard Ratio"
+    ) +
+    theme_minimal()
+}
 ```
 
 ```{r, FeatureImportance}

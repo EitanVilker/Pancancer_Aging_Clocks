@@ -107,7 +107,7 @@ for (comb in layer_combinations) {
 
   # Run standardized model building
   existingExperimentList <- NULL
-  iterationCount <- 10
+  iterationCount <- 1
   modelOutput <- standardizedModelBuilding(comb,
                                            cancerName = cancer_type,
                                            methodNames = c(model_type),
@@ -193,13 +193,18 @@ if (nchar(output_dir) < 3){ dir <- "/restricted/projectnb/agedisease/projects/pa
 }
 baseName <- paste0(dir, "/", cancer_type, "_", model_type, stringr::str_split_i(toString(significance_cutoff), ".", 2), "_omics")
 
-######### For model weights: #########
+######### For model weights #########
 file_path <- paste0(baseName, "_model_weights.rds")
 saveRDS(coef_list, file = file_path)
 
 ######### For summary table #########
 file_path <- paste0(baseName, "_summary.csv")
 write.csv(cancer_summary_table, file_path, row.names = FALSE)
+
+######### For future analysis #######
+# file_path <- paste0(baseName, "_model.csv")
+# write.csv(modelOutput, file_path, row.names = FALSE)
+
 
 ```
 

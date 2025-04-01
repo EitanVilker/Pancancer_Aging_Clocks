@@ -2400,3 +2400,746 @@
 8/16 [Setting Model Combinations]
 9/16                             
 10/16 [Running Models]            
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_BLCA_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338975.1.mnemosyne-pub/RtmpNUCcQt/rmarkdown-str1b0d272229995c.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_BRCA_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338975.1.mnemosyne-pub/RtmpNUCcQt/rmarkdown-str1b0d271818454a.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_COAD_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338975.1.mnemosyne-pub/RtmpNUCcQt/rmarkdown-str1b0d272950f131.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_HNSC_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338975.1.mnemosyne-pub/RtmpNUCcQt/rmarkdown-str1b0d271dbfaed6.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_KIRC_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338975.1.mnemosyne-pub/RtmpNUCcQt/rmarkdown-str1b0d273ebb716c.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_LGG_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338975.1.mnemosyne-pub/RtmpNUCcQt/rmarkdown-str1b0d271611a4c1.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_LIHC_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338975.1.mnemosyne-pub/RtmpNUCcQt/rmarkdown-str1b0d2772f5a193.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_LUAD_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338975.1.mnemosyne-pub/RtmpNUCcQt/rmarkdown-str1b0d2774072535.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_LUSC_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338975.1.mnemosyne-pub/RtmpNUCcQt/rmarkdown-str1b0d272f2b2462.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_PRAD_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338975.1.mnemosyne-pub/RtmpNUCcQt/rmarkdown-str1b0d27676ffc76.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_STAD_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338975.1.mnemosyne-pub/RtmpNUCcQt/rmarkdown-str1b0d2753a313d8.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+1/16                             
+2/16 [opts]                      
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_BLCA_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338994.1.mnemosyne-pub/RtmpSz8W6N/rmarkdown-str275a9c189c5464.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_BLCA_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338983.1.mnemosyne-pub/Rtmp4XOlHz/rmarkdown-str275a9bfc2bec1.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_THCA_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338975.1.mnemosyne-pub/RtmpNUCcQt/rmarkdown-str1b0d277163cd0c.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_BRCA_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338994.1.mnemosyne-pub/RtmpSz8W6N/rmarkdown-str275a9c3792efc4.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_BRCA_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338983.1.mnemosyne-pub/Rtmp4XOlHz/rmarkdown-str275a9b3eb3cdb6.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_UCEC_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338975.1.mnemosyne-pub/RtmpNUCcQt/rmarkdown-str1b0d2712e9ce37.html --variable code_folding=hide --variable code_menu=1 
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_COAD_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338994.1.mnemosyne-pub/RtmpSz8W6N/rmarkdown-str275a9c4b7045f9.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_COAD_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338983.1.mnemosyne-pub/Rtmp4XOlHz/rmarkdown-str275a9b572c6c8a.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_HNSC_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338994.1.mnemosyne-pub/RtmpSz8W6N/rmarkdown-str275a9c23b06ce7.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_HNSC_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338983.1.mnemosyne-pub/Rtmp4XOlHz/rmarkdown-str275a9b14e8feab.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_KIRC_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338994.1.mnemosyne-pub/RtmpSz8W6N/rmarkdown-str275a9cb48480a.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_KIRC_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338983.1.mnemosyne-pub/Rtmp4XOlHz/rmarkdown-str275a9b7f0396f2.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_LGG_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338994.1.mnemosyne-pub/RtmpSz8W6N/rmarkdown-str275a9c7ce46fac.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_LIHC_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338994.1.mnemosyne-pub/RtmpSz8W6N/rmarkdown-str275a9c73ba5a1e.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_LUAD_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338994.1.mnemosyne-pub/RtmpSz8W6N/rmarkdown-str275a9c30c5e98b.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_LUSC_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338994.1.mnemosyne-pub/RtmpSz8W6N/rmarkdown-str275a9c3d0788a3.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_LIHC_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338983.1.mnemosyne-pub/Rtmp4XOlHz/rmarkdown-str275a9b209eda91.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_LUAD_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338983.1.mnemosyne-pub/Rtmp4XOlHz/rmarkdown-str275a9bef551db.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_LUSC_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338983.1.mnemosyne-pub/Rtmp4XOlHz/rmarkdown-str275a9b44f4cabf.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_PRAD_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338994.1.mnemosyne-pub/RtmpSz8W6N/rmarkdown-str275a9c31bf0191.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_STAD_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338994.1.mnemosyne-pub/RtmpSz8W6N/rmarkdown-str275a9c1d6a99fc.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_PRAD_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338983.1.mnemosyne-pub/Rtmp4XOlHz/rmarkdown-str275a9b736191f9.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_THCA_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338994.1.mnemosyne-pub/RtmpSz8W6N/rmarkdown-str275a9c645ffd90.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_STAD_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338983.1.mnemosyne-pub/Rtmp4XOlHz/rmarkdown-str275a9b2f05e693.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_THCA_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338983.1.mnemosyne-pub/Rtmp4XOlHz/rmarkdown-str275a9b5d0be718.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_UCEC_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338994.1.mnemosyne-pub/RtmpSz8W6N/rmarkdown-str275a9c75d259e4.html --variable code_folding=hide --variable code_menu=1 
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/Many_models_one_cancer_test_UCEC_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3338983.1.mnemosyne-pub/Rtmp4XOlHz/rmarkdown-str275a9b196b799b.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/Debugging//Many_models_one_cancer_test_KIRC_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3360134.1.peloso-pub/Rtmps8qB90/rmarkdown-str3df0987249fee0.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/Debugging//Many_models_one_cancer_test_LUSC_ElasticNet.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3360134.1.peloso-pub/Rtmps8qB90/rmarkdown-str3df09859ca32a4.html --variable code_folding=hide --variable code_menu=1 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [making result files]       
+15/16                             
+16/16 [session info]              
+/share/pkg.7/pandoc/2.5/install/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/Debugging/DebugCV005/Many_models_one_cancer_test_KIRC_DebugCV005.html --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmarkdown/lua/latex-div.lua --self-contained --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /usr3/graduate/evilker/R/x86_64-pc-linux-gnu-library/4.4/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3360493.1.linga/RtmpnNzhEU/rmarkdown-str1af76a7da2f558.html --variable code_folding=hide --variable code_menu=1 

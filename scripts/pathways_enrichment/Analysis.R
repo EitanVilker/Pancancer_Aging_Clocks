@@ -262,9 +262,9 @@ intializeSummaryTable <- function(){
 getSummaryTable <- function(comb, modelOutput, stats, params=NULL){
   interactionLikelihood <- getTrueLikelihoodRatio(stats$baseline_model, stats$interaction_model)
   nonInteractionLikelihood <- getTrueLikelihoodRatio(stats$baseline_model, stats$non_interaction_model)
-  if ("Fold1" %in% names(modelOutput$ModelBuilding$model)){
-    alpha <- modelOutput$ModelBuilding$model$Fold1$model$bestTune$alpha
-    lambda <- modelOutput$ModelBuilding$model$Fold1$model$bestTune$lambda
+  if ("Fold1" %in% names(modelOutput$ModelBuilding$model) || "Fold01" %in% names(modelOutput$ModelBuilding$model)){
+    alpha <- modelOutput$ModelBuilding$model[[1]]$model$bestTune$alpha
+    lambda <- modelOutput$ModelBuilding$model[[1]]$model$bestTune$lambda
   }
   else{
     alpha = modelOutput$ModelBuilding$model$bestTune$alpha
@@ -291,6 +291,7 @@ getSummaryTable <- function(comb, modelOutput, stats, params=NULL){
                     model = model,
                     age_association_adjusted_p_cutoff = age_association_adjusted_p_cutoff,
                     layer_combination = paste(comb, collapse = "_"),
+                    
                     Rsquared = modelOutput$ModelBuilding$model$R2,
                     RMSE = modelOutput$ModelBuilding$model$RMSE,
                     alpha = alpha,

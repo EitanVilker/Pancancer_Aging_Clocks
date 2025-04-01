@@ -215,7 +215,7 @@ getSampleCount <- function(cancerName, layerName, sampleCountsTable=NULL){
   return(sampleCountsTable[cancerName, layerName])
 }
 
-getEligibleCancers <- function(layerName, cutoff=350){
+getEligibleCancers <- function(layerName, cutoff=300){
   eligibleCancers <- c()
   sampleCountsTable <- read.csv("/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/allLayersSampleCounts.csv")
   rownames(sampleCountsTable) <- sampleCountsTable$cancer
@@ -226,4 +226,3 @@ getEligibleCancers <- function(layerName, cutoff=350){
   }
   return(eligibleCancers)
 }
-
