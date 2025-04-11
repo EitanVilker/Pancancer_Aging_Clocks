@@ -19,6 +19,7 @@ getExperimentsList <- function(layerPaths, featuresToEnsure=c("Age"), removeHPVP
     if (removeHPVPositive){ experiment <- experiment[, experiment$HPV.status=="Negative"] }
     if (removeVitalStatusUnreported){ experiment <- experiment[, experiment$vital_status != "Not Reported"]}
     experiment$Age <- as.numeric(experiment$Age)
+    experiment$Survival_Time <- pmax(experiment$Survival_Time, 1e-6)
     experimentList[[name]] <- experiment
   }
   return(experimentList)

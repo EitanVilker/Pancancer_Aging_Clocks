@@ -1,35 +1,36 @@
 #!/usr/bin/env Rscript
 
-# Load required library
+### Load required libraries
 library(rmarkdown)
 library(glue)
 library(doParallel)
 source("PanClockHelperFunctions.R")
 
+### Set options for running efficient batch job
 args = commandArgs(trailingOnly=TRUE)
 registerDoParallel(cores = 4)
 Sys.setenv(R_MAX_STACK_SIZE = "50000000000")  # Increase to 50000MB
 options(expressions = 500000)
 
-# Define the Rmd file and the output directory
+### Define the Rmd file and the output directory
 rmd_file <- "Many_models_one_cancer_test.Rmd"
-if (length(args) > 0){
-  test_name <- args[1]
-} else { test_name <- "Ridge005" }
-
-base_dir <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan"
+if (length(args) > 0){ test_name <- args[1] } else { test_name <- "RidgeBias005" }
+base_dir <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/"
 # output_dir <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/"
 output_dir <- file.path(base_dir, test_name)
 dir.create(output_dir)
 
-# cancer_types <- getEligibleCancers("RNAseq", cutoff=0) # If you want all cancers
-cancer_types <- getEligibleCancers("RNAseq", cutoff=250)
-cancer_types_methylation <- getEligibleCancers("methylation", cutoff=250)
-cancer_types <- cancer_types[cancer_types %in% cancer_types_methylation]
-
-# cancer_types <- c("KIRC")
-
+### Set parameters for models
+allCancers <- FALSE
+if (allCancers){ cancer_types <- getEligibleCancers("RNAseq", cutoff=0) } else{
+  cancer_types <- getEligibleCancers("RNAseq", cutoff=250)
+  cancer_types_methylation <- getEligibleCancers("methylation", cutoff=250)
+  cancer_types <- cancer_types[cancer_types %in% cancer_types_methylation] 
+}
 model_type <- "ridge"
+significance_cutoff <- 0.05
+
+### Run all cancers
 for (cancer_type in cancer_types) {
   # Construct the output file path
   output_file <- file.path(
@@ -44,7 +45,7 @@ for (cancer_type in cancer_types) {
       params = list(
         cancer_type=cancer_type, 
         model_type=model_type,
-        significance_cutoff=0.05,
+        significance_cutoff=significance_cutoff,
         getting_combinations=FALSE,
         output_dir=output_dir,
         test_name=test_name),
@@ -57,3 +58,6 @@ for (cancer_type in cancer_types) {
     message("Error details:", e$message)
   })
 }
+
+### Output analysis of all cancers
+writeUltimateSummaryTable(outputDir=paste0(output_dir, "/"), suffix=paste0("_", model_type, "_omics_summary.csv"))

@@ -81,7 +81,7 @@ source("PanClockHelperFunctions.R")
 
 #Given a series of models, perform all possible combinations if enabled
 layers <- c("miRNA", "RPPA", "RNAseq", "methylation")
-# layers <- c("miRNA", "RNAseq")
+# layers <- c("methylation", "RNAseq")
 if (getting_combinations){
   layer_combinations <- unlist(lapply(1:length(layers), function(x) {
     combn(layers, x, simplify = FALSE)
@@ -114,7 +114,8 @@ for (comb in layer_combinations) {
                                            splitSize = 1,
                                            seed = 43,
                                            significanceCutoff=significance_cutoff,
-                                           iterationCount=iterationCount)
+                                           iterationCount=iterationCount,
+                                           applyBiasCorrection=TRUE)
   if (is.null(modelOutput)) { 
     print(paste0("Could not load experiment for: ", getCancerLayersPrefix(cancer_type, comb)))
     next
@@ -133,8 +134,9 @@ for (comb in layer_combinations) {
 
   # Calculate and display survival statistics
   cat("\n\n### Evaluating delta age on Survival(coxph)\n\n")
+  # if (cancer_type == "BRCA"){ useGender <- FALSE} else{ useGender <- TRUE }
   stats <- getSurvivalStats(modelOutput$experimentList[[1]],
-                            modelOutput$ModelBuilding$predicted)
+                            modelOutput$ModelBuilding$predicted, applyBiasCorrection=TRUE)
   
   cat("\n\n#### Interaction Coxph Model\n\n")
   cox_summary_i <- capture.output(stats$interaction_summary)
@@ -183,7 +185,7 @@ all_tables <- lapply(names(coef_list), function(placeholder) {
 tagList(all_tables)
 ```
 
-```{r making result files, echo=FALSE}
+```{r, Making Result Files, echo=FALSE}
 # Making the datatable csv's and rds
 
 # Setting base file path
@@ -191,7 +193,7 @@ tagList(all_tables)
 if (nchar(output_dir) < 3){ dir <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/" } else{
   dir <- output_dir
 }
-baseName <- paste0(dir, "/", cancer_type, "_", model_type, stringr::str_split_i(toString(significance_cutoff), ".", 2), "_omics")
+baseName <- paste0(dir, "/", cancer_type, "_", model_type, "_omics")
 
 ######### For model weights #########
 file_path <- paste0(baseName, "_model_weights.rds")

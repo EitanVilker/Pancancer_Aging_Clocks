@@ -10,6 +10,7 @@ library(SummarizedExperiment)
 library(Biobase)
 library(ggplot2)
 library(caret)
+library(survival)
 library ("dplyr")
 source("PanClockHelperFunctions.R")
 source("run_analysis_pipeline.R")
@@ -123,16 +124,17 @@ combineAssays <- function(assaysList, combiningNormal=FALSE){
 # Remove subjects missing covariates from experiments list and collect covariates
 ```{r}
 # Only keep certain metadata (determined in 03_Covariates.html)
-filterForCovariates <- function(experimentsList, columns_to_keep=c("Age", "gender", "race", "HPV.status", "submitter_id")){
+filterForCovariates <- function(experimentsList, featuresToEncode=c("gender"), columns_to_keep=c("Age", "vital_status", "Survival_Time", "submitter_id")){
   print("Filtering for covariates...")
   covariatesList <- list()
   for (i in 1:length(experimentsList)){
     layerName <- names(experimentsList)[i]
     experiment <- experimentsList[[layerName]]
-    covariates <- SummarizedExperiment::colData(experiment)[, columns_to_keep, drop = FALSE]
-    # return(covariates)
+    covariates <- SummarizedExperiment::colData(experiment)[, c(featuresToEncode, columns_to_keep), drop = FALSE]
+
     # Check for and remove rows with missing values
     covariates <- covariates[complete.cases(as.data.frame(covariates)), ]
+    
     # Filter layer data to match samples
     layer_processed <- experiment[, rownames(covariates)]
     experimentsList[[layerName]] <- layer_processed
@@ -207,40 +209,50 @@ filterFeatures <- function(assayList, experimentsList, relativeVariance=FALSE, h
 ```
 
 ### Set up one-hot encoding of covariates
-
 ```{r}
-encode_covariates <- function(covariates, assayData, featuresToEncode=NULL, encodingHPV=FALSE, encodingGender=FALSE, encodingRace=FALSE){
+encode_covariates <- function(covariates, assayData, featuresToEncode=c(), columns_to_keep=c("Age", "vital_status", "Survival_Time", "submitter_id"), encodingHPV=FALSE, encodingGender=FALSE, encodingRace=FALSE){
   print("Encoding covariates...")
 
-    # One-hot encoding for gender, race, and potentially HPV.status
-  if (nlevels(as.factor(covariates$race)) > 1){ encodingRace <- TRUE }
+  # One-hot encoding for gender, race, and potentially HPV.status
+  # if (nlevels(as.factor(covariates$race)) > 1){ encodingRace <- TRUE }
   if (nlevels(as.factor(covariates$gender)) > 1){ encodingGender <- TRUE }
-  
-  # Return early if no suitable covariates
-  if (!encodingRace && !encodingGender && !encodingHPV){ return(assayData) }
-  
-  # Build up formula depending on available covariates
-  covariateFormula = "~"
-  if (encodingGender){ covariateFormula <- paste(covariateFormula, "gender") }
-  if (encodingRace){ 
-    if (encodingGender){ covariateFormula <- paste(covariateFormula, "+") }
-    covariateFormula <- paste(covariateFormula, "race") 
-  }
-  if (encodingHPV){
-    if (encodingGender || encodingRace){ covariateFormula <- paste(covariateFormula, "+") }
-    covariateFormula <- paste(covariateFormula, "HPV.status") 
-  }
-  
-  dummies <- caret::dummyVars(covariateFormula, data = covariates)
-  covariateFormula <- paste(covariateFormula, "- 1")
-  encoded_covariates <- data.frame(model.matrix(as.formula(covariateFormula), data = covariates))
-  encoded_covariates$Age <- covariates$Age
-  encoded_covariates$submitter_id <- covariates$submitter_id
-  rownames(encoded_covariates) <- encoded_covariates$submitter_id
 
+  # Build up formula depending on available covariates
+  if (length(featuresToEncode) == 0){ encoded_covariates <- covariates }
+  else{
+    firstCovariateFound <- FALSE
+    for (feature in featuresToEncode){
+      print(feature)
+      
+      if (nlevels(as.factor(covariates[[feature]])) > 1){ # Check if covariate has more than 1 label
+        print("Accepted")
+        
+        # Initialize formula
+        if (!firstCovariateFound){
+          covariateFormula = paste("~", feature)
+          firstCovariateFound <- TRUE
+        }
+        
+        # Add more covariates
+        else{ covariateFormula = paste(covariateFormula, "+", feature) }
+      }
+    }
+    if (!firstCovariateFound){ encoded_covariates <- covariates[, colnames(covariates) %in% columns_to_keep] }
+    else{
+      # Set up one hot encoded covariates based on derived formula
+      dummies <- caret::dummyVars(covariateFormula, data = covariates)
+      covariateFormula <- paste(covariateFormula, "- 1")
+      encoded_covariates <- data.frame(model.matrix(as.formula(covariateFormula), data = covariates))
+      for (col in columns_to_keep){ encoded_covariates[[col]] <- covariates[[col]] }
+    }
+  }
+  
+  # Combine encoded covariates with assay data
+  rownames(encoded_covariates) <- encoded_covariates$submitter_id
   assayDataWithCovariates <- merge(encoded_covariates, assayData, by="submitter_id", all=FALSE)
   rownames(assayDataWithCovariates) <- assayDataWithCovariates$submitter_id
   assayDataWithCovariates$Row.names <- NULL
+  
   return(assayDataWithCovariates)
 }
 ```

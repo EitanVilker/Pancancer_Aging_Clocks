@@ -52,7 +52,7 @@ create_DFsurv <- function(predicted_ages, metadata_table, delta_age_thresh = 0) 
 }
 
 # Step 3: Run the CoxPH analysis
-run_analysis_pipeline <- function(fullExperiment, prediction_df, prediction_object=NULL, covariates_to_include=c("gender")) {
+run_analysis_pipeline <- function(fullExperiment, prediction_df, prediction_object=NULL, useGender=TRUE) {
   
   # Prepare Metadata Table
   metadata_table <- make_meta_df(fullExperiment)
@@ -79,12 +79,14 @@ run_analysis_pipeline <- function(fullExperiment, prediction_df, prediction_obje
   formula_vector_interaction <- c("chronological * delta_age")
   formula_vector_baseline <- c("chronological")
   
-  if (nlevels(as.factor(experiment_prediction_object_meta$gender.y)) > 1){
-    formula_vector_non_interaction <- c(formula_vector_non_interaction, "gender.y")
-    formula_vector_interaction <- c(formula_vector_interaction, "gender.y")
-    formula_vector_baseline <- c(formula_vector_baseline, "gender.y")
+  if (useGender){
+    if (nlevels(as.factor(experiment_prediction_object_meta$gender.y)) > 1){
+      formula_vector_non_interaction <- c(formula_vector_non_interaction, "gender.y")
+      formula_vector_interaction <- c(formula_vector_interaction, "gender.y")
+      formula_vector_baseline <- c(formula_vector_baseline, "gender.y")
+    }
   }
-  if (nlevels(as.factor(experiment_prediction_object_meta$race)) > 1 && "race" %in% covariates_to_include){
+  if (nlevels(as.factor(experiment_prediction_object_meta$race)) > 1 && FALSE){
     formula_vector_non_interaction <- c(formula_vector_non_interaction, "race")
     formula_vector_interaction <- c(formula_vector_interaction, "race")
     formula_vector_baseline <- c(formula_vector_baseline, "race")

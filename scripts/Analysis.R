@@ -8,17 +8,19 @@ output: html_notebook
 ``` r
 library(survival)
 library(survminer)
+library(dplyr)
 source("run_analysis_pipeline.R")
+source("PanClockHelperFunctions.R")
 ```
 
 # Runs CoxPH given experiment and predictions and output object containing each CoxPH run
 
 ``` r
-getSurvivalStats <- function(fullExperiment, predictionObject, applyBiasCorrection=FALSE){
+getSurvivalStats <- function(fullExperiment, predictionObject, applyBiasCorrection=FALSE, useGender=TRUE){
   if (applyBiasCorrection) { predictedAges <- predictionObject$predicted_corrected_age }
   else { predictedAges <- predictionObject$predicted_age }
   df <- data.frame(predicted_age=predictedAges, submitter_id=predictionObject$submitter_id)
-  return(run_analysis_pipeline(fullExperiment, df, prediction_object=predictionObject))
+  return(run_analysis_pipeline(fullExperiment, df, prediction_object=predictionObject, useGender=useGender))
 }
 ```
 
@@ -197,6 +199,10 @@ intializeSummaryTable <- function(){
     
     interaction_against_baseline_likelihood_ratio = numeric(),
     interaction_against_baseline_pval = numeric(),
+    interaction_against_baseline_adjusted_pval = numeric(),
+    interaction_against_non_interaction_likelihood_ratio = numeric(),
+    interaction_against_non_interaction_pval = numeric(),
+    interaction_against_non_interaction_adjusted_pval = numeric(),
     interaction_term_coeff_interaction = numeric(),
     interaction_term_exp_coeff_interaction = numeric(),
     interaction_term_pval_interaction = numeric(),
@@ -219,7 +225,7 @@ intializeSummaryTable <- function(){
     logrank_score_test_pval_interaction = numeric(),
     
     non_interaction_against_baseline_likelihood_ratio = numeric(),
-    non_interaction_against_baseline_pval = numeric(),
+    non_interaction_against_baseline_adjusted_pval = numeric(),
     delta_age_coeff_non_interaction	= numeric(),
     delta_age_exp_coeff_non_interaction = numeric(),
     delta_age_pval_non_interaction = numeric(),
@@ -262,6 +268,7 @@ intializeSummaryTable <- function(){
 getSummaryTable <- function(comb, modelOutput, stats, params=NULL){
   interactionLikelihood <- getTrueLikelihoodRatio(stats$baseline_model, stats$interaction_model)
   nonInteractionLikelihood <- getTrueLikelihoodRatio(stats$baseline_model, stats$non_interaction_model)
+  interactionNonInteractionLikelihood <- getTrueLikelihoodRatio(stats$non_interaction_model, stats$interaction_model)
   if ("Fold1" %in% names(modelOutput$ModelBuilding$model) || "Fold01" %in% names(modelOutput$ModelBuilding$model)){
     alpha <- modelOutput$ModelBuilding$model[[1]]$model$bestTune$alpha
     lambda <- modelOutput$ModelBuilding$model[[1]]$model$bestTune$lambda
@@ -301,6 +308,10 @@ getSummaryTable <- function(comb, modelOutput, stats, params=NULL){
                     
                     interaction_against_baseline_likelihood_ratio = interactionLikelihood$logratio,
                     interaction_against_baseline_pval = interactionLikelihood$pval,
+                    interaction_against_baseline_adjusted_pval = interactionLikelihood$pval,
+                    interaction_against_non_interaction_likelihood_ratio =interactionNonInteractionLikelihood$logratio,
+                    interaction_against_non_interaction_pval = interactionNonInteractionLikelihood$pval,
+                    interaction_against_non_interaction_adjusted_pval = interactionLikelihood$pval,
                     interaction_term_coeff_interaction = stats$interaction_summary$coefficients["chronological:delta_age", "coef"],
                     interaction_term_exp_coeff_interaction = stats$interaction_summary$coefficients["chronological:delta_age", "exp(coef)"],
                     interaction_term_pval_interaction = stats$interaction_summary$coefficients["chronological:delta_age", "Pr(>|z|)"],
@@ -324,6 +335,7 @@ getSummaryTable <- function(comb, modelOutput, stats, params=NULL){
                     
                     non_interaction_against_baseline_likelihood_ratio = nonInteractionLikelihood$logratio,
                     non_interaction_against_baseline_pval = nonInteractionLikelihood$pval,
+                    non_interaction_against_baseline_adjusted_pval = nonInteractionLikelihood$pval,
                     delta_age_coeff_non_interaction	= stats$non_interaction_summary$coefficients["delta_age", "coef"],
                     delta_age_exp_coeff_non_interaction = stats$non_interaction_summary$coefficients["delta_age", "exp(coef)"],
                     delta_age_pval_non_interaction = stats$non_interaction_summary$coefficients["delta_age", "Pr(>|z|)"],
@@ -358,6 +370,25 @@ getSummaryTable <- function(comb, modelOutput, stats, params=NULL){
                     logrank_score_test_pval_baseline = stats$baseline_summary$sctest["pvalue"]
   )
 
+  proportionalityAssumptionTestInteraction <- cox.zph(stats$interaction_model)
+  interactionRownames <- rownames(proportionalityAssumptionTestInteraction$table)
+  for (i in 1:length(interactionRownames)){
+    print(interactionRownames[i])
+    summaryTable[[paste0("prop_assump_interaction_", interactionRownames[i])]] <- proportionalityAssumptionTestInteraction$table[i, 3]
+  }
+  
+  proportionalityAssumptionTestNonInteraction <- cox.zph(stats$non_interaction_model)
+  nonInteractionRownames <- rownames(proportionalityAssumptionTestNonInteraction$table)
+  for (i in 1:length(nonInteractionRownames)){
+    summaryTable[[paste0("prop_assump_non_interaction_", nonInteractionRownames[i])]] <- proportionalityAssumptionTestNonInteraction$table[i, 3]
+  }
+  
+  proportionalityAssumptionTestBaseline <- cox.zph(stats$baseline_model)
+  baselineRownames <- rownames(proportionalityAssumptionTestBaseline$table)
+  for (i in 1:length(baselineRownames)){
+    summaryTable[[paste0("prop_assump_baseline_", baselineRownames[i])]] <- proportionalityAssumptionTestBaseline$table[i, 3]
+  }
+  
   return(summaryTable)
 }
 ```
@@ -414,7 +445,7 @@ getFormattedStatsTable <- function(stats){
 # Function to produce a summary table of layers and cancers for their ML model info and survival stats. Excludes cancers with insufficient sample sizes.
 
 ``` r
-writeUltimateSummaryTable <- function(outputDir="/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNetCV005/", suffix="_ElasticNet_omics_summary.csv"){
+writeUltimateSummaryTable <- function(outputDir="/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/Debugging/RidgeBias0025/", suffix="_ridge_omics_summary.csv"){
   cancer_types <- getEligibleCancers("RNAseq")
   cancer_types <- cancer_types[!cancer_types == "OV"] # Too little in methylation
   summary_file_paths <- paste0(outputDir, 
@@ -432,11 +463,16 @@ writeUltimateSummaryTable <- function(outputDir="/restricted/projectnb/agediseas
     }
   })
   
-  combined_tables <- do.call(rbind, summaries_list)
+  # combined_tables <- do.call(rbind, summaries_list)
+  combined_tables <- bind_rows(summaries_list)
+
   if (!("cancer_type" %in% colnames(combined_tables))){
     rep_cancers <- rep(cancer_types, each=4)
     combined_tables <- cbind(cancer_type=rep_cancers, combined_tables)
   }
+  combined_tables$interaction_against_baseline_adjusted_pval <- p.adjust(combined_tables$interaction_against_baseline_pval, method="fdr")
+  combined_tables$non_interaction_against_baseline_adjusted_pval <- p.adjust(combined_tables$non_interaction_against_baseline_pval, method="fdr")
+  combined_tables$interaction_against_non_interaction_adjusted_pval <- p.adjust(combined_tables$interaction_against_non_interaction_pval, method="fdr")
   write.csv(combined_tables, paste0(outputDir, "UltimateSummaryTable", suffix))
 }
 ```
@@ -489,7 +525,7 @@ plotHazardRatio <- function(coxOutput, chronologicalAges, title, x="chronologica
   var_b1 <- cov_mat[beta1_name, beta1_name]
   if (usingInteractionTerm){
     var_b3 <- cov_mat[beta3_name, beta3_name]
-    cov_b1b3<- cov_mat[beta1_name, beta3_name]
+    cov_b1b3 <- cov_mat[beta1_name, beta3_name]
   }
   else{
     var_b3 <- 0
@@ -552,6 +588,19 @@ plotHazardRatio <- function(coxOutput, chronologicalAges, title, x="chronologica
       y = "Hazard Ratio"
     ) +
     theme_minimal()
+}
+```
+
+
+``` r
+survivalOnlyFeatures <- function(survivalOutput){
+  selected_vars <- rownames(coef(survivalOutput$ModelBuilding$model, s = "lambda.min"))[coef(survivalOutput$ModelBuilding$model, s = "lambda.min")[,1] != 0]
+  survDF <- survivalOutput$ModelBuilding$originalMetaTrn
+  survDF$surv <- Surv(time = survDF$Survival_Time, event = as.numeric(factor(survDF$vital_status)) - 1)
+  cox_formula <- as.formula(paste("surv ~ Age +", paste(selected_vars, collapse = "+")))
+  cox_model <- coxph(cox_formula, data = survDF)
+  summary(cox_model)
+  return(cox_model)
 }
 ```
 

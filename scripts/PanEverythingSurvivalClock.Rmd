@@ -35,22 +35,24 @@ registerDoParallel(cores = 4)  # Reduce parallel threads
 # Get the output of the ML model
 ```{r, Model}
 Sys.setenv(R_MAX_STACK_SIZE = "50000000000")  # Increase to 50000MB
+options(expressions = 500000)
+
 # existingExperimentList <- getNormalSize("KIRC")
 existingExperimentList <- NULL
 # expRNAseq <- getExperimentByLayerAndCancer("RNAseq", "BRCA")
 # reducedRNAseq <- reduceExperimentBySubjects(expRNAseq$layer, existingExperimentList$RNAseq_Normal)
 
-cancerType <- "HNSC"
-layers <- c("RNAseq")
+cancerType <- "PRAD"
+layers <- c("miRNA")
 iterationCount <- 1
-modelOutput <- standardizedModelBuilding(layers, cancerName=cancerType, methodNames=c("ridge"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=iterationCount, applyBiasCorrection=TRUE, combiningNormal=FALSE, scaleByNormal=FALSE, significanceCutoff=0.05)
+modelOutput <- standardizedModelBuilding(layers, cancerName=cancerType, methodNames=c("ElasticNet"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=iterationCount, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE, significanceCutoff=0.05, predictor="age")
 existingExperimentList <- modelOutput$experimentList
 ```
 
 # Survival analysis given model just ran
 ```{r, Survival}
 ### Collect survival analysis data
-stats <- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted, applyBiasCorrection=FALSE)
+stats <- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted, applyBiasCorrection=TRUE)
 statsTable <- getFormattedStatsTable(stats)
 summaryTable <- intializeSummaryTable()
 summaryTable <- rbind(summaryTable, getSummaryTable(layers, modelOutput, stats))
@@ -71,8 +73,8 @@ plotHazardRatio(stats$interaction_model, modelOutput$ModelBuilding$predicted$Age
 survDF <- stats$survDF
 columnNames <- c("chronological", "delta_age", "gender.y", "surv")
 newdata <- data.frame(chronological=survDF$chronological, delta_age=survDF$delta_age, gender.y=survDF$gender.y, surv=survDF$surv, submitter_id=survDF$submitter_id)
-newdata <- data.frame(matrix(nrow = length(survDF$submitter_id), ncol = length(columnNames))) 
-newdata <- data.frame(matrix(ncol = length(survDF$submitter_id), nrow = length(columnNames))) 
+newdata <- data.frame(matrix(nrow = length(survDF$submitter_id), ncol = length(columnNames)))
+newdata <- data.frame(matrix(ncol = length(survDF$submitter_id), nrow = length(columnNames)))
 colnames(newdata) <- columnNames
 rownames(newdata) <- columnNames
 
@@ -91,8 +93,7 @@ ggplot(survDF, aes(x = chronological, y = exp(delta_age * hazard))) +
   labs(title = "Estimated Hazard Ratio for Delta Age Over Time", x = "Time", y = "Hazard Ratio") +
   theme_minimal()
 
-# library(car)
-cox.zph(stats$interaction_model)
+proportionalityAssumptionTest <- cox.zph(stats$interaction_model)
 # vif(stats$non_interaction_model)
 
 ```
