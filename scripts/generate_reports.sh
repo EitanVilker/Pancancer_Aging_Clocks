@@ -5,20 +5,22 @@ SECONDS=0
 # Name: Eitan Vilker
 # Date: $(date)
 # Description: Eitan Shell Solution
+# Parameters: Test name
 #########################################################################
 # Set SCC project to charge
 #$ -P agedisease
 # Request compute resources
 #$ -pe omp 16
+# Set array
+#$ -t 1-15
 # Specify job limits
-#$ -l h_rt=12:00:00
+# Commented out -l h_rt=12:00:00
+#$ -l mem_per_core=16G
 # Name job
-#$ -N Test_RidgeBias005_generate_reports_sh 
-# Send an email on job completion or failure
-#$ -m ea
-#$ -M evilker@bu.edu 
+#$ -N ComboRidge005
 #setting the error file:
 #$ -o generate_reports.out
 #$ -e Test_generate_reports_sh.err
 
-Rscript generate_reports.R "RidgeBias005omp16nomem"
+taskinput=$(awk -F',' -v id=$SGE_TASK_ID 'NR==id+1 { gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2 }' /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/topCancerTypes.csv)
+Rscript generate_single_reports.R $1 "$taskinput"

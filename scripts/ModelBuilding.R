@@ -39,7 +39,7 @@ knitr::knit("Preprocessing.Rmd", output = tempfile())
 ```
 
 ```
-## [1] "/scratch/3733855.1.linga/RtmpSTfAWl/file8878c6f40955c"
+## [1] "/scratch/3858717.14.qonos-pub/RtmpP5jU9W/file2766342221b03e"
 ```
 
 ``` r
@@ -98,6 +98,7 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="ElasticNet", do_p
   if (!is.null(seed)) { set.seed(seed) }
   trainAges <- meta_trn$Age
   survivalObject <- with(meta_trn, Surv(Survival_Time, as.numeric(factor(vital_status)) - 1))
+  predictionObject <- data.frame(submitter_id = meta_tst$submitter_id, Age = meta_tst$Age)
   # return(list(survivalObject, meta_trn$vital_status, as.numeric(factor(meta_trn$vital_status)) - 1))
 
   originalMetaTrn <- meta_trn
@@ -214,6 +215,7 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="ElasticNet", do_p
 
   # Augment metadata with predicted age
   meta_tst$predicted_age <- meta_age_estimate
+  predictionObject$predicted_age <- meta_age_estimate
   R2 <- cor(meta_tst$Age, meta_tst$predicted_age)^2
   RMSE <- sqrt(mean((meta_tst$Age - meta_tst$predicted_age)^2))
   meta_model$R2 <- R2
@@ -228,6 +230,7 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="ElasticNet", do_p
   if (applyBiasCorrection) {
     corrected_predicted_age <- bias_correction(meta_tst$predicted_age, meta_tst$Age)
     meta_tst$predicted_corrected_age <- corrected_predicted_age
+    predictionObject$predicted_corrected_age <- corrected_predicted_age
     R2_after <- cor(meta_tst$Age, meta_tst$predicted_corrected_age)^2
     RMSE_after <- sqrt(mean((meta_tst$Age - meta_tst$predicted_corrected_age)^2))
     
@@ -242,7 +245,7 @@ train_test_wrapper <- function(meta_trn, meta_tst, methodName="ElasticNet", do_p
   
 
   # Return model and augmented data
-  return(list(model = meta_model, predicted = meta_tst, weights = getCoefficientDF(meta_model$finalModel)))
+  return(list(model = meta_model, predicted = predictionObject, weights = getCoefficientDF(meta_model$finalModel)))
 }
 ```
 
@@ -461,7 +464,6 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
 ```
 
 # Function to get lists containing paths for each omics layer, names for the best assay type respective to each layer, and whether or not imputation is required for each layer
-
 
 ``` r
 setup1 <- function(layersVector, cancerName="HNSC"){

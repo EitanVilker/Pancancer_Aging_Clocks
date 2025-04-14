@@ -9,15 +9,15 @@ SECONDS=0
 # Set SCC project to charge
 #$ -P agedisease
 # Request compute resources
+#$ -pe omp 36
 # Specify job limits
 #$ -l h_rt=12:00:00
+# Commented out -l mem_per_core=18G
 # Name job
-#$ -N generate_sample_counts_table.sh
-# Send an email on job completion or failure
-#$ -m ea
-#$ -M evilker@bu.edu 
+#$ -N LargeRidgeCV005
 #setting the error file:
 #$ -o generate_reports.out
-#$ -e generate_sample_counts_table.err
+#$ -e Test_generate_reports_sh.err
 
-Rscript testscript.R
+# taskinput=$(awk -F',' -v id=$SGE_TASK_ID 'NR==id+1 { gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2 }' /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/topCancerTypesLarge.csv)
+Rscript generate_single_reports.R $1 "BRCA"

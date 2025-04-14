@@ -222,11 +222,8 @@ encode_covariates <- function(covariates, assayData, featuresToEncode=c(), colum
   else{
     firstCovariateFound <- FALSE
     for (feature in featuresToEncode){
-      print(feature)
-      
       if (nlevels(as.factor(covariates[[feature]])) > 1){ # Check if covariate has more than 1 label
-        print("Accepted")
-        
+
         # Initialize formula
         if (!firstCovariateFound){
           covariateFormula = paste("~", feature)

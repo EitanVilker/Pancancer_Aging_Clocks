@@ -20,7 +20,7 @@ getSurvivalStats <- function(fullExperiment, predictionObject, applyBiasCorrecti
   if (applyBiasCorrection) { predictedAges <- predictionObject$predicted_corrected_age }
   else { predictedAges <- predictionObject$predicted_age }
   df <- data.frame(predicted_age=predictedAges, submitter_id=predictionObject$submitter_id)
-  return(run_analysis_pipeline(fullExperiment, df, prediction_object=predictionObject, useGender=useGender))
+  return(run_analysis_pipeline(fullExperiment, df, useGender=useGender))
 }
 ```
 
@@ -591,6 +591,7 @@ plotHazardRatio <- function(coxOutput, chronologicalAges, title, x="chronologica
 }
 ```
 
+### Get the features used to calculate survival and run coxPH using them and Age
 
 ``` r
 survivalOnlyFeatures <- function(survivalOutput){

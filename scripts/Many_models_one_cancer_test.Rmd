@@ -9,6 +9,8 @@ params:
   getting_combinations: FALSE
   output_dir: "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/debug"
   test_name: "ridge"
+  : 1
+  apply_bias_correction: FALSE
 output:
   html_document:
     theme: united
@@ -55,6 +57,8 @@ significance_cutoff <- params$significance_cutoff
 getting_combinations <- params$getting_combinations
 output_dir <- params$output_dir
 test_name <- params$test_name
+iteration_count <- params$iteration_count
+apply_bias_correction <- params$apply_bias_correction
 
 library(htmltools) 
 library(e1071) 
@@ -80,6 +84,9 @@ source("PanClockHelperFunctions.R")
 #The correct form of writing it is RNAseq, case sensitive
 
 #Given a series of models, perform all possible combinations if enabled
+# cancer_type <- "BRCA"
+# getting_combinations <- TRUE
+# significance_cutoff <- 0.025
 layers <- c("miRNA", "RPPA", "RNAseq", "methylation")
 # layers <- c("methylation", "RNAseq")
 if (getting_combinations){
@@ -91,12 +98,14 @@ if (getting_combinations){
 for (comb in layer_combinations){
   print(comb)
 }
+
 ```
 # Running Models for: {.tabset}
 ```{r, Running Models, results = 'asis'}
 #Initializing a coefficient empty list so to append after every run
 coef_list <- list()
 cancer_summary_table <- intializeSummaryTable()
+showOutput <- TRUE
 
 # Iterate through all values in layer_combinations
 for (comb in layer_combinations) {
@@ -107,15 +116,14 @@ for (comb in layer_combinations) {
 
   # Run standardized model building
   existingExperimentList <- NULL
-  iterationCount <- 1
   modelOutput <- standardizedModelBuilding(comb,
                                            cancerName = cancer_type,
                                            methodNames = c(model_type),
                                            splitSize = 1,
                                            seed = 43,
                                            significanceCutoff=significance_cutoff,
-                                           iterationCount=iterationCount,
-                                           applyBiasCorrection=TRUE)
+                                           iterationCount=iteration_count,
+                                           applyBiasCorrection=apply_bias_correction)
   if (is.null(modelOutput)) { 
     print(paste0("Could not load experiment for: ", getCancerLayersPrefix(cancer_type, comb)))
     next
@@ -136,19 +144,21 @@ for (comb in layer_combinations) {
   cat("\n\n### Evaluating delta age on Survival(coxph)\n\n")
   # if (cancer_type == "BRCA"){ useGender <- FALSE} else{ useGender <- TRUE }
   stats <- getSurvivalStats(modelOutput$experimentList[[1]],
-                            modelOutput$ModelBuilding$predicted, applyBiasCorrection=TRUE)
+                            modelOutput$ModelBuilding$predicted, applyBiasCorrection=apply_bias_correction)
   
-  cat("\n\n#### Interaction Coxph Model\n\n")
-  cox_summary_i <- capture.output(stats$interaction_summary)
-  cat("```\n", paste(cox_summary_i, collapse = "\n"), "\n```\n")
-  
-  cat("\n\n#### Non Interaction Coxph Model\n\n")
-  cox_summary_ni <- capture.output(stats$non_interaction_summary)
-  cat("```\n", paste(cox_summary_ni, collapse = "\n"), "\n```\n")
-  
-  cat("\n\n#### Baseline Coxph Model\n\n")
-  cox_summary_b <- capture.output(stats$baseline_summary)
-  cat("```\n", paste(cox_summary_b, collapse = "\n"), "\n```\n")
+  if (showOutput){
+    cat("\n\n#### Interaction Coxph Model\n\n")
+    cox_summary_i <- capture.output(stats$interaction_summary)
+    cat("```\n", paste(cox_summary_i, collapse = "\n"), "\n```\n")
+    
+    cat("\n\n#### Non Interaction Coxph Model\n\n")
+    cox_summary_ni <- capture.output(stats$non_interaction_summary)
+    cat("```\n", paste(cox_summary_ni, collapse = "\n"), "\n```\n")
+    
+    cat("\n\n#### Baseline Coxph Model\n\n")
+    cox_summary_b <- capture.output(stats$baseline_summary)
+    cat("```\n", paste(cox_summary_b, collapse = "\n"), "\n```\n")
+  }
   
   #Making summary tables df1 <- (model performance & coxph) & df2 <- (coefficients and model weight)
   cancer_summary_table <- rbind(cancer_summary_table, getSummaryTable(comb, modelOutput, stats, params=params))
@@ -190,9 +200,10 @@ tagList(all_tables)
 
 # Setting base file path
 # dir <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/"
-if (nchar(output_dir) < 3){ dir <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results/" } else{
+if (nchar(output_dir) < 3){ dir <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/scripts/GitCore/results" } else{
   dir <- output_dir
 }
+
 baseName <- paste0(dir, "/", cancer_type, "_", model_type, "_omics")
 
 ######### For model weights #########

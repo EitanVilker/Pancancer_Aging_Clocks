@@ -593,6 +593,19 @@ plotHazardRatio <- function(coxOutput, chronologicalAges, title, x="chronologica
 
 
 ``` r
+survivalOnlyFeatures <- function(survivalOutput){
+  selected_vars <- rownames(coef(survivalOutput$ModelBuilding$model, s = "lambda.min"))[coef(survivalOutput$ModelBuilding$model, s = "lambda.min")[,1] != 0]
+  survDF <- survivalOutput$ModelBuilding$originalMetaTrn
+  survDF$surv <- Surv(time = survDF$Survival_Time, event = as.numeric(factor(survDF$vital_status)) - 1)
+  cox_formula <- as.formula(paste("surv ~ Age +", paste(selected_vars, collapse = "+")))
+  cox_model <- coxph(cox_formula, data = survDF)
+  summary(cox_model)
+  return(cox_model)
+}
+```
+
+
+``` r
 library(vip)
 featureImportance <- function(result){
   # Calculate permutation feature importance

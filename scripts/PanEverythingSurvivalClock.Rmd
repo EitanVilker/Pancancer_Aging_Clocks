@@ -42,17 +42,19 @@ existingExperimentList <- NULL
 # expRNAseq <- getExperimentByLayerAndCancer("RNAseq", "BRCA")
 # reducedRNAseq <- reduceExperimentBySubjects(expRNAseq$layer, existingExperimentList$RNAseq_Normal)
 
-cancerType <- "PRAD"
-layers <- c("miRNA")
+cancerType <- "HNSC"
+layers <- c("RNAseq")
 iterationCount <- 1
-modelOutput <- standardizedModelBuilding(layers, cancerName=cancerType, methodNames=c("ElasticNet"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=iterationCount, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE, significanceCutoff=0.05, predictor="age")
+modelOutput <- standardizedModelBuilding(layers, cancerName=cancerType, methodNames=c("ridge"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=iterationCount, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE, significanceCutoff=0.025, predictor="age")
 existingExperimentList <- modelOutput$experimentList
 ```
 
 # Survival analysis given model just ran
 ```{r, Survival}
 ### Collect survival analysis data
-stats <- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted, applyBiasCorrection=TRUE)
+stats <- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted, applyBiasCorrection=FALSE)
+# survivalStats <- survivalOnlyFeatures(modelOutput)
+summary(survivalStats)
 statsTable <- getFormattedStatsTable(stats)
 summaryTable <- intializeSummaryTable()
 summaryTable <- rbind(summaryTable, getSummaryTable(layers, modelOutput, stats))
