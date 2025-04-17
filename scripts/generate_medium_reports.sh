@@ -9,16 +9,14 @@ SECONDS=0
 # Set SCC project to charge
 #$ -P agedisease
 # Request compute resources
-#$ -pe omp 36
-# Set array
-# -t 1-2
-# Commented -l mem_per_core=18G
+#$ -pe omp 16
+#$ -l mem_per_core=16G
 # Name job
-#$ -N LargeAgeClockReport
+#$ -N MediumAgeClockReport
 #setting the error file:
-#$ -o Large_generate_reports.out
-#$ -e Large_Test_generate_reports_sh.err
+#$ -o Medium_generate_reports.out
+#$ -e Medium_Test_generate_reports_sh.err
 
-# cancerType=$(awk -F',' -v id=$SGE_TASK_ID 'NR==id+1 { gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2 }' /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/topCancerTypesLarge.csv)
+# cancerType=$(awk -F',' -v id=$SGE_TASK_ID 'NR==id+1 { gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2 }' /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/topCancerTypesMedium.csv)
 # Rscript generate_single_reports.R $1 "$cancerType"
 Rscript generate_single_reports.R $1 $2

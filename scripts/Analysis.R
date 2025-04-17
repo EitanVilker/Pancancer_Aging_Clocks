@@ -373,7 +373,6 @@ getSummaryTable <- function(comb, modelOutput, stats, params=NULL){
   proportionalityAssumptionTestInteraction <- cox.zph(stats$interaction_model)
   interactionRownames <- rownames(proportionalityAssumptionTestInteraction$table)
   for (i in 1:length(interactionRownames)){
-    print(interactionRownames[i])
     summaryTable[[paste0("prop_assump_interaction_", interactionRownames[i])]] <- proportionalityAssumptionTestInteraction$table[i, 3]
   }
   
@@ -445,9 +444,10 @@ getFormattedStatsTable <- function(stats){
 # Function to produce a summary table of layers and cancers for their ML model info and survival stats. Excludes cancers with insufficient sample sizes.
 
 ``` r
-writeUltimateSummaryTable <- function(outputDir="/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/Debugging/RidgeBias0025/", suffix="_ridge_omics_summary.csv"){
-  cancer_types <- getEligibleCancers("RNAseq")
-  cancer_types <- cancer_types[!cancer_types == "OV"] # Too little in methylation
+writeUltimateSummaryTable <- function(outputDir="/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/", suffix="_ridge_omics_summary.csv"){
+  cancer_types <- getEligibleCancers("RNAseq", cutoff=250)
+  cancer_types_methylation <- getEligibleCancers("methylation", cutoff=250)
+  cancer_types <- cancer_types[cancer_types %in% cancer_types_methylation] 
   summary_file_paths <- paste0(outputDir, 
                         cancer_types, 
                         suffix)
@@ -458,7 +458,7 @@ writeUltimateSummaryTable <- function(outputDir="/restricted/projectnb/agediseas
     if (file.exists(file)) {
       read.csv(file, row.names = NULL)  # Adjust row.names if needed
     } else {
-      warning(paste("File not found:", file))
+      # warning(paste("File not found:", file))
       return(NULL)
     }
   })

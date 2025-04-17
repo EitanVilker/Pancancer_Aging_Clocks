@@ -39,7 +39,7 @@ knitr::knit("Preprocessing.Rmd", output = tempfile())
 ```
 
 ```
-## [1] "/scratch/3858717.14.qonos-pub/RtmpP5jU9W/file2766342221b03e"
+## [1] "/scratch/3964604.1.linga/RtmpUjIbEu/filecbae029751fed"
 ```
 
 ``` r
@@ -294,6 +294,7 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
   transformedData <- filterFeatures(assayList, experimentsAndCovariatesList$experiments, highCorrelationToEachOther=FALSE, relativeVariance=FALSE)
   transformedData <- combineAssays(transformedData, combiningNormal=combiningNormal)
   assayDataWithCovariates <- encode_covariates(experimentsAndCovariatesList$covariates[[1]], transformedData, featuresToEncode=featuresToEncode, columns_to_keep=columns_to_keep)
+  return(assayDataWithCovariates)
   
   ## Running model
   train_testList <- splitTrainTest(assayDataWithCovariates, trainSetSize=splitSize, seed=seed)

@@ -234,7 +234,7 @@ encode_covariates <- function(covariates, assayData, featuresToEncode=c(), colum
         else{ covariateFormula = paste(covariateFormula, "+", feature) }
       }
     }
-    if (!firstCovariateFound){ encoded_covariates <- covariates[, colnames(covariates) %in% columns_to_keep] }
+    if (!firstCovariateFound){ encoded_covariates <- as.data.frame(covariates[, colnames(covariates) %in% columns_to_keep]) }
     else{
       # Set up one hot encoded covariates based on derived formula
       dummies <- caret::dummyVars(covariateFormula, data = covariates)

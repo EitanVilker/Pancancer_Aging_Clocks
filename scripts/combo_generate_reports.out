@@ -1,0 +1,360 @@
+Running on cancer: BLCA 
+Running on cancer: CESC 
+Running on cancer: COAD 
+Running on cancer: HNSC 
+Running on cancer: KIRC 
+Running on cancer: KIRP 
+Running on cancer: LGG 
+Running on cancer: LIHC 
+Running on cancer: LUAD 
+Running on cancer: LUSC 
+Running on cancer: PRAD 
+Running on cancer: SARC 
+Running on cancer: STAD 
+Running on cancer: THCA 
+Running on cancer: UCEC 
+Running on cancer: BLCA 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+Running on cancer: COAD 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+Running on cancer: HNSC 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [Making Result Files]       
+15/16                             
+16/16 [session info]              
+/restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_CESC_ComboRidge005.html --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/latex-div.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/table-classes.lua --embed-resources --standalone --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3954583.2.linga/RtmpnHkVIA/rmarkdown-strc6aca39834c1b.html --variable code_folding=hide --variable code_menu=1 
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [Making Result Files]       
+15/16                             
+16/16 [session info]              
+/restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_BLCA_ComboRidge005.html --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/latex-div.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/table-classes.lua --embed-resources --standalone --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3954583.1.linga/Rtmp1PoIDV/rmarkdown-str12c17d66434665.html --variable code_folding=hide --variable code_menu=1 
+Running on cancer: KIRC 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+Running on cancer: KIRP 11/16                     1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+        
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+Running on cancer: LUAD 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [Making Result Files]       
+15/16                             
+16/16 [session info]              
+/restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_COAD_ComboRidge005.html --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/latex-div.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/table-classes.lua --embed-resources --standalone --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3954583.3.p16/Rtmpuc5ysO/rmarkdown-str3ff9b435a91a0a.html --variable code_folding=hide --variable code_menu=1 
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+Running on cancer: LUSC 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+Running on cancer: PRAD 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [Making Result Files]       
+15/16                             
+16/16 [session info]              
+/restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_HNSC_ComboRidge005.html --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/latex-div.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/table-classes.lua --embed-resources --standalone --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3954583.4.linga/RtmpTCfD3U/rmarkdown-strf67f77e41ccfd.html --variable code_folding=hide --variable code_menu=1 
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [Making Result Files]       
+15/16                             
+16/16 [session info]              
+/restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_KIRC_ComboRidge005.html --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/latex-div.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/table-classes.lua --embed-resources --standalone --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3954583.5.f/RtmpxCrCXL/rmarkdown-str266ee516c756dd.html --variable code_folding=hide --variable code_menu=1 
+Running on cancer: SARC 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [Making Result Files]       
+15/16                             
+16/16 [session info]              
+/restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_KIRP_ComboRidge005.html --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/latex-div.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/table-classes.lua --embed-resources --standalone --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3954583.6.linga/RtmphvO7UT/rmarkdown-strc6f9464a5bcb8.html --variable code_folding=hide --variable code_menu=1 
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [Making Result Files]       
+15/16                             
+16/16 [session info]              
+/restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_LUAD_ComboRidge005.html --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/latex-div.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/table-classes.lua --embed-resources --standalone --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3954583.9.f/RtmpHFd5Sv/rmarkdown-str495c967823219.html --variable code_folding=hide --variable code_menu=1 
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [Making Result Files]       
+15/16                             
+16/16 [session info]              
+/restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_LUSC_ComboRidge005.html --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/latex-div.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/table-classes.lua --embed-resources --standalone --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3954583.10.p16/RtmpRxP7IU/rmarkdown-str3b29ad276cd12f.html --variable code_folding=hide --variable code_menu=1 
+Running on cancer: UCEC 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [Making Result Files]       
+15/16                             
+16/16 [session info]              
+/restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_SARC_ComboRidge005.html --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/latex-div.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/table-classes.lua --embed-resources --standalone --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3954583.12.f/RtmpCB6flm/rmarkdown-str263a553f353e.html --variable code_folding=hide --variable code_menu=1 
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [Making Result Files]       
+15/16                             
+16/16 [session info]              
+/restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_PRAD_ComboRidge005.html --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/latex-div.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/table-classes.lua --embed-resources --standalone --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3954583.11.p16/Rtmpv5JUtv/rmarkdown-str3ffbe7535401f2.html --variable code_folding=hide --variable code_menu=1 
+72bf757dafb2.html --variable code_folding=hide --variable code_menu=1 
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [Making Result Files]       
+15/16                             
+16/16 [session info]              
+/restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_LIHC_ComboRidge005.html --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/latex-div.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/table-classes.lua --embed-resources --standalone --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3954583.8.linga/RtmpoR4aK0/rmarkdown-str24e69157a64d97.html --variable code_folding=hide --variable code_menu=1 
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [Making Result Files]       
+15/16                             
+16/16 [session info]              
+/restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_THCA_ComboRidge005.html --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/latex-div.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/table-classes.lua --embed-resources --standalone --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3954583.14.linga/RtmpJZaJOJ/rmarkdown-strf6ee161fe5dae.html --variable code_folding=hide --variable code_menu=1 
+Running on cancer: CESC 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [Making Result Files]       
+15/16                             
+16/16 [session info]              
+/restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/Many_models_one_cancer_test_BLCA_RidgeCV005.html --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/latex-div.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/table-classes.lua --embed-resources --standalone --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3956039.1.linga/RtmpuAx9Pp/rmarkdown-strf77d4acd39fc.html --variable code_folding=hide --variable code_menu=1 
+Running on cancer: KIRC 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [Making Result Files]       
+15/16                             
+16/16 [session info]              
+/restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/Many_models_one_cancer_test_COAD_RidgeCV005.html --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/latex-div.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/table-classes.lua --embed-resources --standalone --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3956039.3.linga/RtmpYHSCgC/rmarkdown-strc8d093dfcb545.html --variable code_folding=hide --variable code_menu=1 
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [Making Result Files]       
+15/16                             
+16/16 [session info]              
+/restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/Many_models_one_cancer_test_KIRP_RidgeCV005.html --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/latex-div.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/table-classes.lua --embed-resources --standalone --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3956039.6.linga/RtmprFvB3b/rmarkdown-strf7a8923a7ca22.html --variable code_folding=hide --variable code_menu=1 
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [Making Result Files]       
+15/16                             
+16/16 [session info]              
+/restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/Many_models_one_cancer_test_HNSC_RidgeCV005.html --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/latex-div.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/table-classes.lua --embed-resources --standalone --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3956039.4.f/RtmpvtuIz9/rmarkdown-str279ec747b63a7.html --variable code_folding=hide --variable code_menu=1 
+Running on cancer: LIHC 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [Making Result Files]       
+15/16                             
+16/16 [session info]              
+/restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/Many_models_one_cancer_test_KIRC_RidgeCV005.html --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/latex-div.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/table-classes.lua --embed-resources --standalone --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3956039.5.linga/RtmpvGUxB3/rmarkdown-str24feb91c0712ec.html --variable code_folding=hide --variable code_menu=1 
+Running on cancer: LUSC 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+                                                                                                                                                                                                                                                                                                                                                                              11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [Making Result Files]       
+15/16                             
+16/16 [session info]              
+/restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/Many_models_one_cancer_test_LUSC_RidgeCV005.html --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/latex-div.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/table-classes.lua --embed-resources --standalone --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3956039.10.e8/RtmpQHNxac/rmarkdown-str1a2f3642ad45e8.html --variable code_folding=hide --variable code_menu=1 
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [Making Result Files]       
+15/16                             
+16/16 [session info]              
+/restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/Many_models_one_cancer_test_LUAD_RidgeCV005.html --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/latex-div.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/table-classes.lua --embed-resources --standalone --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3956039.9.linga/Rtmpv8IVhK/rmarkdown-strf7f57356d0296.html --variable code_folding=hide --variable code_menu=1 
+Running on cancer: SARC 
+1/16                             
+2/16 [opts]                      
+3/16                             
+4/16 [render_report]             
+5/16                             
+6/16 [cancer type load]          
+7/16                             
+8/16 [Setting Model Combinations]
+9/16                             
+10/16 [Running Models]            
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [Making Result Files]       
+15/16                             
+16/16 [session info]              
+/restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/Many_models_one_cancer_test_SARC_RidgeCV005.html --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/latex-div.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/table-classes.lua --embed-resources --standalone --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3956039.12.e8/RtmpWXKaBE/rmarkdown-str399bd25bec3f2c.html --variable code_folding=hide --variable code_menu=1 
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [Making Result Files]       
+15/16                             
+16/16 [session info]              
+/restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/Many_models_one_cancer_test_STAD_RidgeCV005.html --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/latex-div.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/table-classes.lua --embed-resources --standalone --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3956039.13.linga/RtmpChxPaH/rmarkdown-strf819576e3d8bc.html --variable code_folding=hide --variable code_menu=1 
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [Making Result Files]       
+15/16                             
+16/16 [session info]              
+/restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/Many_models_one_cancer_test_THCA_RidgeCV005.html --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/latex-div.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/table-classes.lua --embed-resources --standalone --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3956039.14.e8/RtmpMzoFda/rmarkdown-str1a33047bd4bf58.html --variable code_folding=hide --variable code_menu=1 
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [Making Result Files]       
+15/16                             
+16/16 [session info]              
+/restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/Many_models_one_cancer_test_LIHC_RidgeCV005.html --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/latex-div.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/table-classes.lua --embed-resources --standalone --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3956039.8.linga/Rtmp0lmZxu/rmarkdown-strc90b4fd97ebf.html --variable code_folding=hide --variable code_menu=1 
+11/16                             
+12/16 [Printing Model Weights]    
+13/16                             
+14/16 [Making Result Files]       
+15/16                             
+16/16 [session info]              
+/restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/bin/pandoc +RTS -K512m -RTS Many_models_one_cancer_test.knit.md --to html4 --from markdown+autolink_bare_uris+tex_math_single_backslash --output /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_LGG_ComboRidge005.html --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/pagebreak.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/latex-div.lua --lua-filter /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmarkdown/lua/table-classes.lua --embed-resources --standalone --variable bs3=TRUE --section-divs --table-of-contents --toc-depth 3 --variable toc_float=1 --variable toc_selectors=h1,h2,h3 --variable toc_collapsed=1 --variable toc_smooth_scroll=1 --variable toc_print=1 --template /restricted/projectnb/crem-trainees/Kotton_Lab/Eitan/.conda/envs/MontiLab/lib/R/library/rmarkdown/rmd/h/default.html --no-highlight --variable highlightjs=1 --variable theme=united --css style.css --mathjax --variable 'mathjax-url=https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML' --include-in-header /scratch/3954583.7.linga/RtmphmccdD/rmarkdown-str12d63321ae046d.html --variable code_folding=hide --variable code_menu=1 

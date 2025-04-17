@@ -47,7 +47,7 @@ create_DFsurv <- function(predicted_ages, metadata_table, delta_age_thresh = 0) 
       breaks = c(0, 50, 70, 90, +Inf),
       labels = c("0-50", "50-70", "70-90", "90+")
     ))
-  DFsurv$surv <- survival::Surv(time = DFsurv$fu, event = as.numeric(factor(DFsurv$vitals)) - 1)
+  DFsurv$surv <- survival::Surv(time = DFsurv$fu / 365, event = as.numeric(factor(DFsurv$vitals)) - 1)
   return(DFsurv)
 }
 

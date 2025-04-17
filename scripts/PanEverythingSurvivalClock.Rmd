@@ -38,14 +38,14 @@ Sys.setenv(R_MAX_STACK_SIZE = "50000000000")  # Increase to 50000MB
 options(expressions = 500000)
 
 # existingExperimentList <- getNormalSize("KIRC")
-existingExperimentList <- NULL
+# existingExperimentList <- NULL
 # expRNAseq <- getExperimentByLayerAndCancer("RNAseq", "BRCA")
 # reducedRNAseq <- reduceExperimentBySubjects(expRNAseq$layer, existingExperimentList$RNAseq_Normal)
 
 cancerType <- "HNSC"
 layers <- c("RNAseq")
-iterationCount <- 1
-modelOutput <- standardizedModelBuilding(layers, cancerName=cancerType, methodNames=c("ridge"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=iterationCount, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE, significanceCutoff=0.025, predictor="age")
+iterationCount <- 10
+modelOutput <- standardizedModelBuilding(layers, cancerName=cancerType, methodNames=c("ridge"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=iterationCount, applyBiasCorrection=FALSE, combiningNormal=FALSE, scaleByNormal=FALSE, significanceCutoff=0.05, predictor="age")
 existingExperimentList <- modelOutput$experimentList
 ```
 
@@ -54,7 +54,7 @@ existingExperimentList <- modelOutput$experimentList
 ### Collect survival analysis data
 stats <- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted, applyBiasCorrection=FALSE)
 # survivalStats <- survivalOnlyFeatures(modelOutput)
-summary(survivalStats)
+# summary(survivalStats)
 statsTable <- getFormattedStatsTable(stats)
 summaryTable <- intializeSummaryTable()
 summaryTable <- rbind(summaryTable, getSummaryTable(layers, modelOutput, stats))
@@ -62,7 +62,6 @@ summaryTable <- rbind(summaryTable, getSummaryTable(layers, modelOutput, stats))
 print(stats$interaction_summary)
 print(stats$non_interaction_summary)
 print(stats$baseline_summary)
-plotHazardRatio(stats$interaction_model, modelOutput$ModelBuilding$predicted$Age, "Interaction Hazard Ratio of Delta Age", x="chronological", y="delta_age", usingInteractionTerm=TRUE)
 
 # plotHazardRatio(stats$non_interaction_model, modelOutput$ModelBuilding$predicted$Age, "Non-Interaction Hazard Ratio of Delta Age", x="chronological", y="delta_age", usingInteractionTerm=FALSE)
 
@@ -75,52 +74,39 @@ plotHazardRatio(stats$interaction_model, modelOutput$ModelBuilding$predicted$Age
 survDF <- stats$survDF
 columnNames <- c("chronological", "delta_age", "gender.y", "surv")
 newdata <- data.frame(chronological=survDF$chronological, delta_age=survDF$delta_age, gender.y=survDF$gender.y, surv=survDF$surv, submitter_id=survDF$submitter_id)
-newdata <- data.frame(matrix(nrow = length(survDF$submitter_id), ncol = length(columnNames)))
-newdata <- data.frame(matrix(ncol = length(survDF$submitter_id), nrow = length(columnNames)))
-colnames(newdata) <- columnNames
-rownames(newdata) <- columnNames
 
-base_haz <- basehaz(stats$non_interaction_model, centered = FALSE)
-base_haz <- survfit(stats$non_interaction_model, newdata, id = survDF$submitter_id)
-# names(base_haz)[names(base_haz) == 'time'] <- 'surv'
-
+base_haz <- basehaz(stats$baseline_model, centered = FALSE)
 survDF$hazard <- approx(base_haz$time, base_haz$hazard, xout = survDF$surv[, 1], rule = 2)$y
 
-# Merge baseline hazard with data for plotting
-plot_data <- merge(stats$survDF, base_haz, by.x="time1", by.y = "time", all.x = TRUE)
+plotHazardRatio(stats$interaction_model, modelOutput$ModelBuilding$predicted$Age, "Interaction Hazard Ratio of Delta Age", x="chronological", y="delta_age", usingInteractionTerm=TRUE)
 
-# Plot estimated hazard ratio over time for a covariate
-ggplot(survDF, aes(x = chronological, y = exp(delta_age * hazard))) +
-  geom_line() +
-  labs(title = "Estimated Hazard Ratio for Delta Age Over Time", x = "Time", y = "Hazard Ratio") +
-  theme_minimal()
 
-proportionalityAssumptionTest <- cox.zph(stats$interaction_model)
+# proportionalityAssumptionTest <- cox.zph(stats$interaction_model)
 # vif(stats$non_interaction_model)
 
 ```
 
 
 ```{r, SurvivalPlotting}
-sex_df <- with(survDF,
-               data.frame(gender.y = c("male", "female"), 
-                          chronological = rep(mean(chronological, na.rm = TRUE), 2),
-                          delta_age = rep(mean(delta_age, na.rm = TRUE), 2)
-                          )
-               )
-fit <- survfit(stats$non_interaction_model, data = survDF, newdata = sex_df)
-ggsurvplot(fit, conf.int = TRUE, legend.labs=c("Male", "Female"),
-           ggtheme = theme_minimal())
+# sex_df <- with(survDF,
+#                data.frame(gender.y = c("male", "female"), 
+#                           chronological = rep(mean(chronological, na.rm = TRUE), 2),
+#                           delta_age = rep(mean(delta_age, na.rm = TRUE), 2)
+#                           )
+#                )
+# fit <- survfit(stats$non_interaction_model, data = survDF, newdata = sex_df)
+# ggsurvplot(fit, conf.int = TRUE, legend.labs=c("Male", "Female"),
+#            ggtheme = theme_minimal())
 
 delta_age_df <- with(survDF,
                data.frame(gender.y = c("female", "female"), 
                           chronological = rep(mean(chronological, na.rm = TRUE), 2),
-                          delta_age = c(-5, 5)
+                          delta_age = c(5, -5)
                           )
                )
 fit <- survfit(stats$non_interaction_model, data = survDF, newdata = delta_age_df)
-ggsurvplot(fit, conf.int = TRUE, legend.labs=c("Delta = -5", "Delta = 5"),
-           ggtheme = theme_minimal())
+ggsurvplot(fit, conf.int = TRUE, legend.labs=c("Delta = 5", "Delta = -5"),
+           ggtheme = theme_minimal(), xlab="Years after sample collection")
 ```
 
 ### Save outputs of survival and age model

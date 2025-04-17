@@ -9,7 +9,7 @@ params:
   getting_combinations: FALSE
   output_dir: "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/debug"
   test_name: "ridge"
-  : 1
+  iteration_count: 1
   apply_bias_correction: FALSE
 output:
   html_document:

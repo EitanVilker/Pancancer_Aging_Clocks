@@ -1,0 +1,506 @@
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005' already exists
+Error occurred with cancer type: BLCA
+Error details:Parser error: while parsing a block mapping at line 5, column 3 did not find expected key at line 11, column 3
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005' already exists
+Error occurred with cancer type: CESC
+Error details:Parser error: while parsing a block mapping at line 5, column 3 did not find expected key at line 11, column 3
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005' already exists
+Error occurred with cancer type: COAD
+Error details:Parser error: while parsing a block mapping at line 5, column 3 did not find expected key at line 11, column 3
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005' already exists
+Error occurred with cancer type: HNSC
+Error details:Parser error: while parsing a block mapping at line 5, column 3 did not find expected key at line 11, column 3
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005' already exists
+Error occurred with cancer type: KIRC
+Error details:Parser error: while parsing a block mapping at line 5, column 3 did not find expected key at line 11, column 3
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005' already exists
+Error occurred with cancer type: KIRP
+Error details:Parser error: while parsing a block mapping at line 5, column 3 did not find expected key at line 11, column 3
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005' already exists
+Error occurred with cancer type: LGG
+Error details:Parser error: while parsing a block mapping at line 5, column 3 did not find expected key at line 11, column 3
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005' already exists
+Error occurred with cancer type: LIHC
+Error details:Parser error: while parsing a block mapping at line 5, column 3 did not find expected key at line 11, column 3
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005' already exists
+Error occurred with cancer type: LUAD
+Error details:Parser error: while parsing a block mapping at line 5, column 3 did not find expected key at line 11, column 3
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005' already exists
+Error occurred with cancer type: LUSC
+Error details:Parser error: while parsing a block mapping at line 5, column 3 did not find expected key at line 11, column 3
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005' already exists
+Error occurred with cancer type: PRAD
+Error details:Parser error: while parsing a block mapping at line 5, column 3 did not find expected key at line 11, column 3
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005' already exists
+Error occurred with cancer type: SARC
+Error details:Parser error: while parsing a block mapping at line 5, column 3 did not find expected key at line 11, column 3
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005' already exists
+Error occurred with cancer type: STAD
+Error details:Parser error: while parsing a block mapping at line 5, column 3 did not find expected key at line 11, column 3
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005' already exists
+Error occurred with cancer type: THCA
+Error details:Parser error: while parsing a block mapping at line 5, column 3 did not find expected key at line 11, column 3
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005' already exists
+Error occurred with cancer type: UCEC
+Error details:Parser error: while parsing a block mapping at line 5, column 3 did not find expected key at line 11, column 3
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005' already exists
+
+
+processing file: Many_models_one_cancer_test.Rmd
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005' already exists
+
+
+processing file: Many_models_one_cancer_test.Rmd
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005' already exists
+
+
+processing file: Many_models_one_cancer_test.Rmd
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_CESC_ComboRidge005.html
+Successfully processed: CESC
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_BLCA_ComboRidge005.html
+Successfully processed: BLCA
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005' already exists
+
+
+processing file: Many_models_one_cancer_test.Rmd
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_KIRC_ComboRidge005.html
+Successfully processed: KIRC
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005' already exists
+
+
+processing file: Many_models_one_cancer_test.Rmd
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_KIRP_ComboRidge005.html
+Successfully processed: KIRP
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_LUAD_ComboRidge005.html
+Successfully processed: LUAD
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_LUSC_ComboRidge005.html
+Successfully processed: LUSC
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005' already exists
+
+
+processing file: Many_models_one_cancer_test.Rmd
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_SARC_ComboRidge005.html
+Successfully processed: SARC
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_STAD_ComboRidge005.html
+Successfully processed: STAD
+Error: unexpected ')' in ")"
+Execution halted
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_PRAD_ComboRidge005.html
+Successfully processed: PRAD
+Error: unexpected ')' in ")"
+Execution halted
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_LIHC_ComboRidge005.html
+Successfully processed: LIHC
+Error: unexpected ')' in ")"
+Execution halted
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_THCA_ComboRidge005.html
+Successfully processed: THCA
+Error: unexpected ')' in ")"
+Execution halted
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005' already exists
+
+
+processing file: Many_models_one_cancer_test.Rmd
+
+Quitting from Many_models_one_cancer_test.Rmd:104-166 [Running Models]
+Error occurred with cancer type: CESC
+Error details:no applicable method for 'pull' applied to an object of class "c('DFrame', 'DataFrame', 'SimpleList', 'RectangularData', 'List', 'DataFrame_OR_NULL', 'Vector', 'list_OR_List', 'Annotated', 'vector_OR_Vector')"
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005' already exists
+
+
+processing file: Many_models_one_cancer_test.Rmd
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_UCEC_ComboRidge005.html
+Successfully processed: UCEC
+Error: unexpected '}' in "}"
+Execution halted
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/Many_models_one_cancer_test_BLCA_RidgeCV005.html
+Successfully processed: BLCA
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005' already exists
+
+
+processing file: Many_models_one_cancer_test.Rmd
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/Many_models_one_cancer_test_COAD_RidgeCV005.html
+Successfully processed: COAD
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/Many_models_one_cancer_test_KIRP_RidgeCV005.html
+Successfully processed: KIRP
+Error: unexpected symbol in "rror details"
+Execution halted
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/Many_models_one_cancer_test_HNSC_RidgeCV005.html
+Successfully processed: HNSC
+Error: unexpected symbol in "Error details"
+Execution halted
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005' already exists
+
+
+processing file: Many_models_one_cancer_test.Rmd
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/Many_models_one_cancer_test_KIRC_RidgeCV005.html
+Successfully processed: KIRC
+Error: unexpected symbol in "rror details"
+Execution halted
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005' already exists
+
+
+processing file: Many_models_one_cancer_test.Rmd
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005' already exists
+
+
+processing file: Many_models_one_cancer_test.Rmd
+
+Quitting from Many_models_one_cancer_test.Rmd:104-166 [Running Models]
+Error occurred with cancer type: PRAD
+Error details:no applicable method for 'pull' applied to an object of class "c('DFrame', 'DataFrame', 'SimpleList', 'RectangularData', 'List', 'DataFrame_OR_NULL', 'Vector', 'list_OR_List', 'Annotated', 'vector_OR_Vector')"
+Warning messages:
+1: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/BRCA_ridge_omics_summary.csv
+2: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/CESC_ridge_omics_summary.csv
+3: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/LGG_ridge_omics_summary.csv
+4: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/LIHC_ridge_omics_summary.csv
+5: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/LUAD_ridge_omics_summary.csv
+6: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/LUSC_ridge_omics_summary.csv
+7: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/PRAD_ridge_omics_summary.csv
+8: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/STAD_ridge_omics_summary.csv
+9: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/THCA_ridge_omics_summary.csv
+10: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/UCEC_ridge_omics_summary.csv
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/Many_models_one_cancer_test_LUSC_RidgeCV005.html
+Successfully processed: LUSC
+Error: unexpected ')' in "writeUltimateSummaryTable(outputDir=paste0(outputDir, "/"), suffix=paste0("_", model_type, "_omics_summary.csv")))"
+Execution halted
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/Many_models_one_cancer_test_LUAD_RidgeCV005.html
+Successfully processed: LUAD
+Error: unexpected ')' in "writeUltimateSummaryTable(outputDir=paste0(outputDir, "/"), suffix=paste0("_", model_type, "_omics_summary.csv")))"
+Execution halted
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005' already exists
+
+
+processing file: Many_models_one_cancer_test.Rmd
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+Warning message:
+In dir.create(output_dir) :
+  '/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005' already exists
+
+
+processing file: Many_models_one_cancer_test.Rmd
+
+Quitting from Many_models_one_cancer_test.Rmd:104-166 [Running Models]
+Error occurred with cancer type: UCEC
+Error details:no applicable method for 'pull' applied to an object of class "c('DFrame', 'DataFrame', 'SimpleList', 'RectangularData', 'List', 'DataFrame_OR_NULL', 'Vector', 'list_OR_List', 'Annotated', 'vector_OR_Vector')"
+Warning messages:
+1: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/BRCA_ridge_omics_summary.csv
+2: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/CESC_ridge_omics_summary.csv
+3: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/LGG_ridge_omics_summary.csv
+4: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/LIHC_ridge_omics_summary.csv
+5: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/PRAD_ridge_omics_summary.csv
+6: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/STAD_ridge_omics_summary.csv
+7: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/THCA_ridge_omics_summary.csv
+8: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/UCEC_ridge_omics_summary.csv
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/Many_models_one_cancer_test_SARC_RidgeCV005.html
+Successfully processed: SARC
+Warning messages:
+1: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/BRCA_ridge_omics_summary.csv
+2: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/CESC_ridge_omics_summary.csv
+3: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/LGG_ridge_omics_summary.csv
+4: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/LIHC_ridge_omics_summary.csv
+5: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/PRAD_ridge_omics_summary.csv
+6: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/STAD_ridge_omics_summary.csv
+7: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/THCA_ridge_omics_summary.csv
+8: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/UCEC_ridge_omics_summary.csv
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/Many_models_one_cancer_test_STAD_RidgeCV005.html
+Successfully processed: STAD
+Warning messages:
+1: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/BRCA_ridge_omics_summary.csv
+2: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/CESC_ridge_omics_summary.csv
+3: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/LGG_ridge_omics_summary.csv
+4: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/LIHC_ridge_omics_summary.csv
+5: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/PRAD_ridge_omics_summary.csv
+6: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/THCA_ridge_omics_summary.csv
+7: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/UCEC_ridge_omics_summary.csv
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/Many_models_one_cancer_test_THCA_RidgeCV005.html
+Successfully processed: THCA
+Warning messages:
+1: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/BRCA_ridge_omics_summary.csv
+2: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/CESC_ridge_omics_summary.csv
+3: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/LGG_ridge_omics_summary.csv
+4: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/LIHC_ridge_omics_summary.csv
+5: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/PRAD_ridge_omics_summary.csv
+6: In FUN(X[[i]], ...) :
+  File not found: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/UCEC_ridge_omics_summary.csv
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/RidgeCV005/Many_models_one_cancer_test_LIHC_RidgeCV005.html
+Successfully processed: LIHC
+Error: unexpected ')' in "writeUltimateSummaryTable(outputDir=paste0(outputDir, "/"), suffix=paste0("_", model_type, "_omics_summary.csv")))"
+Execution halted
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_LGG_ComboRidge005.html
+Successfully processed: LGG
+Error: unexpected ')' in "aste("Error details:", e$message))"
+Execution halted
