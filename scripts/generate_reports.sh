@@ -15,10 +15,10 @@ SECONDS=0
 #$ -t 1-14
 # Commented out -l mem_per_core=16G
 # Name job
-#$ -N ElasticNet
+#$ -N NewCovariatesNormalElNet
 # Setting the error file:
 #$ -o small_generate_reports.out
 #$ -e small_generate_reports_sh.err
 
-taskinput=$(awk -F',' -v id=$SGE_TASK_ID 'NR==id+1 { gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2 }' /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/topCancerTypes.csv)
+cancerType=$(awk -F',' -v id=$SGE_TASK_ID 'NR==id+1 { gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2 }' /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/topCancerTypes.csv)
 Rscript generate_single_reports.R $1 "$cancerType"

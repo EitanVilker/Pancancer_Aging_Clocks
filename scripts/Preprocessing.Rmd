@@ -133,8 +133,11 @@ filterForCovariates <- function(experimentsList, featuresToEncode=c("gender"), c
     covariates <- SummarizedExperiment::colData(experiment)[, c(featuresToEncode, columns_to_keep), drop = FALSE]
 
     # Check for and remove rows with missing values
+    for (col in featuresToEncode){
+      covariates[[col]][is.na(covariates[[col]])] <- "Other"
+    }
     covariates <- covariates[complete.cases(as.data.frame(covariates)), ]
-    
+
     # Filter layer data to match samples
     layer_processed <- experiment[, rownames(covariates)]
     experimentsList[[layerName]] <- layer_processed
@@ -247,7 +250,8 @@ encode_covariates <- function(covariates, assayData, featuresToEncode=c(), colum
   # Combine encoded covariates with assay data
   rownames(encoded_covariates) <- encoded_covariates$submitter_id
   assayDataWithCovariates <- merge(encoded_covariates, assayData, by="submitter_id", all=FALSE)
-  rownames(assayDataWithCovariates) <- assayDataWithCovariates$submitter_id
+  # rownames(assayDataWithCovariates) <- assayDataWithCovariates$submitter_id
+  # assayDataWithCovariates$Age <- getZScores(assayDataWithCovariates$Age)
   assayDataWithCovariates$Row.names <- NULL
   
   return(assayDataWithCovariates)

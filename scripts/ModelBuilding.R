@@ -18,28 +18,11 @@ knitr::knit("Preprocessing.Rmd", output = tempfile())
 ```
 
 ```
-## 1/18                   
-## 2/18 [unnamed-chunk-5] 
-## 3/18                   
-## 4/18 [unnamed-chunk-6] 
-## 5/18                   
-## 6/18 [unnamed-chunk-7] 
-## 7/18                   
-## 8/18 [unnamed-chunk-8] 
-## 9/18                   
-## 10/18 [unnamed-chunk-9] 
-## 11/18                   
-## 12/18 [unnamed-chunk-10]
-## 13/18                   
-## 14/18 [unnamed-chunk-11]
-## 15/18                   
-## 16/18 [unnamed-chunk-12]
-## 17/18                   
-## 18/18 [unnamed-chunk-13]
+##   |                                                                                                                                                          |                                                                                                                                                  |   0%  |                                                                                                                                                          |........                                                                                                                                          |   6%                     |                                                                                                                                                          |................                                                                                                                                  |  11% [unnamed-chunk-2]   |                                                                                                                                                          |........................                                                                                                                          |  17%                     |                                                                                                                                                          |................................                                                                                                                  |  22% [unnamed-chunk-3]   |                                                                                                                                                          |.........................................                                                                                                         |  28%                     |                                                                                                                                                          |.................................................                                                                                                 |  33% [unnamed-chunk-4]   |                                                                                                                                                          |.........................................................                                                                                         |  39%                     |                                                                                                                                                          |.................................................................                                                                                 |  44% [unnamed-chunk-5]   |                                                                                                                                                          |.........................................................................                                                                         |  50%                     |                                                                                                                                                          |.................................................................................                                                                 |  56% [unnamed-chunk-6]   |                                                                                                                                                          |.........................................................................................                                                         |  61%                     |                                                                                                                                                          |.................................................................................................                                                 |  67% [unnamed-chunk-7]   |                                                                                                                                                          |.........................................................................................................                                         |  72%                     |                                                                                                                                                          |..................................................................................................................                                |  78% [unnamed-chunk-8]   |                                                                                                                                                          |..........................................................................................................................                        |  83%                     |                                                                                                                                                          |..................................................................................................................................                |  89% [unnamed-chunk-9]   |                                                                                                                                                          |..........................................................................................................................................        |  94%                     |                                                                                                                                                          |..................................................................................................................................................| 100% [unnamed-chunk-10]
 ```
 
 ```
-## [1] "/scratch/3964604.1.linga/RtmpUjIbEu/filecbae029751fed"
+## [1] "/scratch/342870.1.ood/Rtmp1NkX78/file3c77a14f32a8e8"
 ```
 
 ``` r
@@ -294,8 +277,6 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
   transformedData <- filterFeatures(assayList, experimentsAndCovariatesList$experiments, highCorrelationToEachOther=FALSE, relativeVariance=FALSE)
   transformedData <- combineAssays(transformedData, combiningNormal=combiningNormal)
   assayDataWithCovariates <- encode_covariates(experimentsAndCovariatesList$covariates[[1]], transformedData, featuresToEncode=featuresToEncode, columns_to_keep=columns_to_keep)
-  return(assayDataWithCovariates)
-  
   ## Running model
   train_testList <- splitTrainTest(assayDataWithCovariates, trainSetSize=splitSize, seed=seed)
 
@@ -389,14 +370,16 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
     submitter_ids <- c()
     chronologicalAges <- c()
     predictedAges <- c()
+    predictedCorrectedAges <- c()
     
     for (fold in names(folds)){
       seed <- seed + 1
       train_testInitial <- getFold(fullData, folds[[fold]])
       submitter_ids <- c(submitter_ids, fullData$submitter_id[folds[[fold]]])
-      modelsList[[fold]] <- train_test_wrapper(train_testInitial$train, train_testInitial$test, seed=seed, methodName=methodNames[1], do_plot=FALSE, stratifying=stratifying, predictor=predictor)
+      modelsList[[fold]] <- train_test_wrapper(train_testInitial$train, train_testInitial$test, seed=seed, methodName=methodNames[1], do_plot=FALSE, stratifying=stratifying, predictor=predictor, applyBiasCorrection=applyBiasCorrection)
       chronologicalAges <- c(chronologicalAges, train_testInitial$test$Age)
       predictedAges <- c(predictedAges, modelsList[[fold]]$predicted$predicted_age)
+      if (applyBiasCorrection){ predictedCorrectedAges <- c(predictedCorrectedAges, modelsList[[fold]]$predicted$predicted_corrected_age) }
       R2 <- round(cor(train_testInitial$test$Age, modelsList[[fold]]$predicted$predicted_age)^2, digits=4)
       modelsList[[fold]]$R2 <- R2
       R2Total <- R2Total + R2
@@ -425,9 +408,6 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
     for (i in 1:iterationCount){
       model <- modelsList[[i]]
       weights <- zeroVec
-      # modelWeight <- 1 / iterationCount
-      # coefficients <- coef(model$model$finalModel, model$model$bestTune$lambda)
-      # featureFrame <- data.frame(features=coefficients@Dimnames[[1]][coefficients@i + 1], coefficients=coefficients@x)
       featureFrame <- getCoefficientDF(model$model$finalModel)
       
       for (j in 1:length(featureFrame$Feature)){
@@ -442,23 +422,22 @@ ModelBuilding <- function(inputList, cancerName="HNSC", splitSize=0.8, testOnCom
     combinedWeights$Weight <- rowMeans(combinedWeights[, -1])
     reducedCombinedWeights <- data.frame(Feature=combinedWeights$Feature, Weight=combinedWeights$Weight)
     
+    # Apply bias correction to CV predictions if enabled
+    if (applyBiasCorrection) {
+      combinedPredictions$predicted_corrected_age <- predictedCorrectedAges
+
+      # Plot corrected results
+      R2_corrected <- cor(chronologicalAges, predictedCorrectedAges)^2
+      RMSE_corrected <- sqrt(mean((chronologicalAges - predictedCorrectedAges)^2))
+  
+      title <- paste("Corrected CV Predictions -", graphTitle)
+      caption <- paste("R^2: ", toString(round(R2_corrected, 3)), "- RMSE: ", toString(round(RMSE_corrected, 3)))
+      graphAgeModel(combinedPredictions, title, caption, biasCorrection=TRUE)
+  }
+    
     return(list(model=modelsList, predicted=combinedPredictions, experimentsList=experimentsList, weights=reducedCombinedWeights))
   }
   else{ return(NULL) }
-
-  # Apply bias correction to ensemble predictions if enabled
-  if (applyBiasCorrection) {
-    correctedPredictions <- bias_correction(combinedPredictions, remainingTests$Age)
-    remainingTests$predicted_corrected_age <- correctedPredictions
-
-    # Plot corrected results
-    R2_corrected <- cor(remainingTests$Age, correctedPredictions)^2
-    RMSE_corrected <- sqrt(mean((remainingTests$Age - correctedPredictions)^2))
-
-    title <- paste("Corrected Ensemble Predictions -", graphTitle)
-    caption <- paste("R^2: ", toString(round(R2_corrected, 3)), "- RMSE: ", toString(round(RMSE_corrected, 3)))
-    graphAgeModel(remainingTests, title, caption, biasCorrection=TRUE)
-  }
   
   return(list(model=modelsList, predicted=remainingTests, weights=weightsSurvival, experimentsList=experimentsList))
 }
@@ -530,16 +509,18 @@ setup2 <- function(setup1List, featuresToEnsure=c("Age"), existingExperimentsLis
   if (!is.null(layerPaths$methylation)) { 
     simplifiedData$methylation <- list(data=readRDS(paste(PATH,"/results/methylation/DMP_analysis/TCGA-",cancerName,"_CpG-Sites_hg19_limma.rds", sep="")), metric="adj.P.Val")
   }
-  if (!is.null(layerPaths$RNAseq)) { 
-    simplifiedData$RNAseq <- list(data=readRDS(paste(PATH,"/results/RNAseq/DGE_analysis/TCGA-",cancerName,"_filtered_DESeq2_results.rds", sep="")), metric="padj")
-  }
-  # Using same age associated features as base for normal data
-  if (!is.null(layerPaths$RNAseq_Normal)) {
-    simplifiedData$RNAseq_Normal <- list(data=readRDS(paste(PATH,"/results/RNAseq/DGE_analysis/TCGA-",cancerName,"_filtered_DESeq2_results.rds", sep="")), metric="padj")
-  }
+  # if (!is.null(layerPaths$RNAseq)) { 
+  #   simplifiedData$RNAseq <- list(data=readRDS(paste(PATH,"/results/RNAseq/DGE_analysis/TCGA-",cancerName,"_filtered_DESeq2_results.rds", sep="")), metric="padj")
+  # }
+  # # Using same age associated features as base for normal data
+  # if (!is.null(layerPaths$RNAseq_Normal)) {
+  #   simplifiedData$RNAseq_Normal <- list(data=readRDS(paste(PATH,"/results/RNAseq/DGE_analysis/TCGA-",cancerName,"_filtered_DESeq2_results.rds", sep="")), metric="padj")
+  # }
   # if (!is.null(layerPaths$RNAseq_Normal)) { simplifiedData$RNAseq_Normal <- NULL }
   if (!is.null(layerPaths$miRNA)) { simplifiedData$miRNA <- NULL }
   if (!is.null(layerPaths$RPPA)) { simplifiedData$RPPA <- NULL }
+  if (!is.null(layerPaths$RNAseq)) { simplifiedData$RNAseq <- NULL }
+  if (!is.null(layerPaths$RNAseq_Normal)) { simplifiedData$RNAseq_Normal <- NULL }
   
   # Get list of SummarizedExperiments for each omics layer of the cancer
   if (is.null(existingExperimentsList)){ 

@@ -48,11 +48,17 @@ create_DFsurv <- function(predicted_ages, metadata_table, delta_age_thresh = 0) 
       labels = c("0-50", "50-70", "70-90", "90+")
     ))
   DFsurv$surv <- survival::Surv(time = DFsurv$fu / 365, event = as.numeric(factor(DFsurv$vitals)) - 1)
+  DFsurv$chronological <- scale(DFsurv$chronological)
+  DFsurv$chronological <- DFsurv$chronological - min(DFsurv$chronological) + 0.01
+  DFsurv$chronological_duplicate <- DFsurv$chronological
+  DFsurv$delta_age <- scale(DFsurv$delta_age)
+  DFsurv$delta_age <- DFsurv$delta_age - min(DFsurv$delta_age) + 0.01
+  
   return(DFsurv)
 }
 
 # Step 3: Run the CoxPH analysis
-run_analysis_pipeline <- function(fullExperiment, prediction_df, prediction_object=NULL, useGender=TRUE) {
+run_analysis_pipeline <- function(fullExperiment, prediction_df, useCovariates=TRUE, useGender=TRUE) {
   
   # Prepare Metadata Table
   metadata_table <- make_meta_df(fullExperiment)
@@ -73,29 +79,43 @@ run_analysis_pipeline <- function(fullExperiment, prediction_df, prediction_obje
 
   experiment_prediction_object_meta <- experiment_prediction_object %>%
     inner_join(filtered_metadata, by = "submitter_id")
-  
+
   # Set up formulas, accounting for covariates appropriate to the cancer
-  formula_vector_non_interaction <- c("chronological + delta_age")
+  formula_vector_non_interaction <- c("pspline(chronological, 8) + delta_age")
   formula_vector_interaction <- c("chronological * delta_age")
   formula_vector_baseline <- c("chronological")
+  formula_vector_baseline_nonlinear <- c("pspline(chronological,8)")
+  formula_vector_baseline_interaction <- c("chronological * chronological_duplicate")
   
-  if (useGender){
-    if (nlevels(as.factor(experiment_prediction_object_meta$gender.y)) > 1){
-      formula_vector_non_interaction <- c(formula_vector_non_interaction, "gender.y")
-      formula_vector_interaction <- c(formula_vector_interaction, "gender.y")
-      formula_vector_baseline <- c(formula_vector_baseline, "gender.y")
+  if (useCovariates){
+    if (useGender){
+      if (nlevels(as.factor(experiment_prediction_object_meta$gender.y)) > 1){
+        formula_vector_non_interaction <- c(formula_vector_non_interaction, "gender.y")
+        formula_vector_interaction <- c(formula_vector_interaction, "gender.y")
+        formula_vector_baseline <- c(formula_vector_baseline, "gender.y")
+        formula_vector_baseline_interaction <- c(formula_vector_baseline_interaction, "gender.y")
+      }
     }
-  }
-  if (nlevels(as.factor(experiment_prediction_object_meta$race)) > 1 && FALSE){
-    formula_vector_non_interaction <- c(formula_vector_non_interaction, "race")
-    formula_vector_interaction <- c(formula_vector_interaction, "race")
-    formula_vector_baseline <- c(formula_vector_baseline, "race")
+    if (nlevels(as.factor(experiment_prediction_object_meta$subtype_selected)) > 1 && TRUE){
+      formula_vector_non_interaction <- c(formula_vector_non_interaction, "subtype_selected")
+      formula_vector_interaction <- c(formula_vector_interaction, "subtype_selected")
+      formula_vector_baseline <- c(formula_vector_baseline, "subtype_selected")
+      formula_vector_baseline_interaction <- c(formula_vector_baseline_interaction, "subtype_selected")
+    }
+    if (nlevels(as.factor(experiment_prediction_object_meta$treatments_radiation_treatment_or_therapy)) > 1 && TRUE){
+      formula_vector_non_interaction <- c(formula_vector_non_interaction, "treatments_radiation_treatment_or_therapy")
+      formula_vector_interaction <- c(formula_vector_interaction, "treatments_radiation_treatment_or_therapy")
+      formula_vector_baseline <- c(formula_vector_baseline, "treatments_radiation_treatment_or_therapy")
+      formula_vector_baseline_interaction <- c(formula_vector_baseline_interaction, "treatments_radiation_treatment_or_therapy")
+    }
   }
 
   covariates_formula_non_interaction <- as.formula(paste("surv ~ ", paste(formula_vector_non_interaction, collapse= "+")))
   covariates_formula_interaction <- as.formula(paste("surv ~ ", paste(formula_vector_interaction, collapse= "+")))
   covariates_formula_baseline <- as.formula(paste("surv ~ ", paste(formula_vector_baseline, collapse= "+")))
-
+  covariates_formula_baseline_nonlinear <- as.formula(paste("surv ~ ", paste(formula_vector_baseline_nonlinear, collapse= "+")))
+  covariates_formula_baseline_interaction <- as.formula(paste("surv ~ ", paste(formula_vector_baseline_interaction, collapse= "+")))
+  
   # Run Non-Interaction CoxPH Model
   test1_non_interaction <- coxph(
     covariates_formula_non_interaction,
@@ -108,8 +128,21 @@ run_analysis_pipeline <- function(fullExperiment, prediction_df, prediction_obje
     data = experiment_prediction_object_meta
   )
   
+  # Run Baseline CoxPH Model
   test_baseline <- coxph(
     covariates_formula_baseline,
+    data = experiment_prediction_object_meta
+  )
+
+  # Run Baseline Nonlinear CoxPH Model
+  test_baseline_nonlinear <- coxph(
+    covariates_formula_baseline_nonlinear,
+    data = experiment_prediction_object_meta
+  )
+  
+  # Run Baseline Interaction CoxPH Model
+  test_baseline_interaction <- coxph(
+    covariates_formula_baseline_interaction,
     data = experiment_prediction_object_meta
   )
   
@@ -117,6 +150,8 @@ run_analysis_pipeline <- function(fullExperiment, prediction_df, prediction_obje
   non_interaction_summary <- summary(test1_non_interaction)
   interaction_summary <- summary(test1_interaction)
   baseline_summary <- summary(test_baseline)
+  baseline_nonlinear_summary <- summary(test_baseline_nonlinear)
+  baseline_interaction_summary <- summary(test_baseline_interaction)
   
   # Return Results
   return(list(
@@ -126,6 +161,10 @@ run_analysis_pipeline <- function(fullExperiment, prediction_df, prediction_obje
     interaction_model = test1_interaction,
     interaction_summary = interaction_summary,
     baseline_model = test_baseline,
-    baseline_summary = baseline_summary
+    baseline_summary = baseline_summary,
+    baseline_nonlinear_model = test_baseline_nonlinear,
+    baseline_nonlinear_summary = baseline_nonlinear_summary,
+    baseline_interaction_model = test_baseline_interaction,
+    baseline_interaction_summary = baseline_interaction_summary
   ))
 }

@@ -104,7 +104,7 @@ for (comb in layer_combinations){
 ```{r, Running Models, results = 'asis'}
 #Initializing a coefficient empty list so to append after every run
 coef_list <- list()
-cancer_summary_table <- intializeSummaryTable()
+cancer_summary_table <- initializeSummaryTable()
 showOutput <- TRUE
 
 # Iterate through all values in layer_combinations
@@ -123,7 +123,8 @@ for (comb in layer_combinations) {
                                            seed = 43,
                                            significanceCutoff=significance_cutoff,
                                            iterationCount=iteration_count,
-                                           applyBiasCorrection=apply_bias_correction)
+                                           applyBiasCorrection=apply_bias_correction,
+                                           featuresToEncode=c("gender", "subtype_selected"))
   if (is.null(modelOutput)) { 
     print(paste0("Could not load experiment for: ", getCancerLayersPrefix(cancer_type, comb)))
     next

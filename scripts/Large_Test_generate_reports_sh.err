@@ -10,3 +10,111 @@ output file: Many_models_one_cancer_test.knit.md
 
 Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/Many_models_one_cancer_test_LGG_ComboRidge005.html
 Successfully processed: LGG
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+
+
+processing file: Many_models_one_cancer_test.Rmd
+
+Quitting from Many_models_one_cancer_test.Rmd:104-166 [Running Models]
+Error occurred with cancer type: BRCA
+Error details: system is computationally singular: reciprocal condition number = 3.21494e-18
+Error in data.frame(..., check.names = FALSE) : 
+  arguments imply differing number of rows: 64, 0
+Calls: writeUltimateSummaryTable ... eval -> eval -> eval -> cbind -> cbind -> data.frame
+Execution halted
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+
+
+processing file: Many_models_one_cancer_test.Rmd
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ElasticNet005/Many_models_one_cancer_test_LGG_ElasticNet005.html
+Successfully processed: LGG
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+
+
+processing file: Many_models_one_cancer_test.Rmd
+
+Quitting from Many_models_one_cancer_test.Rmd:104-166 [Running Models]
+Error occurred with cancer type: BRCA
+Error details: system is computationally singular: reciprocal condition number = 3.21494e-18
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+
+
+processing file: Many_models_one_cancer_test.Rmd
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/NormalizedElasticNet005/Many_models_one_cancer_test_BRCA_NormalizedElasticNet005.html
+Successfully processed: BRCA
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+
+
+processing file: Many_models_one_cancer_test.Rmd
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/NormalizedElasticNet005/Many_models_one_cancer_test_LGG_NormalizedElasticNet005.html
+Successfully processed: LGG
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+
+
+processing file: Many_models_one_cancer_test.Rmd
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ScaledPositive_TreatmentSubtype_ElasticNet_005/Many_models_one_cancer_test_BRCA_ScaledPositive_TreatmentSubtype_ElasticNet_005.html
+Successfully processed: BRCA
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+
+
+processing file: Many_models_one_cancer_test.Rmd
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ScaledPositive_TreatmentSubtype_ElasticNet_005/Many_models_one_cancer_test_LGG_ScaledPositive_TreatmentSubtype_ElasticNet_005.html
+Successfully processed: LGG
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+
+
+processing file: Many_models_one_cancer_test.Rmd
+Loading required package: foreach
+Loading required package: iterators
+Loading required package: parallel
+
+
+processing file: Many_models_one_cancer_test.Rmd
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ScaledPositive_TreatmentSubtype_ElasticNet_005/Many_models_one_cancer_test_BRCA_ScaledPositive_TreatmentSubtype_ElasticNet_005.html
+Successfully processed: BRCA
+output file: Many_models_one_cancer_test.knit.md
+
+[WARNING] Could not fetch resource style.css
+
+Output created: /restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ScaledPositive_TreatmentSubtype_ElasticNet_005/Many_models_one_cancer_test_LGG_ScaledPositive_TreatmentSubtype_ElasticNet_005.html
+Successfully processed: LGG

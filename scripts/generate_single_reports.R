@@ -29,11 +29,11 @@ output_dir <- file.path(base_dir, test_name)
 dir.create(output_dir, showWarnings = FALSE)
 
 ### Set parameters for models
-model_type <- "ridge"
+model_type <- "ElasticNet"
 significance_cutoff <- 0.05
 getting_combinations <- FALSE
 apply_bias_correction <- FALSE
-iteration_count <- 10
+iteration_count <- 1
 
 ### Run cancer
 # Construct the output file path

@@ -16,11 +16,11 @@ source("PanClockHelperFunctions.R")
 # Runs CoxPH given experiment and predictions and output object containing each CoxPH run
 
 ``` r
-getSurvivalStats <- function(fullExperiment, predictionObject, applyBiasCorrection=FALSE, useGender=TRUE){
+getSurvivalStats <- function(fullExperiment, predictionObject, applyBiasCorrection=FALSE, useGender=TRUE, useCovariates=TRUE){
   if (applyBiasCorrection) { predictedAges <- predictionObject$predicted_corrected_age }
   else { predictedAges <- predictionObject$predicted_age }
-  df <- data.frame(predicted_age=predictedAges, submitter_id=predictionObject$submitter_id)
-  return(run_analysis_pipeline(fullExperiment, df, useGender=useGender))
+  prediction_df <- data.frame(predicted_age=predictedAges, submitter_id=predictionObject$submitter_id)
+  return(run_analysis_pipeline(fullExperiment, prediction_df, useCovariates=useCovariates))
 }
 ```
 
@@ -114,7 +114,7 @@ getCoefficientDF <- function(finalModel){
 
 ``` r
 getGeneMap <- function(modelOutput){
-  features <- modelOutput$ModelBuilding$model$coefnames
+  features <- rownames(assay(modelOutput$experimentList[[1]], "unstranded"))
   geneIDs <- c()
   geneNames <- c()
   RNAseqExperiment <- modelOutput$experimentList$RNAseq
@@ -182,7 +182,7 @@ organizeOutputFeatures <- function(modelOutput, RNAExperiment=NULL){
 
 
 ``` r
-intializeSummaryTable <- function(){
+initializeSummaryTable <- function(){
   cancer_summary_table <- data.frame(
     test_name = character(),
     cancer_type = character(),
@@ -206,9 +206,11 @@ intializeSummaryTable <- function(){
     interaction_term_coeff_interaction = numeric(),
     interaction_term_exp_coeff_interaction = numeric(),
     interaction_term_pval_interaction = numeric(),
+    interaction_term_adjusted_pval_interaction = numeric(),
     delta_age_coeff_interaction	= numeric(),
     delta_age_exp_coeff_interaction = numeric(),
     delta_age_pval_interaction = numeric(),
+    delta_age_adjusted_pval_interaction = numeric(),
     chronological_coef_interaction = numeric(),
     chronological_exp_coef_interaction = numeric(),
     chronological_pval_interaction = numeric(),
@@ -229,6 +231,7 @@ intializeSummaryTable <- function(){
     delta_age_coeff_non_interaction	= numeric(),
     delta_age_exp_coeff_non_interaction = numeric(),
     delta_age_pval_non_interaction = numeric(),
+    delta_age_adjusted_pval_non_interaction = numeric(),
     chronological_coef_non_interaction = numeric(),
     chronological_exp_coef_non_interaction = numeric(),
     chronological_pval_non_interaction = numeric(),
@@ -247,6 +250,7 @@ intializeSummaryTable <- function(){
     chronological_coef_baseline = numeric(),
     chronological_exp_coef_baseline = numeric(),
     chronological_pval_baseline = numeric(),
+    chronological_adjusted_pval_baseline = numeric(),
     Concordance_baseline = numeric(),
     se_concordance_baseline = numeric(),
     lik_ratio_test_baseline = numeric(),
@@ -257,7 +261,23 @@ intializeSummaryTable <- function(){
     Wald_test_pval_baseline = numeric(),
     logrank_score_test_baseline = numeric(),
     logrank_score_test_df_baseline = numeric(),
-    logrank_score_test_pval_baseline = numeric()
+    logrank_score_test_pval_baseline = numeric(),
+    
+    predicted_age_coef_biological = numeric(),
+    predicted_age_exp_coef_biological = numeric(),
+    predicted_age_pval_biological = numeric(),
+    predicted_age_adjusted_pval_biological = numeric(),
+    Concordance_biological = numeric(),
+    se_concordance_biological = numeric(),
+    lik_ratio_test_biological = numeric(),
+    lik_ratio_test_df_biological = numeric(),
+    lik_ratio_test_pval_biological = numeric(),
+    Wald_test_biological = numeric(),
+    Wald_test_df_biological = numeric(),
+    Wald_test_pval_biological = numeric(),
+    logrank_score_test_biological = numeric(),
+    logrank_score_test_df_biological = numeric(),
+    logrank_score_test_pval_biological = numeric()
   )
   return(cancer_summary_table)
 }
@@ -315,9 +335,11 @@ getSummaryTable <- function(comb, modelOutput, stats, params=NULL){
                     interaction_term_coeff_interaction = stats$interaction_summary$coefficients["chronological:delta_age", "coef"],
                     interaction_term_exp_coeff_interaction = stats$interaction_summary$coefficients["chronological:delta_age", "exp(coef)"],
                     interaction_term_pval_interaction = stats$interaction_summary$coefficients["chronological:delta_age", "Pr(>|z|)"],
+                    interaction_term_adjusted_pval_interaction = stats$interaction_summary$coefficients["chronological:delta_age", "Pr(>|z|)"],
                     delta_age_coeff_interaction = stats$interaction_summary$coefficients["delta_age", "coef"],
                     delta_age_exp_coeff_interaction = stats$interaction_summary$coefficients["delta_age", "exp(coef)"],
                     delta_age_pval_interaction = stats$interaction_summary$coefficients["delta_age", "Pr(>|z|)"],
+                    delta_age_adjusted_pval_interaction = stats$interaction_summary$coefficients["delta_age", "Pr(>|z|)"],
                     chronological_coef_interaction = stats$interaction_summary$coefficients["chronological", "coef"],
                     chronological_exp_coef_interaction = stats$interaction_summary$coefficients["chronological", "exp(coef)"],
                     chronological_pval_interaction = stats$interaction_summary$coefficients["chronological", "Pr(>|z|)"],
@@ -339,6 +361,7 @@ getSummaryTable <- function(comb, modelOutput, stats, params=NULL){
                     delta_age_coeff_non_interaction	= stats$non_interaction_summary$coefficients["delta_age", "coef"],
                     delta_age_exp_coeff_non_interaction = stats$non_interaction_summary$coefficients["delta_age", "exp(coef)"],
                     delta_age_pval_non_interaction = stats$non_interaction_summary$coefficients["delta_age", "Pr(>|z|)"],
+                    delta_age_adjusted_pval_non_interaction = stats$non_interaction_summary$coefficients["delta_age", "Pr(>|z|)"],
                     chronological_coef_non_interaction = stats$non_interaction_summary$coefficients["chronological", "coef"],
                     chronological_exp_coef_non_interaction = stats$non_interaction_summary$coefficients["chronological", "exp(coef)"],
                     chronological_pval_non_interaction =  stats$non_interaction_summary$coefficients["chronological", "Pr(>|z|)"],
@@ -357,6 +380,7 @@ getSummaryTable <- function(comb, modelOutput, stats, params=NULL){
                     chronological_coef_baseline = stats$baseline_summary$coefficients["chronological", "coef"],
                     chronological_exp_coef_baseline = stats$baseline_summary$coefficients["chronological", "exp(coef)"],
                     chronological_pval_baseline = stats$baseline_summary$coefficients["chronological", "Pr(>|z|)"],
+                    chronological_adjusted_pval_baseline = stats$baseline_summary$coefficients["chronological", "Pr(>|z|)"],
                     Concordance_baseline = stats$baseline_summary$concordance[1],
                     se_concordance_baseline = stats$baseline_summary$concordance[2],
                     lik_ratio_test_baseline = stats$baseline_summary$logtest["test"],
@@ -367,7 +391,23 @@ getSummaryTable <- function(comb, modelOutput, stats, params=NULL){
                     Wald_test_pval_baseline = stats$baseline_summary$waldtest["pvalue"],
                     logrank_score_test_baseline = stats$baseline_summary$sctest["test"],
                     logrank_score_test_df_baseline = stats$baseline_summary$sctest["df"],
-                    logrank_score_test_pval_baseline = stats$baseline_summary$sctest["pvalue"]
+                    logrank_score_test_pval_baseline = stats$baseline_summary$sctest["pvalue"],
+                    
+                    predicted_age_coef_biological = stats$biological_summary$coefficients["predicted", "coef"],
+                    predicted_age_exp_coef_biological = stats$biological_summary$coefficients["predicted", "exp(coef)"],
+                    predicted_age_pval_biological = stats$biological_summary$coefficients["predicted", "Pr(>|z|)"],
+                    predicted_age_adjusted_pval_biological = stats$biological_summary$coefficients["predicted", "Pr(>|z|)"],
+                    Concordance_biological = stats$biological_summary$concordance[1],
+                    se_concordance_biological = stats$biological_summary$concordance[2],
+                    lik_ratio_test_biological = stats$biological_summary$logtest["test"],
+                    lik_ratio_test_df_biological = stats$biological_summary$logtest["df"],
+                    lik_ratio_test_pval_biological = stats$biological_summary$logtest["pvalue"],
+                    Wald_test_biological = stats$biological_summary$waldtest["test"],
+                    Wald_test_df_biological = stats$biological_summary$waldtest["df"],
+                    Wald_test_pval_biological = stats$biological_summary$waldtest["pvalue"],
+                    logrank_score_test_biological = stats$biological_summary$sctest["test"],
+                    logrank_score_test_df_biological = stats$biological_summary$sctest["df"],
+                    logrank_score_test_pval_biological = stats$biological_summary$sctest["pvalue"]
   )
 
   proportionalityAssumptionTestInteraction <- cox.zph(stats$interaction_model)
@@ -445,6 +485,8 @@ getFormattedStatsTable <- function(stats){
 
 ``` r
 writeUltimateSummaryTable <- function(outputDir="/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan/ComboRidge005/", suffix="_ridge_omics_summary.csv"){
+  
+  # Only make summary table for cancers of sufficient sample size, set cutoffs to 0 if you want to use all
   cancer_types <- getEligibleCancers("RNAseq", cutoff=250)
   cancer_types_methylation <- getEligibleCancers("methylation", cutoff=250)
   cancer_types <- cancer_types[cancer_types %in% cancer_types_methylation] 
@@ -463,24 +505,34 @@ writeUltimateSummaryTable <- function(outputDir="/restricted/projectnb/agediseas
     }
   })
   
-  # combined_tables <- do.call(rbind, summaries_list)
   combined_tables <- bind_rows(summaries_list)
 
   if (!("cancer_type" %in% colnames(combined_tables))){
     rep_cancers <- rep(cancer_types, each=4)
     combined_tables <- cbind(cancer_type=rep_cancers, combined_tables)
   }
+  
+  # Multiple test correction for likelihood ratios
   combined_tables$interaction_against_baseline_adjusted_pval <- p.adjust(combined_tables$interaction_against_baseline_pval, method="fdr")
   combined_tables$non_interaction_against_baseline_adjusted_pval <- p.adjust(combined_tables$non_interaction_against_baseline_pval, method="fdr")
   combined_tables$interaction_against_non_interaction_adjusted_pval <- p.adjust(combined_tables$interaction_against_non_interaction_pval, method="fdr")
+  
+  # Multiple test correction for covariate significances
+  combined_tables$interaction_term_adjusted_pval_interaction <- p.adjust(combined_tables$interaction_term_pval_interaction, method="fdr")
+  combined_tables$delta_age_adjusted_pval_interaction <- p.adjust(combined_tables$delta_age_pval_interaction, method="fdr")
+  combined_tables$delta_age_adjusted_pval_non_interaction <- p.adjust(combined_tables$delta_age_pval_non_interaction, method="fdr")
+  combined_tables$chronological_adjusted_pval_baseline <- p.adjust(combined_tables$chronological_pval_baseline, method="fdr")
+  combined_tables$predicted_age_adjusted_pval_biological <- p.adjust(combined_tables$predicted_age_pval_biological, method="fdr")
+  
+  # Export results
   write.csv(combined_tables, paste0(outputDir, "UltimateSummaryTable", suffix))
 }
 ```
 
-# Function to plot how the hazard ratio (represenative of survival, potentially modulated by an interaction term) varies with age
+# Function to plot how the hazard ratio (representative of survival, potentially modulated by an interaction term) varies with age
 
 ``` r
-plotHazardRatio <- function(coxOutput, chronologicalAges, title, x="chronological", y="delta_age", usingInteractionTerm=TRUE){
+plotHazardRatio <- function(coxOutput, chronologicalAges, title, x="chronological", y="delta_age", usingInteractionTerm=TRUE, scale=1){
   # Extract coefficients and covariance matrix
   coef_vec <- coxOutput$coef
   cov_mat  <- coxOutput$var
@@ -510,7 +562,7 @@ plotHazardRatio <- function(coxOutput, chronologicalAges, title, x="chronologica
   #    = beta1 + beta3 * Age
   #    Then exponentiate to get HR
   # --------------------------------------------
-  logHR <- beta1 + beta3 * ages_seq
+  logHR <- scale * (beta1 + beta3 * ages_seq)
   HR    <- exp(logHR)
   
   # --------------------------------------------
@@ -532,9 +584,9 @@ plotHazardRatio <- function(coxOutput, chronologicalAges, title, x="chronologica
     cov_b1b3 <- 0
   }
   
-  # Calculate variance of beta and (standerd error)
+  # Calculate variance of beta and (standard error)
   # For a linear function of two random variables (in this case, β₁ and β₃), the variance is calculated as:
-  varBeta <- var_b1 + ages_seq^2 * var_b3 + 2 * ages_seq * cov_b1b3
+  varBeta <- scale^2 * (var_b1 + ages_seq^2 * var_b3 + 2 * ages_seq * cov_b1b3)
   seBeta  <- sqrt(varBeta)
   
   logHR_low  <- logHR - 1.96 * seBeta
@@ -587,6 +639,48 @@ plotHazardRatio <- function(coxOutput, chronologicalAges, title, x="chronologica
       x = "Chronological Age",
       y = "Hazard Ratio"
     ) +
+    theme_minimal()
+}
+```
+
+
+``` r
+plotHazardRatiosMultiDelta <- function(coxOutput, survDF, 
+                                       delta_age_values = c(1, 2, 4),
+                                       title = "HR by Chronological Age and Delta Age",
+                                       x = "chronological", y = "delta_age", usingInteractionTerm = TRUE) {
+  
+  # Create data frame with all combinations of delta_age and age
+  df_plot <- expand.grid(
+    chronological = survDF$chronological[survDF$chronological < quantile(survDF$chronological)[4]],
+    delta_age = delta_age_values
+  )
+  df_plot_predictions <- predict(coxOutput, newdata = df_plot, type = "lp", se.fit = TRUE)
+
+  # Compute logHR and CI for each combo
+  df_plot <- 
+    df_plot |> dplyr::mutate(
+      HR = exp(df_plot_predictions$fit),
+      seBeta = sqrt(df_plot_predictions$se.fit),
+      logHR = df_plot_predictions$fit,
+      HR_low = exp(logHR - 1.96 * seBeta),
+      HR_high = exp(logHR + 1.96 * seBeta)
+    )
+
+    ggplot(df_plot, aes(x = chronological, y = HR, color = factor(delta_age))) +
+    geom_line(size = 1) +
+    # geom_ribbon(aes(ymin = HR_low, ymax = HR_high, fill = factor(delta_age)), alpha = 0.15, color = NA) +
+    geom_hline(yintercept = 1, linetype = "dashed", color = "red") +
+    labs(
+      title = title,
+      subtitle = "Hazard Ratio for Different Delta Age Levels by Chronological Age",
+      x = "Chronological Age",
+      y = "Hazard Ratio",
+      color = "Delta Age",
+      fill = "Delta Age"
+    ) +
+    # xlim(min_age, max_age) +
+    # coord_cartesian(ylim = c(minY, maxY)) +
     theme_minimal()
 }
 ```
