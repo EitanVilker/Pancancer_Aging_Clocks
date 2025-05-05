@@ -50,7 +50,8 @@ create_DFsurv <- function(predicted_ages, metadata_table, delta_age_thresh = 0) 
   DFsurv$surv <- survival::Surv(time = DFsurv$fu / 365, event = as.numeric(factor(DFsurv$vitals)) - 1)
   DFsurv$chronological <- scale(DFsurv$chronological)
   DFsurv$chronological <- DFsurv$chronological - min(DFsurv$chronological) + 0.01
-  DFsurv$chronological_duplicate <- DFsurv$chronological
+  DFsurv$chronological_duplicate <- DFsurv$chronological + rnorm(length(DFsurv$chronological), mean=0, sd=0.011)
+  DFsurv$chronological_duplicate2 <- DFsurv$chronological + rnorm(length(DFsurv$chronological), mean=0, sd=0.012)
   DFsurv$delta_age <- scale(DFsurv$delta_age)
   DFsurv$delta_age <- DFsurv$delta_age - min(DFsurv$delta_age) + 0.01
   
@@ -58,7 +59,7 @@ create_DFsurv <- function(predicted_ages, metadata_table, delta_age_thresh = 0) 
 }
 
 # Step 3: Run the CoxPH analysis
-run_analysis_pipeline <- function(fullExperiment, prediction_df, useCovariates=TRUE, useGender=TRUE) {
+run_analysis_pipeline <- function(fullExperiment, prediction_df, useCovariates=TRUE, useGender=TRUE, degreesFreedomNonLinear=8, useComplicatedNonlinear=TRUE) {
   
   # Prepare Metadata Table
   metadata_table <- make_meta_df(fullExperiment)
@@ -81,90 +82,69 @@ run_analysis_pipeline <- function(fullExperiment, prediction_df, useCovariates=T
     inner_join(filtered_metadata, by = "submitter_id")
 
   # Set up formulas, accounting for covariates appropriate to the cancer
-  formula_vector_non_interaction <- c("pspline(chronological, 8) + delta_age")
-  formula_vector_interaction <- c("chronological * delta_age")
-  formula_vector_baseline <- c("chronological")
-  formula_vector_baseline_nonlinear <- c("pspline(chronological,8)")
-  formula_vector_baseline_interaction <- c("chronological * chronological_duplicate")
+  formulaVectorList = list()
+  nonlinear_age_term <- paste0("pspline(chronological, ", degreesFreedomNonLinear, ")")
   
+  # Add core deta_age models
+  formulaVectorList$non_interaction_linear <- c("chronological + delta_age")
+  formulaVectorList$interaction_linear <- c("chronological * delta_age")
+  formulaVectorList$non_interaction_nonlinear <- c(paste0(nonlinear_age_term, "+ delta_age"))
+  formulaVectorList$interaction_additive_nonlinear <- c(paste0(nonlinear_age_term, "+ chronological * delta_age"))
+  formulaVectorList$interaction_linear_duplicate <- c("chronological * chronological_duplicate + chronological * delta_age")
+  
+  # Add baseline models without delta_age terms
+  formulaVectorList$baseline <- c("chronological")
+  formulaVectorList$baseline_nonlinear <- c(nonlinear_age_term)
+  formulaVectorList$baseline_interaction <- c("chronological * chronological_duplicate")
+  formulaVectorList$baseline_interaction2 <- c("chronological * chronological_duplicate + chronological * chronological_duplicate2")
+  formulaVectorList$baseline_interaction_nonlinear_additive <- c(paste0(nonlinear_age_term, "+ chronological * chronological_duplicate"))
+  
+  # Add models that can fail with high degrees of freedom
+  if (useComplicatedNonlinear){
+    formulaVectorList$interaction_multiplicative_nonlinear <- c(paste0(nonlinear_age_term, "* delta_age"))
+    formulaVectorList$interaction_nonlinear_duplicate <- c(paste0(nonlinear_age_term, "* chronological_duplicate + ", nonlinear_age_term, "* delta_age"))
+    formulaVectorList$baseline_interaction_nonlinear_multiplicative <- c(paste0(nonlinear_age_term, "* chronological_duplicate"))
+    formulaVectorList$baseline_interaction_nonlinear_multiplicative2 <- c(paste0(nonlinear_age_term, "* chronological_duplicate + ", nonlinear_age_term, "* chronological_duplicate2"))
+  }
+  
+  # Add appropriate covariates if using
   if (useCovariates){
     if (useGender){
       if (nlevels(as.factor(experiment_prediction_object_meta$gender.y)) > 1){
-        formula_vector_non_interaction <- c(formula_vector_non_interaction, "gender.y")
-        formula_vector_interaction <- c(formula_vector_interaction, "gender.y")
-        formula_vector_baseline <- c(formula_vector_baseline, "gender.y")
-        formula_vector_baseline_interaction <- c(formula_vector_baseline_interaction, "gender.y")
+        for (formula in names(formulaVectorList)){
+          formulaVectorList[[formula]] <- c(formulaVectorList[[formula]], "gender.y")
+        }
       }
     }
     if (nlevels(as.factor(experiment_prediction_object_meta$subtype_selected)) > 1 && TRUE){
-      formula_vector_non_interaction <- c(formula_vector_non_interaction, "subtype_selected")
-      formula_vector_interaction <- c(formula_vector_interaction, "subtype_selected")
-      formula_vector_baseline <- c(formula_vector_baseline, "subtype_selected")
-      formula_vector_baseline_interaction <- c(formula_vector_baseline_interaction, "subtype_selected")
+      for (formula in names(formulaVectorList)){
+        formulaVectorList[[formula]] <- c(formulaVectorList[[formula]], "subtype_selected")
+      }
     }
     if (nlevels(as.factor(experiment_prediction_object_meta$treatments_radiation_treatment_or_therapy)) > 1 && TRUE){
-      formula_vector_non_interaction <- c(formula_vector_non_interaction, "treatments_radiation_treatment_or_therapy")
-      formula_vector_interaction <- c(formula_vector_interaction, "treatments_radiation_treatment_or_therapy")
-      formula_vector_baseline <- c(formula_vector_baseline, "treatments_radiation_treatment_or_therapy")
-      formula_vector_baseline_interaction <- c(formula_vector_baseline_interaction, "treatments_radiation_treatment_or_therapy")
+      for (formula in names(formulaVectorList)){
+        formulaVectorList[[formula]] <- c(formulaVectorList[[formula]], "treatments_radiation_treatment_or_therapy")
+      }
     }
   }
-
-  covariates_formula_non_interaction <- as.formula(paste("surv ~ ", paste(formula_vector_non_interaction, collapse= "+")))
-  covariates_formula_interaction <- as.formula(paste("surv ~ ", paste(formula_vector_interaction, collapse= "+")))
-  covariates_formula_baseline <- as.formula(paste("surv ~ ", paste(formula_vector_baseline, collapse= "+")))
-  covariates_formula_baseline_nonlinear <- as.formula(paste("surv ~ ", paste(formula_vector_baseline_nonlinear, collapse= "+")))
-  covariates_formula_baseline_interaction <- as.formula(paste("surv ~ ", paste(formula_vector_baseline_interaction, collapse= "+")))
   
-  # Run Non-Interaction CoxPH Model
-  test1_non_interaction <- coxph(
-    covariates_formula_non_interaction,
-    data = experiment_prediction_object_meta
-  )
+  # Run the CoxPH model for each test
+  testList <- list()
+  for (formula in names(formulaVectorList)){
+    formulaObject <- as.formula(paste("surv ~ ", paste(formulaVectorList[[formula]], collapse= "+")))
+    testList[[formula]] <- coxph(
+      formulaObject,
+      data = experiment_prediction_object_meta,
+      control = coxph.control(iter.max = 50, outer.max = 20)
+    )
+  }
   
-  # Run Interaction CoxPH Model
-  test1_interaction <- coxph(
-    covariates_formula_interaction,
-    data = experiment_prediction_object_meta
-  )
-  
-  # Run Baseline CoxPH Model
-  test_baseline <- coxph(
-    covariates_formula_baseline,
-    data = experiment_prediction_object_meta
-  )
-
-  # Run Baseline Nonlinear CoxPH Model
-  test_baseline_nonlinear <- coxph(
-    covariates_formula_baseline_nonlinear,
-    data = experiment_prediction_object_meta
-  )
-  
-  # Run Baseline Interaction CoxPH Model
-  test_baseline_interaction <- coxph(
-    covariates_formula_baseline_interaction,
-    data = experiment_prediction_object_meta
-  )
-  
-  # Summarize Results
-  non_interaction_summary <- summary(test1_non_interaction)
-  interaction_summary <- summary(test1_interaction)
-  baseline_summary <- summary(test_baseline)
-  baseline_nonlinear_summary <- summary(test_baseline_nonlinear)
-  baseline_interaction_summary <- summary(test_baseline_interaction)
-  
-  # Return Results
-  return(list(
-    survDF = experiment_prediction_object_meta,
-    non_interaction_model = test1_non_interaction,
-    non_interaction_summary = non_interaction_summary,
-    interaction_model = test1_interaction,
-    interaction_summary = interaction_summary,
-    baseline_model = test_baseline,
-    baseline_summary = baseline_summary,
-    baseline_nonlinear_model = test_baseline_nonlinear,
-    baseline_nonlinear_summary = baseline_nonlinear_summary,
-    baseline_interaction_model = test_baseline_interaction,
-    baseline_interaction_summary = baseline_interaction_summary
-  ))
+  # Output the prediction object and each model and summary
+  outputList <- list(survDF=experiment_prediction_object_meta)
+  for (test in names(testList)){
+    model <- testList[[test]]
+    outputList[[paste0(test, "_model")]] <- model
+    outputList[[paste0(test, "_summary")]] <- summary(model)
+  }
+  return(outputList)
 }

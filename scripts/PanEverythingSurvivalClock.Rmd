@@ -44,17 +44,17 @@ existingExperimentList <- NULL
 # reducedRNAseq <- reduceExperimentBySubjects(expRNAseq[[1]], expRNAseqNormal[[1]])
 # reducedRNAseqNormal <- reduceExperimentBySubjects(expRNAseqNormal[[1]], reducedRNAseq)
 
-cancerType <- "BRCA"
+cancerType <- "UCEC"
 layers <- c("RNAseq")
 iterationCount <- 1
-modelOutput <- standardizedModelBuilding(layers, cancerName=cancerType, methodNames=c("ElasticNet"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=iterationCount, applyBiasCorrection=TRUE, combiningNormal=FALSE, scaleByNormal=FALSE, significanceCutoff=1.00, predictor="age", featuresToEncode=c("gender", "subtype_selected"))
+modelOutput <- standardizedModelBuilding(layers, cancerName=cancerType, methodNames=c("ElasticNet"), splitSize=1, seed=43, existingExperimentsList=existingExperimentList, iterationCount=iterationCount, applyBiasCorrection=TRUE, combiningNormal=FALSE, scaleByNormal=FALSE, significanceCutoff=0.05, predictor="age", featuresToEncode=c("gender", "subtype_selected"))
 existingExperimentList <- modelOutput$experimentList
 ```
 
 # Survival analysis given model just ran
 ```{r, Survival}
 ### Collect survival analysis data
-stats <- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted, applyBiasCorrection=TRUE, useCovariates=FALSE)
+stats <- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted, applyBiasCorrection=FALSE, useCovariates=FALSE, degreesFreedomNonLinear=8, useComplicatedNonlinear=FALSE)
 # anno <- getGeneMap(modelOutput)
 # survDF <- stats$survDF
 # DEtable <- differentialExpression(modelOutput$experimentList, survDF, anno, label="normal")
@@ -66,19 +66,41 @@ statsTable <- getFormattedStatsTable(stats)
 summaryTable <- initializeSummaryTable()
 summaryTable <- rbind(summaryTable, getSummaryTable(layers, modelOutput, stats))
 
-print(stats$interaction_summary)
-print(stats$non_interaction_summary)
-print(stats$baseline_summary)
-print(stats$baseline_nonlinear_summary)
-print(stats$baseline_interaction_summary)
+
+# Test: Age + delta_age
+print(stats$non_interaction_linear_summary) # Linear age + delta age
+print(stats$non_interaction_nonlinear_summary) # Nonlinear age + delta_age
+print(stats$baseline_nonlinear_summary) # Nonlinear age
+print(stats$baseline_summary) # Linear age
+
+# Test: Age * delta_age (Passes BRCA RNAseq no bias, fails BRCA RNAseq bias)
+print(stats$interaction_linear_summary) # Linear age * delta age
+print(stats$baseline_interaction_summary) # Linear age * linear age
+
+# Test: Age * age + Age * delta_age (Passes BRCA RNAseq no bias, narrowly passes BRCA RNAseq bias)
+print(stats$interaction_linear_duplicate_summary) # Linear age * linear age + linear age * delta age
+print(stats$baseline_interaction2_summary) # Linear age * linear age + linear age * linear age
+
+# Test: Nonlinear age + age * delta_age (Passes BRCA RNAseq no bias, narrowly passes BRCA RNAseq bias)
+print(stats$interaction_additive_nonlinear_summary) # Nonlinear age + linear age * delta_age
+print(stats$baseline_interaction_nonlinear_additive_summary) # Nonlinear age + linear age * linear age
+
+# Test: Nonlinear age * delta_age (Fails BRCA RNAseq no bias, passes BRCA RNAseq bias, passes UCEC RNAseq bias)
+print(stats$interaction_multiplicative_nonlinear_summary) # Nonlinear age * delta_age
+print(stats$baseline_interaction_nonlinear_multiplicative_summary) # Nonlinear age * age
+
+# Test: Nonlinear Age * Age + nonlinear age * delta_age (Passes BRCA RNAseq no bias, passes BRCA RNAseq bias, passes UCEC RNAseq bias)
+print(stats$interaction_nonlinear_duplicate_summary) # Nonlinear Age * Age + nonlinear age * delta_age
+print(stats$baseline_interaction_nonlinear_multiplicative2_summary) # Nonlinear age * age + nonlinear age * age
+
 
 # plotHazardRatio(stats$non_interaction_model, modelOutput$ModelBuilding$predicted$Age, "Non-Interaction Hazard Ratio of Delta Age", x="chronological", y="delta_age", usingInteractionTerm=FALSE)
 
-plotHazardRatio(stats$interaction_model, scale(modelOutput$ModelBuilding$predicted$Age), "Interaction Hazard Ratio of Delta Age", x="chronological", y="delta_age", usingInteractionTerm=TRUE, scale=1)
+# plotHazardRatio(stats$interaction_model, scale(modelOutput$ModelBuilding$predicted$Age), "Interaction Hazard Ratio of Delta Age", x="chronological", y="delta_age", usingInteractionTerm=TRUE, scale=1)
 # plotHazardRatiosMultiDelta(stats$interaction_model, getZScores(modelOutput$ModelBuilding$predicted$Age), delta_age_values = c(-1, 0, 1))
-title <- paste(cancerType, layers[1], "Not Bias Corrected")
-plotHazardRatiosMultiDelta(stats$interaction_model, stats$survDF, delta_age_values = c(0, 2, 3), title=title)
-# proportionalityAssumptionTest <- cox.zph(stats$interaction_model)
+title <- paste(cancerType, layers[1], "Bias Corrected")
+plotHazardRatiosMultiDelta(stats$interaction_multiplicative_nonlinear_model, stats$survDF, delta_age_values = c(2.5, 2, 3), title=title)
+proportionalityAssumptionTest <- cox.zph(stats$interaction_linear_model)
 # vif(stats$non_interaction_model)
 
 ```

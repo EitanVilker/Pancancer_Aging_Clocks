@@ -87,8 +87,8 @@ source("PanClockHelperFunctions.R")
 # cancer_type <- "BRCA"
 # getting_combinations <- TRUE
 # significance_cutoff <- 0.025
-layers <- c("miRNA", "RPPA", "RNAseq", "methylation")
-# layers <- c("methylation", "RNAseq")
+# layers <- c("miRNA", "RPPA", "RNAseq", "methylation")
+layers <- c("RNAseq")
 if (getting_combinations){
   layer_combinations <- unlist(lapply(1:length(layers), function(x) {
     combn(layers, x, simplify = FALSE)
@@ -105,7 +105,7 @@ for (comb in layer_combinations){
 #Initializing a coefficient empty list so to append after every run
 coef_list <- list()
 cancer_summary_table <- initializeSummaryTable()
-showOutput <- TRUE
+showOutput <- FALSE
 
 # Iterate through all values in layer_combinations
 for (comb in layer_combinations) {
@@ -143,26 +143,26 @@ for (comb in layer_combinations) {
 
   # Calculate and display survival statistics
   cat("\n\n### Evaluating delta age on Survival(coxph)\n\n")
-  # if (cancer_type == "BRCA"){ useGender <- FALSE} else{ useGender <- TRUE }
-  stats <- getSurvivalStats(modelOutput$experimentList[[1]],
-                            modelOutput$ModelBuilding$predicted, applyBiasCorrection=apply_bias_correction)
+  # stats <- getSurvivalStats(modelOutput$experimenStList[[1]],
+                            # modelOutput$ModelBuilding$predicted, applyBiasCorrection=apply_bias_correction)
   
   if (showOutput){
     cat("\n\n#### Interaction Coxph Model\n\n")
     cox_summary_i <- capture.output(stats$interaction_summary)
     cat("```\n", paste(cox_summary_i, collapse = "\n"), "\n```\n")
-    
+
     cat("\n\n#### Non Interaction Coxph Model\n\n")
     cox_summary_ni <- capture.output(stats$non_interaction_summary)
     cat("```\n", paste(cox_summary_ni, collapse = "\n"), "\n```\n")
-    
+
     cat("\n\n#### Baseline Coxph Model\n\n")
     cox_summary_b <- capture.output(stats$baseline_summary)
     cat("```\n", paste(cox_summary_b, collapse = "\n"), "\n```\n")
   }
   
   #Making summary tables df1 <- (model performance & coxph) & df2 <- (coefficients and model weight)
-  cancer_summary_table <- rbind(cancer_summary_table, getSummaryTable(comb, modelOutput, stats, params=params))
+  # cancer_summary_table <- rbind(cancer_summary_table, getSummaryTable(comb, modelOutput, stats, params=params))
+  cancer_summary_table <- rbind(cancer_summary_table, getFormattedStatsTable(modelOutput, comb, params=params, applyBiasCorrection=apply_bias_correction))
 }
 ```
 ## Model Weights

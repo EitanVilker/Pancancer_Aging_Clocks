@@ -17,21 +17,21 @@ rmd_file <- "Many_models_one_cancer_test.Rmd"
 if (length(args) > 1){ 
   test_name <- args[1]
   cancer_type <- args[2] } else { 
-  test_name <- "ComboRidge005" 
-  cancer_type <- "LGG"
+  test_name <- "BLAH" 
+  cancer_type <- "LUAD"
 }
 
 cat("Running on cancer:", cancer_type, "\n")
 
 
-base_dir <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/Eitan"
+base_dir <- "/restricted/projectnb/agedisease/projects/pancancer_aging_clocks/results/ComplexStats"
 output_dir <- file.path(base_dir, test_name)
 dir.create(output_dir, showWarnings = FALSE)
 
 ### Set parameters for models
-model_type <- "ElasticNet"
+model_type <- "ridge"
 significance_cutoff <- 0.05
-getting_combinations <- FALSE
+getting_combinations <- TRUE
 apply_bias_correction <- FALSE
 iteration_count <- 1
 
@@ -64,4 +64,4 @@ tryCatch({
   message(paste("Error details:", e$message))
 })
 
-writeUltimateSummaryTable(outputDir=paste0(output_dir, "/"), suffix=paste0("_", model_type, "_omics_summary.csv"))
+# writeUltimateSummaryTable(outputDir=paste0(output_dir, "/"), suffix=paste0("_", model_type, "_omics_summary.csv"))

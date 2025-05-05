@@ -14,7 +14,7 @@ SECONDS=0
 #$ -t 1-2
 #$ -l mem_per_core=18G
 # Name job
-#$ -N LargeNormElNet
+#$ -N LargeReports
 #setting the error file:
 #$ -m ea
 #$ -o Large_generate_reports.out

@@ -16,11 +16,20 @@ source("PanClockHelperFunctions.R")
 # Runs CoxPH given experiment and predictions and output object containing each CoxPH run
 
 ``` r
-getSurvivalStats <- function(fullExperiment, predictionObject, applyBiasCorrection=FALSE, useGender=TRUE, useCovariates=TRUE){
+getSurvivalStats <- function(fullExperiment, predictionObject, applyBiasCorrection=FALSE, useGender=TRUE, useCovariates=TRUE, degreesFreedomNonLinear=8, useComplicatedNonlinear=TRUE){
+  
   if (applyBiasCorrection) { predictedAges <- predictionObject$predicted_corrected_age }
   else { predictedAges <- predictionObject$predicted_age }
+  
   prediction_df <- data.frame(predicted_age=predictedAges, submitter_id=predictionObject$submitter_id)
-  return(run_analysis_pipeline(fullExperiment, prediction_df, useCovariates=useCovariates))
+  survivalOutput <- run_analysis_pipeline(fullExperiment, prediction_df, useCovariates=useCovariates, degreesFreedomNonLinear=degreesFreedomNonLinear, useComplicatedNonlinear=useComplicatedNonlinear)
+  
+  survivalOutput$non_interaction_linear_model$compareTo <- "baseline_model"
+  survivalOutput$non_interaction_nonlinear_model$compareTo <- "baseline_nonlinear_model"
+  survivalOutput$interaction_linear_model$compareTo <- "baseline_interaction_model"
+  survivalOutput$interaction_linear_duplicate_model$compareTo <- "baseline_interaction2_model"
+  survivalOutput$interaction_additive_nonlinear_model$compareTo <- "baseline_interaction_nonlinear_additive_model"
+  return(survivalOutput)
 }
 ```
 
@@ -54,20 +63,20 @@ saveClockOutput <- function(cancerType, layers, modelOutput, dir, additionalDesc
   if (!crossValidating){
     coefficientFrame[[cancerLayersPrefix]] <- getCoefficientDF(modelOutput$ModelBuilding$model$finalModel)
   } else{
-     coefficientFrame[[cancerLayersPrefix]] <- modelOutput$ModelBuilding$combinedWeights
+     coefficientFrame[[cancerLayersPrefix]] <- modelOutput$ModelBuilding$weights
   }
   
-  # Get stats
-  stats <- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted, applyBiasCorrection=applyBiasCorrection, covariates_to_include=c("race"))
-  statsTable <- getFormattedStatsTable(stats)
-  summaryTable <- getSummaryTable(cancerType, layers, modelOutput, stats)
-  print(statsTable)
+  # # Get stats
+  # stats <- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted, applyBiasCorrection=applyBiasCorrection)
+  # statsTable <- getFormattedStatsTable(stats)
+  # summaryTable <- getSummaryTable(cancerType, layers, modelOutput, stats)
+  # print(statsTable)
   
   # Save outputs
   coefficientPath <- paste0(filePath, "_coef", additionalDescriptor, ".rds")
   saveRDS(coefficientFrame, file = coefficientPath)
-  write.csv(summaryTable, paste0(filePath, "_summary", additionalDescriptor, ".csv"), row.names = FALSE)
-  write.csv(statsTable, paste0(filePath, "_stats", additionalDescriptor, ".csv"), row.names = TRUE)
+  # write.csv(summaryTable, paste0(filePath, "_summary", additionalDescriptor, ".csv"), row.names = FALSE)
+  # write.csv(statsTable, paste0(filePath, "_stats", additionalDescriptor, ".csv"), row.names = TRUE)
   return(list(primaryDir=primaryDir, coefficientPath=coefficientPath))
 }
 ```
@@ -432,52 +441,77 @@ getSummaryTable <- function(comb, modelOutput, stats, params=NULL){
 }
 ```
 
+# Get output table of important statistical findings
 
 ``` r
-getFormattedStatsTable <- function(stats){
+getFormattedStatsTable <- function(modelOutput, comb, params=NULL, applyBiasCorrection=FALSE, useCovariates=FALSE, degreesFreedomNonLinear=4, useComplicatedNonlinear=FALSE){
   
-  cols <- c("interaction_term_pval", "delta_age_pval", "chronological_age_pval", "concordance", "logtest", "logtest pvalue", "waldtest", "waldtest pvalue", "sctest", "sctest pvalue")
-  non_interaction <- c(
-    "N/A",
-    stats$non_interaction_summary$coefficients["delta_age", "Pr(>|z|)"],
-    stats$non_interaction_summary$coefficients["chronological", "Pr(>|z|)"],
-    stats$non_interaction_summary$concordance[1],
-    stats$non_interaction_summary$logtest["test"],
-    stats$non_interaction_summary$logtest["pvalue"],
-    stats$non_interaction_summary$waldtest["test"],
-    stats$non_interaction_summary$waldtest["pvalue"],
-    stats$non_interaction_summary$sctest["test"],
-    stats$non_interaction_summary$sctest["pvalue"]
+  stats <- getSurvivalStats(modelOutput$experimentList[[1]], modelOutput$ModelBuilding$predicted, applyBiasCorrection=applyBiasCorrection, useCovariates=useCovariates, degreesFreedomNonLinear=degreesFreedomNonLinear, useComplicatedNonlinear=useComplicatedNonlinear)
+
+  if ("Fold1" %in% names(modelOutput$ModelBuilding$model) || "Fold01" %in% names(modelOutput$ModelBuilding$model)){
+    alpha <- modelOutput$ModelBuilding$model[[1]]$model$bestTune$alpha
+    lambda <- modelOutput$ModelBuilding$model[[1]]$model$bestTune$lambda
+  }
+  else{
+    alpha = modelOutput$ModelBuilding$model$bestTune$alpha
+    lambda = modelOutput$ModelBuilding$model$bestTune$lambda
+  }
+  non_zero_weights <- sum(modelOutput$ModelBuilding$weights$Weight != 0, na.rm = TRUE)
+  zero_weights <- sum(modelOutput$ModelBuilding$weights$Weight == 0, na.rm = TRUE)
+  if (!is.null(params)){
+    test_name <- params$test_name
+    model <- params$model_type
+    age_association_adjusted_p_cutoff <- params$significance_cutoff
+    cancer_type <- params$cancer_type
+  }
+  else{
+    test_name <- "None"
+    model <- "None"
+    age_association_adjusted_p_cutoff <- "None"
+    cancer_type <- "None"
+  }
+
+  cancerLayerFrame <- data.frame(
+                    test_name = test_name,
+                    cancer_type = cancer_type,
+                    layer_combination = paste(comb, collapse = "_"),
+                    model = model,
+                    age_association_adjusted_p_cutoff = age_association_adjusted_p_cutoff,
+                    degreesFreedomNonLinear = degreesFreedomNonLinear,
+                    
+                    Rsquared = modelOutput$ModelBuilding$model$R2,
+                    RMSE = modelOutput$ModelBuilding$model$RMSE,
+                    alpha = alpha,
+                    lambda = lambda,
+                    non_zero_weight_feature_count = non_zero_weights,
+                    zero_weight_feature_count = zero_weights
   )
+                    
+  for (name in names(stats)){
+    if (grepl("model", name)){
+      model <- stats[[name]]
+      comparisonModel <- model$compareTo
+      if (!is.null(comparisonModel)){
+        trueLikelihoodRatio <- getTrueLikelihoodRatio(stats[[comparisonModel]], model)
+        cancerLayerFrame[[paste0(name, "_likelihood_against_", comparisonModel)]] <- trueLikelihoodRatio$logratio
+        cancerLayerFrame[[paste0(name, "_likelihood_against_", comparisonModel, "_pval")]] <- trueLikelihoodRatio$pval
+      }
+
+      summary <- summary(model)
+      for (i in 1:length(summary$coefficients[, "coef"])){# rownames(as.data.frame(summary$coefficients))){
+        coefficients <- summary$coefficients
+        coefficient <- rownames(coefficients)[i]
+        cancerLayerFrame[[paste0(name, "_", coefficient, "_weight")]] <- coefficients[i, "coef"]
+        if ("p" %in% colnames(coefficients)){ cancerLayerFrame[[paste0(name, "_", coefficient, "_pval")]] <- coefficients[i, "p"] }
+        else { cancerLayerFrame[[paste0(name, "_", coefficient, "_pval")]] <- coefficients[i, "Pr(>|z|)"] }
+      }
+      cancerLayerFrame[[paste0(name, "_likelikood_ratio")]] <- summary$logtest["test"]
+      cancerLayerFrame[[paste0(name, "_likelikood_ratio_pval")]] <- summary$logtest["pvalue"]
+      cancerLayerFrame[[paste0(name, "_concordance")]] <- summary$concordance[1]
+    }
+  }
   
-  interaction <- c(
-    stats$interaction_summary$coefficients["chronological:delta_age", "Pr(>|z|)"],
-    stats$interaction_summary$coefficients["delta_age", "Pr(>|z|)"],
-    stats$interaction_summary$coefficients["chronological", "Pr(>|z|)"],
-    stats$interaction_summary$concordance[1],
-    stats$interaction_summary$logtest["test"],
-    stats$interaction_summary$logtest["pvalue"],
-    stats$interaction_summary$waldtest["test"],
-    stats$interaction_summary$waldtest["pvalue"],
-    stats$interaction_summary$sctest["test"],
-    stats$interaction_summary$sctest["pvalue"]
-  )
-  
-  baseline <- c(
-    "N/A",
-    "N/A",
-    stats$baseline_summary$coefficients["chronological", "Pr(>|z|)"],
-    stats$baseline_summary$concordance[1],
-    stats$baseline_summary$logtest["test"],
-    stats$baseline_summary$logtest["pvalue"],
-    stats$baseline_summary$waldtest["test"],
-    stats$baseline_summary$waldtest["pvalue"],
-    stats$baseline_summary$sctest["test"],
-    stats$baseline_summary$sctest["pvalue"]
-  )
-  statsFrame <- t(data.frame(interaction=interaction, non_interaction=non_interaction, baseline=baseline))
-  colnames(statsFrame) <- cols
-  return(statsFrame)
+  return(cancerLayerFrame)
 }
 ```
 
@@ -651,12 +685,24 @@ plotHazardRatiosMultiDelta <- function(coxOutput, survDF,
                                        x = "chronological", y = "delta_age", usingInteractionTerm = TRUE) {
   
   # Create data frame with all combinations of delta_age and age
+  
+  # Only include ages within the middle 80%
+  q <- quantile(survDF$chronological, probs = c(0.10, 0.90))
+  chronological <- survDF$chronological[survDF$chronological >= q[1] & survDF$chronological <= q[2], ]
+  
+  # chronological = survDF$chronological[survDF$chronological < quantile(survDF$chronological)[4]]
+  
   df_plot <- expand.grid(
-    chronological = survDF$chronological[survDF$chronological < quantile(survDF$chronological)[4]],
+    chronological = chronological,
     delta_age = delta_age_values
   )
-  df_plot_predictions <- predict(coxOutput, newdata = df_plot, type = "lp", se.fit = TRUE)
+  
+  coefficients <- rownames(as.data.frame(coxOutput$coefficients))
+  if ("chronological_duplicate" %in% coefficients){ df_plot$chronological_duplicate <- df_plot$chronological }
 
+  print("Predicting...")
+  df_plot_predictions <- predict(coxOutput, newdata = df_plot, type = "lp", se.fit = TRUE)
+  
   # Compute logHR and CI for each combo
   df_plot <- 
     df_plot |> dplyr::mutate(
@@ -667,21 +713,23 @@ plotHazardRatiosMultiDelta <- function(coxOutput, survDF,
       HR_high = exp(logHR + 1.96 * seBeta)
     )
 
-    ggplot(df_plot, aes(x = chronological, y = HR, color = factor(delta_age))) +
-    geom_line(size = 1) +
-    # geom_ribbon(aes(ymin = HR_low, ymax = HR_high, fill = factor(delta_age)), alpha = 0.15, color = NA) +
-    geom_hline(yintercept = 1, linetype = "dashed", color = "red") +
-    labs(
-      title = title,
-      subtitle = "Hazard Ratio for Different Delta Age Levels by Chronological Age",
-      x = "Chronological Age",
-      y = "Hazard Ratio",
-      color = "Delta Age",
-      fill = "Delta Age"
-    ) +
-    # xlim(min_age, max_age) +
-    # coord_cartesian(ylim = c(minY, maxY)) +
-    theme_minimal()
+  # return(df_plot)
+  print("Plotting...")
+  ggplot(df_plot, aes(x = chronological, y = HR, color = factor(delta_age))) +
+  geom_line(size = 1) +
+  # geom_ribbon(aes(ymin = HR_low, ymax = HR_high, fill = factor(delta_age)), alpha = 0.15, color = NA) +
+  geom_hline(yintercept = 1, linetype = "dashed", color = "red") +
+  labs(
+    title = title,
+    subtitle = "Hazard Ratio for Different Delta Age Levels by Chronological Age",
+    x = "Chronological Age",
+    y = "Hazard Ratio",
+    color = "Delta Age",
+    fill = "Delta Age"
+  ) +
+  # xlim(min_age, max_age) +
+  # coord_cartesian(ylim = c(minY, maxY)) +
+  theme_minimal()
 }
 ```
 
